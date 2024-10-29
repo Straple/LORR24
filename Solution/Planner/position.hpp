@@ -10,11 +10,21 @@ struct Position {
 
     Position(int pos, SharedEnvironment *env);
 
-    [[nodiscard]] bool validate(SharedEnvironment *env) const;
+    // корректная позиция + проходимо
+    [[nodiscard]] bool is_valide(SharedEnvironment *env) const;
 
+    // двигает вперед учитывая направление
     [[nodiscard]] Position move_forward(SharedEnvironment *env) const;
+
+    // поворачивает по часовой стрелке
+    [[nodiscard]] Position rotate() const;
+
+    // поворачивает против часовой стрелке
+    [[nodiscard]] Position counter_rotate() const;
 };
 
 bool operator==(const Position &lhs, const Position &rhs);
 
 bool operator!=(const Position &lhs, const Position &rhs);
+
+bool operator<(const Position &lhs, const Position &rhs);
