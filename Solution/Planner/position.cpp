@@ -2,22 +2,24 @@
 
 #include "../assert.hpp"
 
-void Position::validate(SharedEnvironment *env) const {
-    ASSERT(0 <= x && x < env->rows, "invalid position x: " + std::to_string(x));
-    ASSERT(0 <= y && y < env->rows, "invalid position y: " + std::to_string(y));
-    ASSERT(0 <= dir && dir < 4, "invalid position dir: " + std::to_string(dir));
+Position::Position(int pos, SharedEnvironment *env) : pos(pos), dir(0) {
 }
 
-Position Position::move_forward() const {
+bool Position::validate(SharedEnvironment *env) const {
+    ASSERT(0 <= dir && dir < 4, "invalid position dir: " + std::to_string(dir));
+    return 0 <= pos && pos < env->cols * env->rows;
+}
+
+Position Position::move_forward(SharedEnvironment *env) const {
     Position p = *this;
     if (dir == 0) {
-        p.y++;
+        p.pos++;
     } else if (dir == 1) {
-        p.x++;
+        p.pos += env->cols;
     } else if (dir == 2) {
-        p.y--;
+        p.pos--;
     } else if (dir == 3) {
-        p.x--;
+        p.pos -= env->cols;
     } else {
         FAILED_ASSERT("invalid position dir: " + std::to_string(dir));
     }
@@ -25,17 +27,10 @@ Position Position::move_forward() const {
 }
 
 bool operator==(const Position &lhs, const Position &rhs) {
-    return lhs.x == rhs.x &&
-           lhs.y == rhs.y &&
+    return lhs.pos == rhs.pos &&
            lhs.dir == rhs.dir;
 }
 
 bool operator!=(const Position &lhs, const Position &rhs) {
     return !(lhs == rhs);
-}
-
-Position get_pos(int v, SharedEnvironment *env) {
-    Position p{v / env->cols, v % env->cols, 0};
-    p.validate(env);
-    return p;
 }
