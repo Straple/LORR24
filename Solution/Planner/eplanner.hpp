@@ -1,9 +1,13 @@
 #pragma once
 
-#include "SharedEnv.h"
 #include "ActionModel.h"
+#include "SharedEnv.h"
+
+#include "dist_machine.hpp"
 
 class EPlanner {
+    DistMachine dist_machine;
+
 public:
     SharedEnvironment *env;
 
