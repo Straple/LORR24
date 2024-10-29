@@ -8,7 +8,7 @@ struct Position {
 
     Position() = default;
 
-    Position(int pos, SharedEnvironment *env);
+    Position(int pos, int dir);
 
     // корректная позиция + проходимо
     [[nodiscard]] bool is_valide(SharedEnvironment *env) const;

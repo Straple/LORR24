@@ -2,7 +2,7 @@
 
 #include "../assert.hpp"
 
-Position::Position(int pos, SharedEnvironment *env) : pos(pos), dir(0) {
+Position::Position(int pos, int dir) : pos(pos), dir(dir) {
 }
 
 bool Position::is_valide(SharedEnvironment *env) const {

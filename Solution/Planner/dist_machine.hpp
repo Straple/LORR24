@@ -8,4 +8,6 @@ class DistMachine {
 
 public:
     int get_dist(Position source, Position target, SharedEnvironment *env);
+
+    int get_dist(Position source, int target, SharedEnvironment *env);
 };

@@ -42,5 +42,4 @@ void Entry::update_goal_locations(std::vector<int> &proposed_schedule) {
         int i_loc = task_ptr->idx_next_loc;
         env->goal_locations[i].push_back({task_ptr->locations.at(i_loc), task_ptr->t_revealed});
     }
-    return;
 }
