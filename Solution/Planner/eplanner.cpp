@@ -32,66 +32,69 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         plan[robot] = Action::W;
     }
 
-    auto find_robot = [&](int pos) {
+    // проверяет, что нет робота, который хочет в эту позицию
+    auto check_pos = [&](int pos, int robot_id) {
         vector<int> ans;
         for (int robot = 0; robot < env->num_of_agents; robot++) {
-            if (env->curr_states[robot].location == pos) {
+            if (robot == robot_id) {
+                continue;
+            }
+            Position p(env->curr_states[robot].location, env->curr_states[robot].orientation, env);
+            if (plan[robot] == Action::FW) {
+                p = p.move_forward(env);
+            } else if (plan[robot] == Action::CR) {
+                p = p.rotate();
+            } else if (plan[robot] == Action::CCR) {
+                p = p.counter_rotate();
+            } else if (plan[robot] == Action::W) {
+                // wait
+            } else {
+                ASSERT(false, "invalid plan: " + std::to_string((int) plan[robot]));
+            }
+            if (p.pos == pos) {
                 ans.push_back(robot);
             }
         }
         ASSERT(ans.size() <= 1, "invalid ans");
-        return ans;
+        return ans.empty();
     };
 
-    output << "HELLO" << std::endl;
-
     for (int robot = 0; robot < env->num_of_agents; robot++) {
-        int task = env->curr_task_schedule[robot];
-        if (task != -1) {
+        int task_id = env->curr_task_schedule[robot];
+        if (task_id != -1) {
             // у этого робота есть задача
 
-            auto [goal_pos, reveal_time] = env->goal_locations[robot][0];
+            auto task = env->task_pool[task_id];
+            //auto [goal_pos, reveal_time] =env->goal_locations[robot][task.idx_next_loc];
+            int goal_pos = task.get_next_loc();
 
             // нужно робота в goal_pos
             // найдем куда ему лучше всего сейчас пойти
 
-            Position p(env->curr_states[robot].location, env->curr_states[robot].orientation);
+            Position p(env->curr_states[robot].location, env->curr_states[robot].orientation, env);
 
-            ASSERT(p.pos != goal_pos, "why source is equal to target?");
+            if(p.pos == goal_pos){
+                continue;
+            }
+
+            ASSERT(p.pos != goal_pos, "why source is equal to target? value: " + std::to_string(p.pos));
 
             int best_d = 1e9;
+            Action best_action = Action::W;
 
-#define STEP(to, action_type)                                                                                       \
-    if ((to).is_valide(env) && find_robot(to.pos).empty() && dist_machine.get_dist((to), goal_pos, env) < best_d) { \
-        best_d = dist_machine.get_dist((to), goal_pos, env);                                                        \
-        plan[robot] = action_type;                                                                                  \
+#define STEP(to, action_type)                                                                                     \
+    if ((to).is_valide(env) && check_pos(to.pos, robot) && dist_machine.get_dist((to), goal_pos, env) < best_d) { \
+        best_d = dist_machine.get_dist((to), goal_pos, env);                                                      \
+        best_action = action_type;                                                                                \
     }
 
             STEP(p.move_forward(env), Action::FW);
             STEP(p.rotate(), Action::CR);
             STEP(p.counter_rotate(), Action::CCR);
 
+            plan[robot] = best_action;
+
 #undef STEP
-        }
-    }
-
-    output << "BOO" << std::endl;
-
-    // TODO: теперь нужно обработать полученные действия так, чтобы убрать плохие
-
-    std::map<int, vector<int>> used;
-    for (int robot = 0; robot < env->num_of_agents; robot++) {
-        int task = env->curr_task_schedule[robot];
-        if (task != -1) {
-            Position p(env->curr_states[robot].location, env->curr_states[robot].orientation);
-            if (plan[robot] == Action::FW) {
-                p = p.move_forward(env);
-            }
-
-            if (!used[p.pos].empty()) {
-                plan[robot] = Action::W;
-            }
-            used[p.pos].push_back(robot);
         }
     }
 }

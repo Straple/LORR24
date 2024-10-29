@@ -52,9 +52,9 @@ int DistMachine::get_dist(Position source, Position target, SharedEnvironment *e
 
 int DistMachine::get_dist(Position source, int target, SharedEnvironment *env) {
     return std::min({
-            get_dist(source, Position(target, 0), env),
-            get_dist(source, Position(target, 1), env),
-            get_dist(source, Position(target, 2), env),
-            get_dist(source, Position(target, 3), env),
+            get_dist(source, Position(target, 0, env), env),
+            get_dist(source, Position(target, 1, env), env),
+            get_dist(source, Position(target, 2, env), env),
+            get_dist(source, Position(target, 3, env), env),
     });
 }

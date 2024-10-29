@@ -4,11 +4,12 @@
 
 struct Position {
     int pos = 0;
+    int x = 0, y = 0;
     int dir = 0;// 0:east, 1:south, 2:west, 3:north
 
     Position() = default;
 
-    Position(int pos, int dir);
+    Position(int pos, int dir, SharedEnvironment *env);
 
     // корректная позиция + проходимо
     [[nodiscard]] bool is_valide(SharedEnvironment *env) const;
