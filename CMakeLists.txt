@@ -28,7 +28,12 @@ include_directories("inc")
 # default planner
 include_directories("default_planner")
 
-file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp")
+file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
+
+        # team solution
+        "Solution/*.cpp"
+        "Solution/Planner/*.cpp"
+        )
 
 
 # Find Boost
@@ -53,7 +58,7 @@ IF(PYTHON)
     include_directories("python/tmp")
 
     pybind11_add_module(MAPF "./src/Grid.cpp"   "./src/States.cpp" "./python/tmp/MAPFbinding.cpp")
-    target_link_libraries(MAPF PRIVATE ) 
+    target_link_libraries(MAPF PRIVATE )
 
     file(GLOB PY_SOURCES "python/tmp/*.cpp")
     list(FILTER PY_SOURCES EXCLUDE REGEX ".*python/MAPFbinding\.cpp")
@@ -69,7 +74,7 @@ IF(PYTHON)
 
 ELSE()
     message(STATUS "Python support is disabled")
-    
+
 
     add_executable(lifelong ${SOURCES} )
     target_link_libraries(lifelong ${Boost_LIBRARIES})
