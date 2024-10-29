@@ -1,0 +1,17 @@
+#pragma once
+
+#include "SharedEnv.h"
+#include "ActionModel.h"
+
+class EPlanner {
+public:
+    SharedEnvironment *env;
+
+    explicit EPlanner(SharedEnvironment *env);
+    EPlanner();
+
+    virtual void initialize(int preprocess_time_limit);
+
+    // return next states for all agents
+    virtual void plan(int time_limit, std::vector<Action> &plan);
+};
