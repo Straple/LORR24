@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ActionModel.h"
 #include "SharedEnv.h"
 
 struct Position {
@@ -22,6 +23,8 @@ struct Position {
 
     // поворачивает против часовой стрелке
     [[nodiscard]] Position counter_rotate() const;
+
+    [[nodiscard]] Position simulate_action(Action action, SharedEnvironment *env) const;
 };
 
 bool operator==(const Position &lhs, const Position &rhs);

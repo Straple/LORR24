@@ -31,8 +31,12 @@ include_directories("default_planner")
 file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
 
         # team solution
-        "Solution/*.cpp"
-        "Solution/Planner/*.cpp"
+        "Solution/assert.cpp"
+        #"Solution/Planner/*.cpp"
+
+        "Solution/Planner/position.cpp"
+        "Solution/Planner/dist_machine.cpp"
+        "Solution/Planner/eplanner.cpp"
         )
 
 

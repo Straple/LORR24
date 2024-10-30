@@ -7,22 +7,23 @@
 
 #include "../Solution/Planner/eplanner.hpp"
 
+using PLANNER = EPlanner;//MAPFPlanner;
+
 class Entry {
 public:
     SharedEnvironment *env;
-    EPlanner *planner;
+    PLANNER *planner;
     TaskScheduler *scheduler;
 
     Entry(SharedEnvironment *env) : env(env) {
-        planner = new EPlanner(env);
+        planner = new PLANNER(env);
     };
     Entry() {
         env = new SharedEnvironment();
-        planner = new EPlanner(env);
+        planner = new PLANNER(env);
         scheduler = new TaskScheduler(env);
     };
     virtual ~Entry() { delete env; };
-
 
     virtual void initialize(int preprocess_time_limit);
 

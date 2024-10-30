@@ -47,6 +47,18 @@ Position Position::counter_rotate() const {
     return p;
 }
 
+[[nodiscard]] Position Position::simulate_action(Action action, SharedEnvironment *env) const {
+    if (action == Action::FW) {
+        return move_forward(env);
+    } else if (action == Action::CR) {
+        return rotate();
+    } else if (action == Action::CCR) {
+        return counter_rotate();
+    } else {
+        return *this;
+    }
+}
+
 bool operator==(const Position &lhs, const Position &rhs) {
     return lhs.x == rhs.x &&
            lhs.y == rhs.y &&
