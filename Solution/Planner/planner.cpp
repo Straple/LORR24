@@ -1,6 +1,7 @@
 #include "planner.hpp"
 
 #include "../assert.hpp"
+#include "planner_solver.hpp"
 
 int EPlanner::get_target(int r) const {
     int task_id = env->curr_task_schedule[r];
@@ -13,184 +14,9 @@ int EPlanner::get_target(int r) const {
 
     auto task = env->task_pool[t];
     int target = task.get_next_loc();
-    //ASSERT(0 <= target && target < env->cols * env->rows, "invalid target: " + std::to_string(target));
+    ASSERT(0 <= target && target < env->cols * env->rows, "invalid target: " + std::to_string(target));
 
-    if (target == robots[r].position.pos) {
-        //ASSERT(false, "WTF?");
-        return -1;// TODO: робот же уже стоит в этой позиции???
-    }
     return target;
-}
-
-int EPlanner::find_robot(int pos) const {
-    vector<int> ans;
-    for (int r = 0; r < robots.size(); r++) {
-        if (robots[r].position.simulate_action(robots[r].action, env).pos == pos) {
-            ans.push_back(r);
-        }
-    }
-
-    if (ans.empty()) {
-        return -1;
-    } else {
-        ASSERT(ans.size() == 1, "invalid robots");
-        return ans[0];
-    }
-}
-
-void EPlanner::move_over_IMPL(int r, int d) {
-    if (robots[r].action != Action::W) {
-        return;
-    }
-
-    robots[r].action = Action::NA;
-
-    {
-        auto to = robots[r].position.simulate_action(Action::FW, env);
-        if (to.is_valide(env)) {
-            move_over_stack.emplace_back(r, Action::FW);
-            robots[r].action = Action::FW;
-            int to_r = find_robot(to.pos);
-            if (to_r == -1) {
-                // можем пойти вперед, в незанятое место
-
-                if (move_over_best_d > d + 1) {
-                    move_over_best_d = d + 1;
-                    move_over_best_stack = move_over_stack;
-                }
-            } else {
-                move_over_IMPL(to_r, d + 1);
-
-                if (find_robot(to.pos) == -1) {
-                    robots[r].action = Action::FW;
-                } else {
-                    // этот робот пока там
-                    robots[r].action = Action::W;
-                }
-                return true;
-            }
-            robots[r].action = Action::NA;
-            move_over_stack.pop_back();
-        }
-    }
-
-    {
-        auto to = robots[r].position.simulate_action(Action::CR, env);
-        to = to.simulate_action(FW, env);
-        if (to.is_valide(env)) {
-            int to_r = find_robot(to.pos);
-            if (to_r == -1 || move_over(to_r)) {
-                robots[r].action = Action::CR;
-                return true;
-            }
-        }
-    }
-
-    {
-        auto to = robots[r].position.simulate_action(Action::CCR, env);
-        to = to.simulate_action(FW, env);
-        if (to.is_valide(env)) {
-            int to_r = find_robot(to.pos);
-            if (to_r == -1 || move_over(to_r)) {
-                robots[r].action = Action::CCR;
-                return true;
-            }
-        }
-    }
-
-    robots[r].action = Action::W;
-    return false;
-}
-
-void EPlanner::move_over(int r) {
-    move_over_best_d = 1e9;
-    move_over_stack.clear();
-    move_over_best_stack.clear();
-    move_over_IMPL(r, 0);
-}
-
-void EPlanner::plan_robot(int r) {
-    if (get_target(r) == -1) {
-        return;
-    }
-
-    if (robots[r].action != Action::W) {
-        return;// уже посчитан
-    }
-
-    auto pos = robots[r].position;
-    Action best_a = Action::W;
-    int best_d = 1e9;
-
-    {
-        auto to = pos.simulate_action(Action::W, env);
-        if (to.is_valide(env)) {
-            int d = dist_machine.get_dist(to, get_target(r), env);
-            if (d < best_d) {
-                best_d = d;
-                best_a = Action::W;
-            }
-        }
-    }
-
-    {
-        auto to = pos.simulate_action(Action::CR, env);
-        if (to.is_valide(env)) {
-            int d = dist_machine.get_dist(to, get_target(r), env);
-            if (d < best_d) {
-                best_d = d;
-                best_a = Action::CR;
-            }
-        }
-    }
-
-    {
-        auto to = pos.simulate_action(Action::CCR, env);
-        if (to.is_valide(env)) {
-            int d = dist_machine.get_dist(to, get_target(r), env);
-            if (d < best_d) {
-                best_d = d;
-                best_a = Action::CCR;
-            }
-        }
-    }
-
-    {
-        auto to = pos.simulate_action(Action::FW, env);
-        if (to.is_valide(env)) {
-            int d = dist_machine.get_dist(to, get_target(r), env);
-            if (d < best_d) {
-
-                int to_r = find_robot(to.pos);
-                if (to_r != -1) {
-                    // есть мазафака, который преградил нам путь
-
-                    if (robots[to_r].action == Action::W) {
-                        move_over(to_r);
-                        // должно улучшать
-                        /*if(find_robot(to.pos) == -1){
-                            best_d = d;
-                            best_a = Action::FW;
-                        }*/
-                    } else {
-                        // у него уже есть какое-то действие, не будем его трогать
-                    }
-                } else {
-                    best_d = d;
-                    best_a = Action::FW;
-                }
-            }
-        }
-    }
-
-    robots[r].action = best_a;
-}
-
-void EPlanner::flush_robots() {
-    for (int r = 0; r < robots.size(); r++) {
-        robots[r].position = robots[r].position.simulate_action(robots[r].action, env);
-        robots[r].action = Action::W;
-    }
 }
 
 EPlanner::EPlanner(SharedEnvironment *env) : env(env) {}
@@ -199,25 +25,11 @@ EPlanner::EPlanner() {
 }
 
 void EPlanner::initialize(int preprocess_time_limit) {
-    robots.resize(env->num_of_agents);
 }
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.resize(env->num_of_agents, Action::W);
-
-    static bool first = true;
-    if (first) {
-        first = false;
-        for (int r = 0; r < robots.size(); r++) {
-            //ASSERT(robots[r].position == Position(env->curr_states[r].location, env->curr_states[r].orientation, env), "invalid robot");
-            robots[r].position = Position(env->curr_states[r].location, env->curr_states[r].orientation, env);
-        }
-    } else {
-        for (int r = 0; r < robots.size(); r++) {
-            ASSERT(robots[r].position == Position(env->curr_states[r].location, env->curr_states[r].orientation, env), "invalid robot");
-        }
-    }
 
     time_limit -= std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count();
     time_limit *= 0.5;
@@ -225,18 +37,18 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     auto finish_time = std::chrono::steady_clock::now();
     finish_time += std::chrono::milliseconds(time_limit);
 
-#define PROCESS_TIME                                      \
-    if (std::chrono::steady_clock::now() > finish_time) { \
-        return;                                           \
-    }
-    // time_limit = время выполнения планировки в ms
 
-    for (int r = 0; r < env->num_of_agents; r++) {
-        plan_robot(r);
+    std::vector<bool> map(env->map.size());
+    for (int pos = 0; pos < map.size(); pos++) {
+        map[pos] = env->map[pos] == 0;
     }
+    std::vector<Position> robots_pos(env->num_of_agents);
+    std::vector<int> robots_target(env->num_of_agents);
+    for (int r = 0; r < robots_pos.size(); r++) {
+        robots_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation, env);
+        robots_target[r] = get_target(r);
+    }
+    PlannerSolver solver(env->rows, env->cols, map, robots_pos, robots_target);
 
-    for (int r = 0; r < env->num_of_agents; r++) {
-        plan[r] = robots[r].action;
-    }
-    flush_robots();
+
 }

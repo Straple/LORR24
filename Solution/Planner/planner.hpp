@@ -6,7 +6,7 @@
 #include "dist_machine.hpp"
 
 class EPlanner {
-    DistMachine dist_machine;
+    [[nodiscard]] int get_target(int r) const;
 
 public:
     SharedEnvironment *env;
