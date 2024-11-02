@@ -36,7 +36,8 @@ file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
 
         "Solution/Planner/position.cpp"
         "Solution/Planner/dist_machine.cpp"
-        "Solution/Planner/eplanner.cpp"
+        "Solution/Planner/planner.cpp"
+        "Solution/Planner/planner_solver.cpp"
         )
 
 
