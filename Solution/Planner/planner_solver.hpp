@@ -13,7 +13,7 @@ struct PlannerPosition {
     int dir = 0;
 };
 
-bool operator < (const PlannerPosition& lhs, const PlannerPosition& rhs);
+bool operator<(const PlannerPosition &lhs, const PlannerPosition &rhs);
 
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
@@ -25,6 +25,11 @@ class PlannerSolver {
     struct Robot {
         PlannerPosition start;
         int target = -1;
+
+        // применяем действие только если оно корректно для статической карты
+        // (без учета других роботов)
+        // если это действие выходит за карту или переходит в препятствие
+        // то мы его не выполняем
         std::array<Action, PLANNER_DEPTH> actions{Action::W};
     };
 
@@ -48,7 +53,7 @@ class PlannerSolver {
 
     [[nodiscard]] PlannerPosition simulate_action(PlannerPosition p, Action action) const;
 
-    [[nodiscard]] bool is_valid(const PlannerPosition& p) const;
+    [[nodiscard]] bool is_valid(const PlannerPosition &p) const;
 
     /* DIST MACHINE */
     [[nodiscard]] int get_dist(PlannerPosition source, int target) const;
@@ -58,7 +63,8 @@ class PlannerSolver {
     [[nodiscard]] SolutionInfo get_solution_info() const;
 
 public:
-    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos, std::vector<int> robots_target, uint64_t random_seed);
+    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
+                  std::vector<int> robots_target, uint64_t random_seed);
 
     void run(int time_limit);
 };

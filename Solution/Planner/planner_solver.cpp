@@ -52,8 +52,9 @@ PlannerPosition PlannerSolver::simulate_action(PlannerPosition p, Action action)
 }
 
 bool PlannerSolver::is_valid(const PlannerPosition &p) const {
-    return 0 <= p.x && p.x < rows &&//
-           0 <= p.y && p.y < cols;
+    return 0 <= p.x && p.x < rows && //
+           0 <= p.y && p.y < cols && //
+           !map[p.pos];
 }
 
 int PlannerSolver::get_dist(PlannerPosition source, int target) const {
@@ -83,8 +84,8 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
 
 #define STEP(init)                                                  \
     {                                                               \
-        PlannerPosition q = (init);                                        \
-        if (is_valid(q) && visited.find(q) == visited.end()) { \
+        PlannerPosition q = (init);                                 \
+        if (is_valid(q) && visited.find(q) == visited.end()) {      \
             visited.insert(q);                                      \
             Q1.push_back(q);                                        \
         }                                                           \
@@ -115,33 +116,59 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
     }
 }
 
-
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
     SolutionInfo info;
 
     // TODO: тут на самом деле еще и то, что ребра тоже нужны в этой карте
-
-    std::vector<std::vector<uint32_t>> map_cnt(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
-    for (const auto &robot: robots) {
-        PlannerPosition p = robot.start;
-        for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-            p = simulate_action(p, robot.actions[d]);
-            if (is_valid(p)) {
-
-                if (!map[p.pos]) {
-                    // препятствие на карте
-                    info.collision_count++;
+    // calc collision_count
+    {
+        std::vector<std::vector<uint32_t>> map_cnt(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
+        for (const auto &robot: robots) {
+            PlannerPosition p = robot.start;
+            for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+                PlannerPosition to = simulate_action(p, robot.actions[d]);
+                if (is_valid(to)) {
+                    map_cnt[d][to.pos]++;
+                    p = to;
                 }
+            }
+        }
 
-                map_cnt[d][p.pos]++;
+        for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+            for (uint32_t pos = 0; pos < map.size(); pos++) {
+                info.collision_count += map_cnt[d][pos] * (map_cnt[d][pos] - 1);
             }
         }
     }
 
-    for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-        for (uint32_t pos = 0; pos < map.size(); pos++) {
-            info.collision_count += map_cnt[d][pos] * (map_cnt[d][pos] - 1);
+    {
+        double total_sum = 0;
+        int total_cnt = 0;
+        for (const auto &robot: robots) {
+            if (robot.target == -1) {
+                continue;
+            }
+            PlannerPosition p = robot.start;
+            int init_dist = get_dist(p, robot.target);
+            int cnt_actions = 0;
+            int sum_change_dist = 0;
+
+            for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+                PlannerPosition to = simulate_action(p, robot.actions[d]);
+                if (is_valid(to)) {
+                    sum_change_dist += (init_dist - get_dist(to, robot.target));
+                    cnt_actions++;
+                    p = to;
+                }
+            }
+
+            if (cnt_actions != 0) {
+                total_sum += static_cast<double>(sum_change_dist) / cnt_actions;
+                total_cnt++;
+            }
         }
+
+        info.mean_dist_change = total_sum / total_cnt;
     }
 
     return info;
