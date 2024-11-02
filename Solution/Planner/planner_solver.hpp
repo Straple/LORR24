@@ -13,6 +13,8 @@ struct PlannerPosition {
     int dir = 0;
 };
 
+bool operator < (const PlannerPosition& lhs, const PlannerPosition& rhs);
+
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
 
@@ -47,6 +49,9 @@ class PlannerSolver {
     [[nodiscard]] PlannerPosition simulate_action(PlannerPosition p, Action action) const;
 
     [[nodiscard]] bool is_valid(const PlannerPosition& p) const;
+
+    /* DIST MACHINE */
+    [[nodiscard]] int get_dist(PlannerPosition source, int target) const;
 
     /* SOLUTION INFO */
 

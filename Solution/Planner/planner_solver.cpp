@@ -1,5 +1,12 @@
 #include "planner_solver.hpp"
 
+bool operator<(const PlannerPosition &lhs, const PlannerPosition &rhs) {
+    if (lhs.pos != rhs.pos) {
+        return lhs.pos < rhs.pos;
+    }
+    return lhs.dir < rhs.dir;
+}
+
 PlannerPosition PlannerSolver::move_forward(PlannerPosition p) const {
     if (p.dir == 0) {
         p.y++;
@@ -44,12 +51,60 @@ PlannerPosition PlannerSolver::simulate_action(PlannerPosition p, Action action)
     }
 }
 
-[[nodiscard]] bool PlannerSolver::is_valid(const PlannerPosition &p) const {
+bool PlannerSolver::is_valid(const PlannerPosition &p) const {
     return 0 <= p.x && p.x < rows &&//
            0 <= p.y && p.y < cols;
 }
 
-PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos, std::vector<int> robots_target, uint64_t random_seed) : rows(rows), cols(cols), map(std::move(map)), rnd(random_seed) {
+int PlannerSolver::get_dist(PlannerPosition source, int target) const {
+    vector<PlannerPosition> Q0, Q1;
+    Q0.push_back(source);
+
+    std::set<PlannerPosition> visited;
+    visited.insert(source);
+
+    int d = 0;
+    while (!Q0.empty() || !Q1.empty()) {
+        if (Q0.empty()) {
+            std::swap(Q0, Q1);
+            d++;
+        }
+
+        PlannerPosition p = Q0.back();
+        Q0.pop_back();
+
+        ASSERT(is_valid(p), "p is invalid");
+
+        if (p.pos == target) {
+            return d;
+        }
+
+        visited.insert(p);
+
+#define STEP(init)                                                  \
+    {                                                               \
+        PlannerPosition q = (init);                                        \
+        if (is_valid(q) && visited.find(q) == visited.end()) { \
+            visited.insert(q);                                      \
+            Q1.push_back(q);                                        \
+        }                                                           \
+    }
+
+        STEP(move_forward(p));
+        STEP(rotate(p));
+        STEP(counter_rotate(p));
+
+#undef STEP
+    }
+
+    ASSERT(false, "not found path");
+    return 0;
+}
+
+PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
+                             std::vector<int> robots_target, uint64_t random_seed) : rows(rows), cols(cols),
+                                                                                     map(std::move(map)),
+                                                                                     rnd(random_seed) {
     robots.resize(robots_pos.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].start.x = robots_pos[r].x;
@@ -60,13 +115,14 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
     }
 }
 
+
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
     SolutionInfo info;
 
     // TODO: тут на самом деле еще и то, что ребра тоже нужны в этой карте
 
     std::vector<std::vector<uint32_t>> map_cnt(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
-    for (const auto & robot : robots) {
+    for (const auto &robot: robots) {
         PlannerPosition p = robot.start;
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
             p = simulate_action(p, robot.actions[d]);
@@ -83,7 +139,7 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
     }
 
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-        for(uint32_t pos = 0; pos < map.size(); pos++){
+        for (uint32_t pos = 0; pos < map.size(); pos++) {
             info.collision_count += map_cnt[d][pos] * (map_cnt[d][pos] - 1);
         }
     }
