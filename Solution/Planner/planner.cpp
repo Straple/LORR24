@@ -48,7 +48,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         robots_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation, env);
         robots_target[r] = get_target(r);
     }
-    PlannerSolver solver(env->rows, env->cols, map, robots_pos, robots_target);
-
-
+    PlannerSolver solver(env->rows, env->cols, map, robots_pos, robots_target, 42);
+    solver.run(time_limit);
 }

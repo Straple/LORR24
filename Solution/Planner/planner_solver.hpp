@@ -1,6 +1,8 @@
 #pragma once
 
+#include "../randomizer.hpp"
 #include "dist_machine.hpp"
+#include "solution_info.hpp"
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
@@ -21,7 +23,7 @@ class PlannerSolver {
     struct Robot {
         PlannerPosition start;
         int target = -1;
-        std::array<Action, PLANNER_DEPTH> actions{};
+        std::array<Action, PLANNER_DEPTH> actions{Action::W};
     };
 
     std::vector<Robot> robots;
@@ -32,6 +34,26 @@ class PlannerSolver {
 
     uint32_t rows = 0, cols = 0;
 
+    Randomizer rnd;
+
+    /* PLANNER POSITION */
+
+    [[nodiscard]] PlannerPosition move_forward(PlannerPosition p) const;
+
+    [[nodiscard]] PlannerPosition rotate(PlannerPosition p) const;
+
+    [[nodiscard]] PlannerPosition counter_rotate(PlannerPosition p) const;
+
+    [[nodiscard]] PlannerPosition simulate_action(PlannerPosition p, Action action) const;
+
+    [[nodiscard]] bool is_valid(const PlannerPosition& p) const;
+
+    /* SOLUTION INFO */
+
+    [[nodiscard]] SolutionInfo get_solution_info() const;
+
 public:
-    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos, std::vector<int> robots_target);
+    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos, std::vector<int> robots_target, uint64_t random_seed);
+
+    void run(int time_limit);
 };
