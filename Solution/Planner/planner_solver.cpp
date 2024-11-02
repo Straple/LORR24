@@ -54,15 +54,18 @@ PlannerPosition PlannerSolver::simulate_action(PlannerPosition p, Action action)
 bool PlannerSolver::is_valid(const PlannerPosition &p) const {
     return 0 <= p.x && p.x < rows && //
            0 <= p.y && p.y < cols && //
-           !map[p.pos];
+           map[p.pos];
 }
 
 int PlannerSolver::get_dist(PlannerPosition source, int target) const {
+    //return dist_dp[source.dir][source.pos][target];
     vector<PlannerPosition> Q0, Q1;
     Q0.push_back(source);
 
     std::set<PlannerPosition> visited;
     visited.insert(source);
+
+    ASSERT(is_valid(source), "source is invalid");
 
     int d = 0;
     while (!Q0.empty() || !Q1.empty()) {
@@ -71,23 +74,25 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
             d++;
         }
 
+        ASSERT(!Q0.empty(), "Q0 is empty");
         PlannerPosition p = Q0.back();
         Q0.pop_back();
 
         ASSERT(is_valid(p), "p is invalid");
 
+        std::cout << "dist: " << dist_dp[source.dir][source.pos][p.pos] << ' ' << d << std::endl;
+        ASSERT(dist_dp[source.dir][source.pos][p.pos] == d, "invalid dist_dp");
+
         if (p.pos == target) {
             return d;
         }
 
-        visited.insert(p);
-
 #define STEP(init)                                                  \
     {                                                               \
-        PlannerPosition q = (init);                                 \
-        if (is_valid(q) && visited.find(q) == visited.end()) {      \
-            visited.insert(q);                                      \
-            Q1.push_back(q);                                        \
+        PlannerPosition to = (init);                                \
+        if (is_valid(to) && visited.find(to) == visited.end()) {    \
+            visited.insert(to);                                     \
+            Q1.push_back(to);                                       \
         }                                                           \
     }
 
@@ -102,6 +107,65 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
     return 0;
 }
 
+void PlannerSolver::build_dist(int source, int dir) {
+    dist_dp[dir][source].assign(map.size(), 0);
+
+    PlannerPosition planner_source = {source / static_cast<int>(cols), source % static_cast<int>(cols), source, dir};
+    ASSERT(planner_source.x * cols + planner_source.y == planner_source.pos, "invalid planner");
+    vector<PlannerPosition> Q0, Q1;
+    Q0.push_back(planner_source);
+
+    std::set<PlannerPosition> visited;
+    visited.insert(planner_source);
+
+    ASSERT(is_valid(planner_source), "source is invalid");
+
+    int d = 0;
+    while (!Q0.empty() || !Q1.empty()) {
+        if (Q0.empty()) {
+            std::swap(Q0, Q1);
+            d++;
+        }
+
+        ASSERT(!Q0.empty(), "Q0 is empty");
+        PlannerPosition p = Q0.back();
+        Q0.pop_back();
+
+        dist_dp[dir][source][p.pos] = d;
+
+        ASSERT(is_valid(p), "p is invalid");
+
+#define STEP(init)                                                  \
+    {                                                               \
+        PlannerPosition to = (init);                                \
+        if (is_valid(to) && visited.find(to) == visited.end()) {    \
+            visited.insert(to);                                     \
+            Q1.push_back(to);                                       \
+        }                                                           \
+    }
+
+        STEP(move_forward(p));
+        STEP(rotate(p));
+        STEP(counter_rotate(p));
+
+#undef STEP
+    }
+}
+
+void PlannerSolver::build_dist() {
+    dist_dp.resize(4);
+    for (int dir = 0; dir < 4; dir++) {
+        dist_dp[dir].resize(map.size());
+        for (int pos = 0; pos < map.size(); pos++) {
+            PlannerPosition p = {pos / static_cast<int>(cols), pos % static_cast<int>(cols), pos, dir};
+
+            if (is_valid(p)) {
+                build_dist(pos, dir);
+            }
+        }
+    }
+}
+
 PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
                              std::vector<int> robots_target, uint64_t random_seed) : rows(rows), cols(cols),
                                                                                      map(std::move(map)),
@@ -114,6 +178,8 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
         robots[r].start.dir = robots_pos[r].dir;
         robots[r].target = robots_target[r];
     }
+
+    build_dist();
 }
 
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
@@ -141,6 +207,7 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
         }
     }
 
+    // calc mean_dist_change
     {
         double total_sum = 0;
         int total_cnt = 0;
@@ -174,6 +241,52 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
     return info;
 }
 
+bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) const {
+    return old.mean_dist_change - old.collision_count * 10 < cur.mean_dist_change - cur.collision_count * 10;
+}
+
+bool PlannerSolver::try_change_robot_action() {
+
+    SolutionInfo old = get_solution_info();
+
+    // берем робота
+    uint32_t r = rnd.get(0, static_cast<int>(robots.size()) - 1);
+
+    // берем операцию у него
+    uint32_t d = rnd.get(0, PLANNER_DEPTH - 1);
+
+    Action old_action = robots[r].actions[d];
+
+    robots[r].actions[d] = static_cast<Action>(rnd.get(0, 3));
+
+    return consider(old, [&]() {
+        robots[r].actions[d] = old_action;
+    });
+}
 
 void PlannerSolver::run(int time_limit) {
+    for (int step = 0; step < 1000; step++) {
+        try_change_robot_action();
+    }
+    std::cout << get_solution_info().collision_count << ' ' << get_solution_info().mean_dist_change << std::endl;
+    ASSERT(get_solution_info().collision_count == 0, "invalid collision count");
+}
+
+std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
+    std::vector<Action> actions(robots.size());
+
+    // рассмотреть роботов
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        actions[r] = Action::W;
+        for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+            PlannerPosition p = robots[r].start;
+            p = simulate_action(p, robots[r].actions[d]);
+            if (is_valid(p)) {
+                actions[r] = robots[r].actions[d];
+                break;
+            }
+        }
+    }
+
+    return {get_solution_info(), actions};
 }

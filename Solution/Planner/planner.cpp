@@ -20,6 +20,7 @@ int EPlanner::get_target(int r) const {
 }
 
 EPlanner::EPlanner(SharedEnvironment *env) : env(env) {}
+
 EPlanner::EPlanner() {
     env = new SharedEnvironment();
 }
@@ -31,7 +32,8 @@ void EPlanner::initialize(int preprocess_time_limit) {
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.resize(env->num_of_agents, Action::W);
 
-    time_limit -= std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count();
+    time_limit -= std::chrono::duration_cast<milliseconds>(
+            std::chrono::steady_clock::now() - env->plan_start_time).count();
     time_limit *= 0.5;
 
     auto finish_time = std::chrono::steady_clock::now();
@@ -39,6 +41,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
 
     std::vector<bool> map(env->map.size());
+    ASSERT(env->map.size() == env->cols * env->rows, "invalid map size");
     for (int pos = 0; pos < map.size(); pos++) {
         map[pos] = env->map[pos] == 0;
     }
@@ -50,4 +53,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     }
     PlannerSolver solver(env->rows, env->cols, map, robots_pos, robots_target, 42);
     solver.run(time_limit);
+    auto [solution_info, actions] = solver.get();
+    for (uint32_t r = 0; r < actions.size(); r++) {
+        plan[r] = actions[r];
+    }
 }

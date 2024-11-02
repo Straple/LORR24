@@ -4,6 +4,8 @@
 #include "dist_machine.hpp"
 #include "solution_info.hpp"
 
+// python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
+
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 struct PlannerPosition {
@@ -43,6 +45,9 @@ class PlannerSolver {
 
     Randomizer rnd;
 
+    // dist_dp[dir][source][target] = dist
+    std::vector<std::vector<std::vector<int> > > dist_dp;
+
     /* PLANNER POSITION */
 
     [[nodiscard]] PlannerPosition move_forward(PlannerPosition p) const;
@@ -53,18 +58,42 @@ class PlannerSolver {
 
     [[nodiscard]] PlannerPosition simulate_action(PlannerPosition p, Action action) const;
 
+    // корректная позиция и там нет препятствия
     [[nodiscard]] bool is_valid(const PlannerPosition &p) const;
 
     /* DIST MACHINE */
     [[nodiscard]] int get_dist(PlannerPosition source, int target) const;
 
+    void build_dist(int source, int dir);
+
+    void build_dist();
+
     /* SOLUTION INFO */
 
     [[nodiscard]] SolutionInfo get_solution_info() const;
+
+    /* ALGO TOOLS */
+
+    bool compare(SolutionInfo old, SolutionInfo cur) const;
+
+    template<typename rollback_t>
+    bool consider(SolutionInfo old, rollback_t &&rollback) {
+        SolutionInfo cur = get_solution_info();
+        if (compare(old, cur)) {
+            return true;
+        } else {
+            rollback();
+            return false;
+        }
+    }
+
+    bool try_change_robot_action();
 
 public:
     PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
                   std::vector<int> robots_target, uint64_t random_seed);
 
     void run(int time_limit);
+
+    std::pair<SolutionInfo, std::vector<Action>> get() const;
 };
