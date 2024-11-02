@@ -22,8 +22,14 @@ class EPlanner {
     // возвращает робота, который после этого шага будет стоять в pos
     [[nodiscard]] int find_robot(int pos) const;
 
+    int move_over_best_d = 0;
+    vector<pair<int, Action>> move_over_stack;
+    vector<pair<int, Action>> move_over_best_stack;
+
+    void move_over_IMPL(int r, int d);
+
     // выталкивает робота из его позиции, чтобы освободить место другому
-    bool move_over(int r);
+    void move_over(int r);
 
     void plan_robot(int r);
 

@@ -75,7 +75,7 @@ void EPlanner::remove_path(int robot) {
     robots_paths[robot].clear();
 }*/
 
-[[nodiscard]] int EPlanner::get_target(int r) const {
+int EPlanner::get_target(int r) const {
     int task_id = env->curr_task_schedule[r];
     if (task_id == -1) {
         return -1;
@@ -111,24 +111,29 @@ int EPlanner::find_robot(int pos) const {
     }
 }
 
-bool EPlanner::move_over(int r) {
+void EPlanner::move_over_IMPL(int r, int d) {
     if (robots[r].action != Action::W) {
-        return false;
+        return;
     }
-    // ASSERT(robots[r].action == Action::W, "unable to move over robot");
-    // найдем куда можно отойти роботу
 
     robots[r].action = Action::NA;
 
     {
         auto to = robots[r].position.simulate_action(Action::FW, env);
         if (to.is_valide(env)) {
+            move_over_stack.emplace_back(r, Action::FW);
+            robots[r].action = Action::FW;
             int to_r = find_robot(to.pos);
             if (to_r == -1) {
                 // можем пойти вперед, в незанятое место
-                robots[r].action = Action::FW;
-                return true;
-            } else if (move_over(to_r)) {
+
+                if (move_over_best_d > d + 1) {
+                    move_over_best_d = d + 1;
+                    move_over_best_stack = move_over_stack;
+                }
+            } else {
+                move_over_IMPL(to_r, d + 1);
+
                 if (find_robot(to.pos) == -1) {
                     robots[r].action = Action::FW;
                 } else {
@@ -137,6 +142,8 @@ bool EPlanner::move_over(int r) {
                 }
                 return true;
             }
+            robots[r].action = Action::NA;
+            move_over_stack.pop_back();
         }
     }
 
@@ -166,6 +173,13 @@ bool EPlanner::move_over(int r) {
 
     robots[r].action = Action::W;
     return false;
+}
+
+void EPlanner::move_over(int r) {
+    move_over_best_d = 1e9;
+    move_over_stack.clear();
+    move_over_best_stack.clear();
+    move_over_IMPL(r, 0);
 }
 
 void EPlanner::plan_robot(int r) {
@@ -226,6 +240,11 @@ void EPlanner::plan_robot(int r) {
 
                     if (robots[to_r].action == Action::W) {
                         move_over(to_r);
+                        // должно улучшать
+                        /*if(find_robot(to.pos) == -1){
+                            best_d = d;
+                            best_a = Action::FW;
+                        }*/
                     } else {
                         // у него уже есть какое-то действие, не будем его трогать
                     }
@@ -272,11 +291,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             ASSERT(robots[r].position == Position(env->curr_states[r].location, env->curr_states[r].orientation, env), "invalid robot");
         }
     }
-
-    /*std::cout << "\ntarget: " << get_target(0) << std::endl;
-    if (get_target(0) == -1) {
-        get_target(0);
-    }*/
 
     time_limit -= std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count();
     time_limit *= 0.5;
