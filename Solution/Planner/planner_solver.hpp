@@ -45,7 +45,7 @@ class PlannerSolver {
 
     Randomizer rnd;
 
-    // dist_dp[dir][source][target] = dist
+    // dist_dp[target][source][dir]
     std::vector<std::vector<std::vector<int> > > dist_dp;
 
     /* PLANNER POSITION */
@@ -64,7 +64,7 @@ class PlannerSolver {
     /* DIST MACHINE */
     [[nodiscard]] int get_dist(PlannerPosition source, int target) const;
 
-    void build_dist(int source, int dir);
+    void build_dist(int target);
 
     void build_dist();
 

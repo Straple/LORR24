@@ -58,7 +58,8 @@ bool PlannerSolver::is_valid(const PlannerPosition &p) const {
 }
 
 int PlannerSolver::get_dist(PlannerPosition source, int target) const {
-    //return dist_dp[source.dir][source.pos][target];
+    return dist_dp[target][source.pos][source.dir];
+
     vector<PlannerPosition> Q0, Q1;
     Q0.push_back(source);
 
@@ -80,10 +81,9 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
 
         ASSERT(is_valid(p), "p is invalid");
 
-        std::cout << "dist: " << dist_dp[source.dir][source.pos][p.pos] << ' ' << d << std::endl;
-        ASSERT(dist_dp[source.dir][source.pos][p.pos] == d, "invalid dist_dp");
-
         if (p.pos == target) {
+            //std::cout << "dist: " << dist_dp[p.pos][source.pos][source.dir] << ' ' << d << std::endl;
+            ASSERT(dist_dp[p.pos][source.pos][source.dir] == d, "invalid dist_dp");
             return d;
         }
 
@@ -107,18 +107,24 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
     return 0;
 }
 
-void PlannerSolver::build_dist(int source, int dir) {
-    dist_dp[dir][source].assign(map.size(), 0);
+void PlannerSolver::build_dist(int target) {
+    PlannerPosition planner_source = {target / static_cast<int>(cols), target % static_cast<int>(cols), target, 0};
+    if (!is_valid(planner_source)) {
+        return;
+    }
 
-    PlannerPosition planner_source = {source / static_cast<int>(cols), source % static_cast<int>(cols), source, dir};
-    ASSERT(planner_source.x * cols + planner_source.y == planner_source.pos, "invalid planner");
+    dist_dp[target].assign(map.size(), std::vector<int>(4));
+
     vector<PlannerPosition> Q0, Q1;
-    Q0.push_back(planner_source);
-
     std::set<PlannerPosition> visited;
-    visited.insert(planner_source);
+    {
 
-    ASSERT(is_valid(planner_source), "source is invalid");
+        for (int dir = 0; dir < 4; dir++) {
+            planner_source.dir = dir;
+            Q0.push_back(planner_source);
+            visited.insert(planner_source);
+        }
+    }
 
     int d = 0;
     while (!Q0.empty() || !Q1.empty()) {
@@ -131,7 +137,7 @@ void PlannerSolver::build_dist(int source, int dir) {
         PlannerPosition p = Q0.back();
         Q0.pop_back();
 
-        dist_dp[dir][source][p.pos] = d;
+        dist_dp[target][p.pos][(p.dir + 2) % 4] = d;
 
         ASSERT(is_valid(p), "p is invalid");
 
@@ -153,16 +159,9 @@ void PlannerSolver::build_dist(int source, int dir) {
 }
 
 void PlannerSolver::build_dist() {
-    dist_dp.resize(4);
-    for (int dir = 0; dir < 4; dir++) {
-        dist_dp[dir].resize(map.size());
-        for (int pos = 0; pos < map.size(); pos++) {
-            PlannerPosition p = {pos / static_cast<int>(cols), pos % static_cast<int>(cols), pos, dir};
-
-            if (is_valid(p)) {
-                build_dist(pos, dir);
-            }
-        }
+    dist_dp.resize(map.size());
+    for (int target = 0; target < map.size(); target++) {
+        build_dist(target);
     }
 }
 
