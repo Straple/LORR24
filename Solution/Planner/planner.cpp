@@ -46,7 +46,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     auto finish_time = std::chrono::steady_clock::now();
     finish_time += std::chrono::milliseconds(time_limit);
 
-
     std::vector<bool> map(env->map.size());
     ASSERT(env->map.size() == env->cols * env->rows, "invalid map size");
     for (int pos = 0; pos < map.size(); pos++) {
@@ -58,7 +57,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         robots_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation, env);
         robots_target[r] = get_target(r);
     }
-    PlannerSolver solver(env->rows, env->cols, map, robots_pos, robots_target, 42);
+
+    static Randomizer rnd(42);
+    PlannerSolver solver(env->rows, env->cols, map, robots_pos, robots_target, rnd.get());
     solver.run(time_limit);
     auto [solution_info, actions] = solver.get();
     for (uint32_t r = 0; r < actions.size(); r++) {

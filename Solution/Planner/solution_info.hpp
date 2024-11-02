@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-struct SolutionInfo{
+struct SolutionInfo {
 
     // количество столкновений у роботов
     // уменьшаем это значение
@@ -13,5 +13,7 @@ struct SolutionInfo{
     // смотрим на сколько он улучшает свое расстояние до таргета в среднем за PLANNER_DEPTH шагов
     // берем такое среднее значение по всем роботам
     // увеличиваем это значение
-    double mean_dist_change = 0;
+    long long sum_dist_change = 0;
+
+    uint32_t count_forward = 0;
 };

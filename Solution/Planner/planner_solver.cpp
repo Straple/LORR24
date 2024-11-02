@@ -58,6 +58,13 @@ bool PlannerSolver::is_valid(const PlannerPosition &p) const {
 }
 
 int PlannerSolver::get_dist(PlannerPosition source, int target) const {
+    if (target == -1) {
+        return 0;
+    }
+    ASSERT(0 <= target && target < map.size(), "invalid target: " + std::to_string(target));
+    ASSERT(0 <= source.pos && source.pos < map.size(), "invalid source: " + std::to_string(source.pos));
+    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir: " + std::to_string(source.dir));
+
     return dist_dp[target][source.pos][source.dir];
 
     vector<PlannerPosition> Q0, Q1;
@@ -244,14 +251,18 @@ void PlannerSolver::add_robot_path(uint32_t r) {
     auto robot = robots[r];
     PlannerPosition p = robot.start;
     int t = 0;
+    int best_dist = get_dist(p, robot.target);
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
         PlannerPosition to = simulate_action(p, robot.actions[d]);
         if (is_valid(to)) {
             if (robot.actions[d] == Action::FW) {
+                cur_info.count_forward++;
                 change_map_edge_robots_cnt(t, p.pos, to.pos, +1);
             }
 
             change_map_robots_cnt(t, to.pos, +1);
+            best_dist = min(best_dist, get_dist(to, robot.target));
+
             p = to;
             t++;
         }
@@ -260,19 +271,24 @@ void PlannerSolver::add_robot_path(uint32_t r) {
         change_map_robots_cnt(t, p.pos, +1);
         t++;
     }
+    cur_info.sum_dist_change += get_dist(robot.start, robot.target) - best_dist;
 }
 
 void PlannerSolver::remove_robot_path(uint32_t r) {
     auto robot = robots[r];
     PlannerPosition p = robot.start;
     int t = 0;
+    int best_dist = get_dist(p, robot.target);
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
         PlannerPosition to = simulate_action(p, robot.actions[d]);
         if (is_valid(to)) {
             if (robot.actions[d] == Action::FW) {
+                cur_info.count_forward--;
                 change_map_edge_robots_cnt(t, p.pos, to.pos, -1);
             }
             change_map_robots_cnt(t, to.pos, -1);
+            best_dist = min(best_dist, get_dist(to, robot.target));
+
             p = to;
             t++;
         }
@@ -281,6 +297,7 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
         change_map_robots_cnt(t, p.pos, -1);
         t++;
     }
+    cur_info.sum_dist_change -= get_dist(robot.start, robot.target) - best_dist;
 }
 
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
@@ -338,46 +355,69 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
     info.collision_count = cur_info.collision_count;
 
     // calc mean_dist_change
-    {
-        double total_sum = 0;
-        int total_cnt = 0;
-        for (const auto &robot: robots) {
-            if (robot.target == -1) {
-                continue;
-            }
+    /*{
+        long long total_sum = 0;
+        for (auto &robot: robots) {
             PlannerPosition p = robot.start;
             int init_dist = get_dist(p, robot.target);
             int sum_change_dist = 0;
+
+            int best_dist = get_dist(p, robot.target);
 
             int t = 0;
             for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
                 PlannerPosition to = simulate_action(p, robot.actions[d]);
                 if (is_valid(to)) {
-                    sum_change_dist += (init_dist - get_dist(to, robot.target));
+                    info.count_forward += robot.actions[d] == Action::FW;
+                    best_dist = min(best_dist, get_dist(to, robot.target));
+                    sum_change_dist += (get_dist(p, robot.target) - get_dist(to, robot.target));
                     p = to;
                     t++;
                 }
             }
 
             while (t < PLANNER_DEPTH) {
-                sum_change_dist += (init_dist - get_dist(p, robot.target));
+                sum_change_dist += 0;//(init_dist - get_dist(p, robot.target));
                 t++;
             }
 
-            total_sum += static_cast<double>(sum_change_dist) / PLANNER_DEPTH;
-            total_cnt++;
+            total_sum += get_dist(robot.start, robot.target) - best_dist;//static_cast<double>(get_dist(robot.start, robot.target) - best_dist) / PLANNER_DEPTH;
         }
 
-        info.mean_dist_change = total_sum / total_cnt;
-        info.mean_dist_change /= PLANNER_DEPTH;
-    }
+        ASSERT(info.count_forward == cur_info.count_forward,
+               "invalid forward: " + std::to_string(info.count_forward) + " != " +
+               std::to_string(cur_info.count_forward));
+
+        info.sum_dist_change = total_sum;
+
+        ASSERT(info.sum_dist_change == cur_info.sum_dist_change, "invalid sum dist change");
+        //info.mean_dist_change = total_sum / total_cnt;
+        //info.mean_dist_change /= PLANNER_DEPTH;
+    }*/
+    info.sum_dist_change = cur_info.sum_dist_change;
+
+    info.count_forward = cur_info.count_forward;
 
     return info;
 }
 
+double PlannerSolver::get_x(SolutionInfo info) {
+    double fw = info.count_forward;
+    fw /= robots.size();
+    fw /= PLANNER_DEPTH;
+
+    double dist_change = info.sum_dist_change;
+    dist_change /= robots.size();
+    dist_change /= PLANNER_DEPTH;
+
+    return dist_change  //
+           - info.collision_count * 10 //
+           + 1e-1 * fw;
+}
+
 bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) {
-    double oldx = old.mean_dist_change - old.collision_count * 10;
-    double curx = cur.mean_dist_change - cur.collision_count * 10;
+    double oldx = get_x(old);
+    double curx = get_x(cur);
     return oldx <= curx || rnd.get_d() < exp((curx - oldx) / temp);
 }
 
@@ -431,17 +471,77 @@ bool PlannerSolver::try_change_robot_path() {
     });
 }
 
+bool PlannerSolver::try_change_many_robots() {
+    SolutionInfo old = get_solution_info();
+
+    uint32_t r1 = rnd.get(0, static_cast<int>(robots.size()) - 1);
+    uint32_t r2 = rnd.get(0, static_cast<int>(robots.size()) - 1);
+
+    if (r1 == r2) {
+        return false;
+    }
+
+    std::array<Action, PLANNER_DEPTH> new_actions1{};
+    {
+        uint64_t x = rnd.get();
+        for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+            new_actions1[d] = static_cast<Action>(x % 4);
+            x /= 4;
+        }
+    }
+
+    std::array<Action, PLANNER_DEPTH> new_actions2{};
+    {
+        uint64_t x = rnd.get();
+        for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+            new_actions2[d] = static_cast<Action>(x % 4);
+            x /= 4;
+        }
+    }
+
+    std::array<Action, PLANNER_DEPTH> old_actions1 = robots[r1].actions;
+    std::array<Action, PLANNER_DEPTH> old_actions2 = robots[r2].actions;
+
+    remove_robot_path(r1);
+    remove_robot_path(r2);
+    robots[r1].actions = new_actions1;
+    robots[r2].actions = new_actions2;
+    add_robot_path(r1);
+    add_robot_path(r2);
+
+    return consider(old, [&]() {
+        remove_robot_path(r1);
+        remove_robot_path(r2);
+        robots[r1].actions = old_actions1;
+        robots[r2].actions = old_actions2;
+        add_robot_path(r1);
+        add_robot_path(r2);
+    });
+}
+
 void PlannerSolver::run(int time_limit) {
     auto start = std::chrono::steady_clock::now();
     temp = 1;
     for (int step = 0; step < PLANNING_STEPS; step++) {
-        temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
+        //temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
+        temp *= 0.9999;
 
-        try_change_robot_action();
-        try_change_robot_path();
+        int k = rnd.get(0, 2);
+
+        if (k == 0) {
+            try_change_robot_action();
+        } else if (k == 1) {
+            try_change_robot_path();
+        } else if (k == 2) {
+            try_change_many_robots();
+        } else {
+            ASSERT(false, "invalid k: " + std::to_string(k));
+        }
     }
     auto end = std::chrono::steady_clock::now();
-    std::cout << get_solution_info().collision_count << ' ' << get_solution_info().mean_dist_change << ' '
+    std::cout << get_solution_info().collision_count << ' ' //
+              << get_solution_info().sum_dist_change << ' ' //
+              << get_solution_info().count_forward << ' ' //
               << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms" << std::endl;
     ASSERT(get_solution_info().collision_count == 0, "invalid collision count");
 }

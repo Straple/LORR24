@@ -6,9 +6,9 @@
 
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
-static constexpr uint32_t PLANNER_DEPTH = 1;
+static constexpr uint32_t PLANNER_DEPTH = 3;
 
-static constexpr uint32_t PLANNING_STEPS = 100'000;
+static constexpr uint32_t PLANNING_STEPS = 500'000;
 
 struct PlannerPosition {
     int x = 0;
@@ -94,6 +94,8 @@ class PlannerSolver {
 
     /* ALGO TOOLS */
 
+    double get_x(SolutionInfo info);
+
     bool compare(SolutionInfo old, SolutionInfo cur);
 
     template<typename rollback_t>
@@ -110,6 +112,8 @@ class PlannerSolver {
     bool try_change_robot_action();
 
     bool try_change_robot_path();
+
+    bool try_change_many_robots();
 
     void init();
 
