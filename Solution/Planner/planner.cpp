@@ -26,6 +26,13 @@ EPlanner::EPlanner() {
 }
 
 void EPlanner::initialize(int preprocess_time_limit) {
+    std::vector<bool> map(env->map.size());
+    ASSERT(env->map.size() == env->cols * env->rows, "invalid map size");
+    for (int pos = 0; pos < map.size(); pos++) {
+        map[pos] = env->map[pos] == 0;
+    }
+    PlannerSolver solver(env->rows, env->cols, map, {},{}, 42);
+    solver.build_dist();
 }
 
 // return next states for all agents

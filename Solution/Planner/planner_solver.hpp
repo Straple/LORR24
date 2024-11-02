@@ -6,7 +6,9 @@
 
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
-static constexpr uint32_t PLANNER_DEPTH = 3;
+static constexpr uint32_t PLANNER_DEPTH = 2;
+
+static constexpr uint32_t PLANNING_STEPS = 100'000;
 
 struct PlannerPosition {
     int x = 0;
@@ -45,8 +47,14 @@ class PlannerSolver {
 
     Randomizer rnd;
 
+    double temp = 1;
+
     // dist_dp[target][source][dir]
-    std::vector<std::vector<std::vector<int> > > dist_dp;
+    static inline std::vector<std::vector<std::vector<int> > > dist_dp;
+
+    std::vector<std::vector<uint32_t>> map_robots_cnt;
+
+    SolutionInfo cur_info;
 
     /* PLANNER POSITION */
 
@@ -66,15 +74,21 @@ class PlannerSolver {
 
     void build_dist(int target);
 
-    void build_dist();
-
     /* SOLUTION INFO */
 
     [[nodiscard]] SolutionInfo get_solution_info() const;
 
+    /* CHANGE STATE TOOLS*/
+
+    void change_map_robots_cnt(int d, int pos, int val);
+
+    void add_robot_path(uint32_t r);
+
+    void remove_robot_path(uint32_t r);
+
     /* ALGO TOOLS */
 
-    bool compare(SolutionInfo old, SolutionInfo cur) const;
+    bool compare(SolutionInfo old, SolutionInfo cur);
 
     template<typename rollback_t>
     bool consider(SolutionInfo old, rollback_t &&rollback) {
@@ -89,6 +103,8 @@ class PlannerSolver {
 
     bool try_change_robot_action();
 
+    void init();
+
 public:
     PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
                   std::vector<int> robots_target, uint64_t random_seed);
@@ -96,4 +112,6 @@ public:
     void run(int time_limit);
 
     std::pair<SolutionInfo, std::vector<Action>> get() const;
+
+    void build_dist();
 };

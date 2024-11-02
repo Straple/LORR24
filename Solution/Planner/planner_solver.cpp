@@ -159,9 +159,21 @@ void PlannerSolver::build_dist(int target) {
 }
 
 void PlannerSolver::build_dist() {
+    auto start = std::chrono::steady_clock::now();
     dist_dp.resize(map.size());
     for (int target = 0; target < map.size(); target++) {
         build_dist(target);
+    }
+
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << std::endl;
+}
+
+void PlannerSolver::init() {
+    map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
+
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        add_robot_path(r);
     }
 }
 
@@ -178,7 +190,58 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
         robots[r].target = robots_target[r];
     }
 
-    build_dist();
+    init();
+}
+
+void PlannerSolver::change_map_robots_cnt(int d, int pos, int val) {
+    cur_info.collision_count -= map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
+    map_robots_cnt[d][pos] += val;
+    cur_info.collision_count += map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
+}
+
+void PlannerSolver::add_robot_path(uint32_t r) {
+    auto robot = robots[r];
+    PlannerPosition p = robot.start;
+    int t = 0;
+    for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+        PlannerPosition to = simulate_action(p, robot.actions[d]);
+        if (is_valid(to)) {
+            /*if (robot.actions[d] == Action::FW) {
+                edge_map_cnt[t][{to.pos, p.pos}]++;
+                edge_map_cnt[t][{p.pos, to.pos}]++;
+            }*/
+
+            change_map_robots_cnt(t, to.pos, +1);
+            p = to;
+            t++;
+        }
+    }
+    while (t < PLANNER_DEPTH) {
+        change_map_robots_cnt(t, p.pos, +1);
+        t++;
+    }
+}
+
+void PlannerSolver::remove_robot_path(uint32_t r) {
+    auto robot = robots[r];
+    PlannerPosition p = robot.start;
+    int t = 0;
+    for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+        PlannerPosition to = simulate_action(p, robot.actions[d]);
+        if (is_valid(to)) {
+            /*if (robot.actions[d] == Action::FW) {
+                edge_map_cnt[t][{to.pos, p.pos}]++;
+                edge_map_cnt[t][{p.pos, to.pos}]++;
+            }*/
+            change_map_robots_cnt(t, to.pos, -1);
+            p = to;
+            t++;
+        }
+    }
+    while (t < PLANNER_DEPTH) {
+        change_map_robots_cnt(t, p.pos, -1);
+        t++;
+    }
 }
 
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
@@ -188,22 +251,47 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
     // calc collision_count
     {
         std::vector<std::vector<uint32_t>> map_cnt(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
+        std::vector<std::map<std::pair<uint32_t, uint32_t>, uint32_t>> edge_map_cnt(PLANNER_DEPTH);
         for (const auto &robot: robots) {
             PlannerPosition p = robot.start;
+            int t = 0;
             for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
                 PlannerPosition to = simulate_action(p, robot.actions[d]);
                 if (is_valid(to)) {
-                    map_cnt[d][to.pos]++;
+                    if (robot.actions[d] == Action::FW) {
+                        edge_map_cnt[t][{to.pos, p.pos}]++;
+                        edge_map_cnt[t][{p.pos, to.pos}]++;
+                    }
+                    map_cnt[t][to.pos]++;
                     p = to;
+                    t++;
                 }
+            }
+            while (t < PLANNER_DEPTH) {
+                map_cnt[t][p.pos]++;
+                t++;
             }
         }
 
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
             for (uint32_t pos = 0; pos < map.size(); pos++) {
+                if (map_robots_cnt[d][pos] != map_cnt[d][pos]) {
+                    std::cout << "diff: " << d << ' ' << pos << ' ' << map_robots_cnt[d][pos] << " != " <<
+                              map_cnt[d][pos] << std::endl;
+                }
                 info.collision_count += map_cnt[d][pos] * (map_cnt[d][pos] - 1);
             }
+
+            for (auto [edge, cnt]: edge_map_cnt[d]) {
+                //info.collision_count += cnt * (cnt - 1);
+            }
         }
+
+        ASSERT(map_robots_cnt == map_cnt, "invalid map_cnt");
+
+        ASSERT(info.collision_count == cur_info.collision_count,
+               "invalid collision count: " + std::to_string(info.collision_count) +
+               " != " + std::to_string(cur_info.collision_count));
     }
 
     // calc mean_dist_change
@@ -216,32 +304,38 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
             }
             PlannerPosition p = robot.start;
             int init_dist = get_dist(p, robot.target);
-            int cnt_actions = 0;
             int sum_change_dist = 0;
 
+            int t = 0;
             for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
                 PlannerPosition to = simulate_action(p, robot.actions[d]);
                 if (is_valid(to)) {
                     sum_change_dist += (init_dist - get_dist(to, robot.target));
-                    cnt_actions++;
                     p = to;
+                    t++;
                 }
             }
 
-            if (cnt_actions != 0) {
-                total_sum += static_cast<double>(sum_change_dist) / cnt_actions;
-                total_cnt++;
+            while (t < PLANNER_DEPTH) {
+                sum_change_dist += (init_dist - get_dist(p, robot.target));
+                t++;
             }
+
+            total_sum += static_cast<double>(sum_change_dist) / PLANNER_DEPTH;
+            total_cnt++;
         }
 
         info.mean_dist_change = total_sum / total_cnt;
+        info.mean_dist_change /= PLANNER_DEPTH;
     }
 
     return info;
 }
 
-bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) const {
-    return old.mean_dist_change - old.collision_count * 10 < cur.mean_dist_change - cur.collision_count * 10;
+bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) {
+    double oldx = old.mean_dist_change - old.collision_count * 10;
+    double curx = cur.mean_dist_change - cur.collision_count * 10;
+    return oldx <= curx || rnd.get_d() < exp((curx - oldx) / temp);
 }
 
 bool PlannerSolver::try_change_robot_action() {
@@ -256,18 +350,27 @@ bool PlannerSolver::try_change_robot_action() {
 
     Action old_action = robots[r].actions[d];
 
+    remove_robot_path(r);
     robots[r].actions[d] = static_cast<Action>(rnd.get(0, 3));
+    add_robot_path(r);
 
     return consider(old, [&]() {
+        remove_robot_path(r);
         robots[r].actions[d] = old_action;
+        add_robot_path(r);
     });
 }
 
 void PlannerSolver::run(int time_limit) {
-    for (int step = 0; step < 1000; step++) {
+    auto start = std::chrono::steady_clock::now();
+    temp = 1;
+    for (int step = 0; step < PLANNING_STEPS; step++) {
+        temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
         try_change_robot_action();
     }
-    std::cout << get_solution_info().collision_count << ' ' << get_solution_info().mean_dist_change << std::endl;
+    auto end = std::chrono::steady_clock::now();
+    std::cout << get_solution_info().collision_count << ' ' << get_solution_info().mean_dist_change << ' '
+              << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms" << std::endl;
     ASSERT(get_solution_info().collision_count == 0, "invalid collision count");
 }
 
@@ -277,10 +380,10 @@ std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
     // рассмотреть роботов
     for (uint32_t r = 0; r < robots.size(); r++) {
         actions[r] = Action::W;
+        PlannerPosition p = robots[r].start;
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-            PlannerPosition p = robots[r].start;
-            p = simulate_action(p, robots[r].actions[d]);
-            if (is_valid(p)) {
+            PlannerPosition to = simulate_action(p, robots[r].actions[d]);
+            if (is_valid(to)) {
                 actions[r] = robots[r].actions[d];
                 break;
             }
