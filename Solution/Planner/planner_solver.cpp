@@ -382,7 +382,6 @@ bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) {
 }
 
 bool PlannerSolver::try_change_robot_action() {
-
     SolutionInfo old = get_solution_info();
 
     // берем робота
@@ -404,12 +403,42 @@ bool PlannerSolver::try_change_robot_action() {
     });
 }
 
+bool PlannerSolver::try_change_robot_path() {
+    SolutionInfo old = get_solution_info();
+
+    // берем робота
+    uint32_t r = rnd.get(0, static_cast<int>(robots.size()) - 1);
+
+    std::array<Action, PLANNER_DEPTH> new_actions{};
+    {
+        uint64_t x = rnd.get();
+        for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+            new_actions[d] = static_cast<Action>(x % 4);
+            x /= 4;
+        }
+    }
+
+    std::array<Action, PLANNER_DEPTH> old_actions = robots[r].actions;
+
+    remove_robot_path(r);
+    robots[r].actions = new_actions;
+    add_robot_path(r);
+
+    return consider(old, [&]() {
+        remove_robot_path(r);
+        robots[r].actions = old_actions;
+        add_robot_path(r);
+    });
+}
+
 void PlannerSolver::run(int time_limit) {
     auto start = std::chrono::steady_clock::now();
     temp = 1;
     for (int step = 0; step < PLANNING_STEPS; step++) {
         temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
+
         try_change_robot_action();
+        try_change_robot_path();
     }
     auto end = std::chrono::steady_clock::now();
     std::cout << get_solution_info().collision_count << ' ' << get_solution_info().mean_dist_change << ' '
