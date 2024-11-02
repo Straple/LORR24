@@ -4,6 +4,13 @@
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
+struct PlannerPosition {
+    int x = 0;
+    int y = 0;
+    int pos = 0;
+    int dir = 0;
+};
+
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
 
@@ -12,8 +19,8 @@ class PlannerSolver {
     // d = planner depth idx
 
     struct Robot {
-        Position start;
-        int target;
+        PlannerPosition start;
+        int target = -1;
         std::array<Action, PLANNER_DEPTH> actions{};
     };
 
