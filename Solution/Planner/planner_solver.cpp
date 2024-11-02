@@ -171,7 +171,38 @@ void PlannerSolver::build_dist() {
 
 void PlannerSolver::init() {
     map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
+    map_edge_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(4 * map.size()));
 
+    // build edge_to_idx
+    {
+        for (int x = 0; x < rows; x++) {
+            for (int y = 0; y < cols; y++) {
+                int pos = x * cols + y;
+                if (x + 1 < rows) {
+                    int to = pos + cols;
+                    edge_to_idx[{pos, to}] = -1;
+                }
+                if (y + 1 < cols) {
+                    int to = pos + 1;
+                    edge_to_idx[{pos, to}] = -1;
+                }
+            }
+        }
+
+        uint32_t idx = 0;
+        for (auto &[edge, val]: edge_to_idx) {
+            val = idx;
+            idx++;
+        }
+
+        auto tmp = std::move(edge_to_idx);
+        for (auto [edge, val]: tmp) {
+            edge_to_idx[edge] = val;
+            edge_to_idx[{edge.second, edge.first}] = val;
+        }
+    }
+
+    // init robots pathes
     for (uint32_t r = 0; r < robots.size(); r++) {
         add_robot_path(r);
     }
@@ -199,6 +230,16 @@ void PlannerSolver::change_map_robots_cnt(int d, int pos, int val) {
     cur_info.collision_count += map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
 }
 
+void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) {
+    ASSERT(edge_to_idx.count({pos, to}) == 1, "no contains");
+    uint32_t idx = edge_to_idx[{pos, to}];
+    ASSERT(idx < map_edge_robots_cnt[d].size(), "invalid idx: " + std::to_string(idx));
+
+    cur_info.collision_count -= map_edge_robots_cnt[d][idx] * (map_edge_robots_cnt[d][idx] - 1);
+    map_edge_robots_cnt[d][idx] += val;
+    cur_info.collision_count += map_edge_robots_cnt[d][idx] * (map_edge_robots_cnt[d][idx] - 1);
+}
+
 void PlannerSolver::add_robot_path(uint32_t r) {
     auto robot = robots[r];
     PlannerPosition p = robot.start;
@@ -206,10 +247,9 @@ void PlannerSolver::add_robot_path(uint32_t r) {
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
         PlannerPosition to = simulate_action(p, robot.actions[d]);
         if (is_valid(to)) {
-            /*if (robot.actions[d] == Action::FW) {
-                edge_map_cnt[t][{to.pos, p.pos}]++;
-                edge_map_cnt[t][{p.pos, to.pos}]++;
-            }*/
+            if (robot.actions[d] == Action::FW) {
+                change_map_edge_robots_cnt(t, p.pos, to.pos, +1);
+            }
 
             change_map_robots_cnt(t, to.pos, +1);
             p = to;
@@ -229,10 +269,9 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
         PlannerPosition to = simulate_action(p, robot.actions[d]);
         if (is_valid(to)) {
-            /*if (robot.actions[d] == Action::FW) {
-                edge_map_cnt[t][{to.pos, p.pos}]++;
-                edge_map_cnt[t][{p.pos, to.pos}]++;
-            }*/
+            if (robot.actions[d] == Action::FW) {
+                change_map_edge_robots_cnt(t, p.pos, to.pos, -1);
+            }
             change_map_robots_cnt(t, to.pos, -1);
             p = to;
             t++;
@@ -247,9 +286,8 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
     SolutionInfo info;
 
-    // TODO: тут на самом деле еще и то, что ребра тоже нужны в этой карте
     // calc collision_count
-    {
+    /*{
         std::vector<std::vector<uint32_t>> map_cnt(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
         std::vector<std::map<std::pair<uint32_t, uint32_t>, uint32_t>> edge_map_cnt(PLANNER_DEPTH);
         for (const auto &robot: robots) {
@@ -259,8 +297,12 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
                 PlannerPosition to = simulate_action(p, robot.actions[d]);
                 if (is_valid(to)) {
                     if (robot.actions[d] == Action::FW) {
-                        edge_map_cnt[t][{to.pos, p.pos}]++;
-                        edge_map_cnt[t][{p.pos, to.pos}]++;
+                        int a = to.pos;
+                        int b = p.pos;
+                        if(a > b){
+                            std::swap(a, b);
+                        }
+                        edge_map_cnt[t][{a, b}]++;
                     }
                     map_cnt[t][to.pos]++;
                     p = to;
@@ -283,7 +325,7 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
             }
 
             for (auto [edge, cnt]: edge_map_cnt[d]) {
-                //info.collision_count += cnt * (cnt - 1);
+                info.collision_count += cnt * (cnt - 1);
             }
         }
 
@@ -292,7 +334,8 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
         ASSERT(info.collision_count == cur_info.collision_count,
                "invalid collision count: " + std::to_string(info.collision_count) +
                " != " + std::to_string(cur_info.collision_count));
-    }
+    }*/
+    info.collision_count = cur_info.collision_count;
 
     // calc mean_dist_change
     {

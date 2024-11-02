@@ -52,7 +52,11 @@ class PlannerSolver {
     // dist_dp[target][source][dir]
     static inline std::vector<std::vector<std::vector<int> > > dist_dp;
 
+    std::map<std::pair<int, int>, uint32_t> edge_to_idx;
+
     std::vector<std::vector<uint32_t>> map_robots_cnt;
+
+    std::vector<std::vector<uint32_t>> map_edge_robots_cnt;
 
     SolutionInfo cur_info;
 
@@ -81,6 +85,8 @@ class PlannerSolver {
     /* CHANGE STATE TOOLS*/
 
     void change_map_robots_cnt(int d, int pos, int val);
+
+    void change_map_edge_robots_cnt(int d, int pos, int to, int val);
 
     void add_robot_path(uint32_t r);
 
