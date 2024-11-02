@@ -4,6 +4,9 @@
 #include "dist_machine.hpp"
 #include "solution_info.hpp"
 
+// 227 мой
+// 246 их
+
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
@@ -87,6 +90,8 @@ class PlannerSolver {
     void change_map_robots_cnt(int d, int pos, int val);
 
     void change_map_edge_robots_cnt(int d, int pos, int to, int val);
+
+    void process_robot_path(uint32_t r, int sign);
 
     void add_robot_path(uint32_t r);
 

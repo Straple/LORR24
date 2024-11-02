@@ -247,7 +247,7 @@ void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) 
     cur_info.collision_count += map_edge_robots_cnt[d][idx] * (map_edge_robots_cnt[d][idx] - 1);
 }
 
-void PlannerSolver::add_robot_path(uint32_t r) {
+void PlannerSolver::process_robot_path(uint32_t r, int sign){
     auto robot = robots[r];
     PlannerPosition p = robot.start;
     int t = 0;
@@ -256,48 +256,32 @@ void PlannerSolver::add_robot_path(uint32_t r) {
         PlannerPosition to = simulate_action(p, robot.actions[d]);
         if (is_valid(to)) {
             if (robot.actions[d] == Action::FW) {
-                cur_info.count_forward++;
-                change_map_edge_robots_cnt(t, p.pos, to.pos, +1);
+                cur_info.count_forward += sign;
+                change_map_edge_robots_cnt(t, p.pos, to.pos, sign);
             }
 
-            change_map_robots_cnt(t, to.pos, +1);
+            change_map_robots_cnt(t, to.pos, sign);
             best_dist = min(best_dist, get_dist(to, robot.target));
+            //ur_info.sum_dist_change += sign * (get_dist(p, robot.target) - get_dist(to, robot.target));
 
             p = to;
             t++;
         }
     }
     while (t < PLANNER_DEPTH) {
-        change_map_robots_cnt(t, p.pos, +1);
+        change_map_robots_cnt(t, p.pos, sign);
+        //cur_info.sum_dist_change += sign * (get_dist(p, robot.target) - get_dist(p, robot.target));
         t++;
     }
-    cur_info.sum_dist_change += get_dist(robot.start, robot.target) - best_dist;
+    cur_info.sum_dist_change += sign * (get_dist(robot.start, robot.target) - best_dist);
+}
+
+void PlannerSolver::add_robot_path(uint32_t r) {
+    process_robot_path(r, +1);
 }
 
 void PlannerSolver::remove_robot_path(uint32_t r) {
-    auto robot = robots[r];
-    PlannerPosition p = robot.start;
-    int t = 0;
-    int best_dist = get_dist(p, robot.target);
-    for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-        PlannerPosition to = simulate_action(p, robot.actions[d]);
-        if (is_valid(to)) {
-            if (robot.actions[d] == Action::FW) {
-                cur_info.count_forward--;
-                change_map_edge_robots_cnt(t, p.pos, to.pos, -1);
-            }
-            change_map_robots_cnt(t, to.pos, -1);
-            best_dist = min(best_dist, get_dist(to, robot.target));
-
-            p = to;
-            t++;
-        }
-    }
-    while (t < PLANNER_DEPTH) {
-        change_map_robots_cnt(t, p.pos, -1);
-        t++;
-    }
-    cur_info.sum_dist_change -= get_dist(robot.start, robot.target) - best_dist;
+    process_robot_path(r, -1);
 }
 
 [[nodiscard]] SolutionInfo PlannerSolver::get_solution_info() const {
@@ -411,7 +395,7 @@ double PlannerSolver::get_x(SolutionInfo info) {
     dist_change /= PLANNER_DEPTH;
 
     return dist_change  //
-           - info.collision_count * 10 //
+           - info.collision_count * 100LL * info.collision_count //
            + 1e-1 * fw;
 }
 
