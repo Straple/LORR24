@@ -48,11 +48,14 @@ class PlannerSolver {
 
     std::vector<Robot> robots;
 
+    uint32_t rows = 0, cols = 0;
+
     // map[pos] = true if this pos is free
     // otherwise: false
     std::vector<bool> map;
 
-    uint32_t rows = 0, cols = 0;
+    // pos_to_robot[pos] = robot id or -1
+    std::vector<int> pos_to_robot;
 
     Randomizer rnd;
 

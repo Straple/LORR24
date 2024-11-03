@@ -191,6 +191,12 @@ void PlannerSolver::init() {
     map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
     map_edge_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(4 * map.size()));
 
+    pos_to_robot.resize(map.size(), -1);
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        ASSERT(pos_to_robot[robots[r].start.pos] == -1, "pos_to_robot already init by other robot");
+        pos_to_robot[robots[r].start.pos] = r;
+    }
+
     // build edge_to_idx
     {
         for (int x = 0; x < rows; x++) {
@@ -273,7 +279,7 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
 
             change_map_robots_cnt(t, to.pos, sign);
             best_dist = min(best_dist, get_dist(to, robot.target));
-            //ur_info.sum_dist_change += sign * (get_dist(p, robot.target) - get_dist(to, robot.target));
+            //cur_info.sum_dist_change += sign * (get_dist(p, robot.target) - get_dist(to, robot.target));
 
             p = to;
             t++;
@@ -517,15 +523,6 @@ bool PlannerSolver::try_change_many_robots() {
 bool PlannerSolver::try_move_over() {
     SolutionInfo old = get_solution_info();
 
-    auto find_robot = [&](int pos) {
-        for (uint32_t r = 0; r < robots.size(); r++) {
-            if (robots[r].start.pos == pos) {
-                return static_cast<int>(r);
-            }
-        }
-        return -1;
-    };
-
     uint32_t r = rnd.get(0, static_cast<int>(robots.size()) - 1);
 
     // найдем рандомную цепочку перемещений
@@ -539,7 +536,7 @@ bool PlannerSolver::try_move_over() {
     while (true) {
         visited.insert(v.pos);
 
-        int r = find_robot(v.pos);
+        int r = pos_to_robot[v.pos];
         if (r == -1) {
             break;
         }
