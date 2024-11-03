@@ -134,13 +134,12 @@ void PlannerSolver::build_dist(int target) {
     dist_dp[target].assign(map.size(), std::vector<int>(4));
 
     vector<PlannerPosition> Q0, Q1;
-    std::set<PlannerPosition> visited;
+    std::vector<std::array<bool, 4>> visited(map.size());
     {
-
         for (int dir = 0; dir < 4; dir++) {
             planner_source.dir = dir;
             Q0.push_back(planner_source);
-            visited.insert(planner_source);
+            visited[planner_source.pos][planner_source.dir] = true;
         }
     }
 
@@ -162,8 +161,8 @@ void PlannerSolver::build_dist(int target) {
 #define STEP(init)                                                  \
     {                                                               \
         PlannerPosition to = (init);                                \
-        if (is_valid(to) && visited.find(to) == visited.end()) {    \
-            visited.insert(to);                                     \
+        if (is_valid(to) && !visited[to.pos][to.dir]) {              \
+            visited[to.pos][to.dir] = true;                         \
             Q1.push_back(to);                                       \
         }                                                           \
     }
