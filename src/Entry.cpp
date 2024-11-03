@@ -21,8 +21,8 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     //then call planner
     planner->plan(time_limit, plan);
 
-    std::cout << "COMPUTE TIME: " << std::chrono::duration_cast<milliseconds>(
-            std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
+    //std::cout << "COMPUTE TIME: " << std::chrono::duration_cast<milliseconds>(
+    //        std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
 }
 
 void Entry::update_goal_locations(std::vector<int> &proposed_schedule) {

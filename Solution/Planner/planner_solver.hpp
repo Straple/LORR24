@@ -12,7 +12,7 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t PLANNING_STEPS = 1'000'000;
 
-static constexpr uint32_t THREADS = 6;
+static constexpr uint32_t THREADS = 32;
 
 struct PlannerPosition {
     int x = 0;

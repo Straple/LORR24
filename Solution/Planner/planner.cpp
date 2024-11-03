@@ -39,7 +39,7 @@ void EPlanner::initialize(int preprocess_time_limit) {
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.resize(env->num_of_agents, Action::W);
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 60);
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 90);
 
     constexpr uint32_t SOLVERS_SIZE = THREADS;
     std::vector<PlannerSolver> solvers;
@@ -95,12 +95,14 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     }
 
     auto [solution_info, actions] = solvers[0].get();
-    for (uint32_t r = 0; r < actions.size(); r++) {
-        plan[r] = actions[r];
+    if(solution_info.collision_count == 0) {
+        for (uint32_t r = 0; r < actions.size(); r++) {
+            plan[r] = actions[r];
+        }
     }
 
-    std::cout << "Total solution info: " //
-              << solution_info.collision_count << ' ' //
-              << solution_info.count_forward << ' '//
-              << solution_info.sum_dist_change << std::endl;
+    //std::cout << "Total solution info: " //
+    //          << solution_info.collision_count << ' ' //
+    //          << solution_info.count_forward << ' '//
+    //          << solution_info.sum_dist_change << std::endl;
 }

@@ -185,7 +185,7 @@ void PlannerSolver::build_dist() {
         }
     };
 
-    std::vector<std::thread> threads(THREADS);
+    std::vector <std::thread> threads(THREADS);
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr] = std::thread(do_work, thr);
     }
@@ -194,8 +194,8 @@ void PlannerSolver::build_dist() {
     }
 
     auto end = std::chrono::steady_clock::now();
-    std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms"
-              << std::endl;
+    //std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms"
+    //          << std::endl;
 }
 
 void PlannerSolver::init() {
