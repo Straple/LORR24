@@ -201,41 +201,13 @@ void PlannerSolver::build_dist() {
 
 void PlannerSolver::init() {
     map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
-    map_edge_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(4 * map.size()));
+    map_edge_robots_cnt_ver.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
+    map_edge_robots_cnt_gor.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
 
     pos_to_robot.resize(map.size(), -1);
     for (uint32_t r = 0; r < robots.size(); r++) {
         ASSERT(pos_to_robot[robots[r].start.pos] == -1, "pos_to_robot already init by other robot");
         pos_to_robot[robots[r].start.pos] = r;
-    }
-
-    // build edge_to_idx
-    {
-        for (int x = 0; x < rows; x++) {
-            for (int y = 0; y < cols; y++) {
-                int pos = x * cols + y;
-                if (x + 1 < rows) {
-                    int to = pos + cols;
-                    edge_to_idx[{pos, to}] = -1;
-                }
-                if (y + 1 < cols) {
-                    int to = pos + 1;
-                    edge_to_idx[{pos, to}] = -1;
-                }
-            }
-        }
-
-        uint32_t idx = 0;
-        for (auto &[edge, val]: edge_to_idx) {
-            val = idx;
-            idx++;
-        }
-
-        auto tmp = std::move(edge_to_idx);
-        for (auto [edge, val]: tmp) {
-            edge_to_idx[edge] = val;
-            edge_to_idx[{edge.second, edge.first}] = val;
-        }
     }
 
     // init robots pathes
@@ -271,13 +243,22 @@ void PlannerSolver::change_map_robots_cnt(int d, int pos, int val) {
 }
 
 void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) {
-    ASSERT(edge_to_idx.count({pos, to}) == 1, "no contains");
-    uint32_t idx = edge_to_idx[{pos, to}];
-    ASSERT(idx < map_edge_robots_cnt[d].size(), "invalid idx: " + std::to_string(idx));
+    if (pos > to) {
+        std::swap(pos, to);
+    }
+    if (to - pos == 1) {
+        // gor
+        cur_info.collision_count -= map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
+        map_edge_robots_cnt_gor[d][pos] += val;
+        cur_info.collision_count += map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
+    } else {
+        // ver
+        ASSERT(to - pos == cols, "invalid pos and to");
 
-    cur_info.collision_count -= map_edge_robots_cnt[d][idx] * (map_edge_robots_cnt[d][idx] - 1);
-    map_edge_robots_cnt[d][idx] += val;
-    cur_info.collision_count += map_edge_robots_cnt[d][idx] * (map_edge_robots_cnt[d][idx] - 1);
+        cur_info.collision_count -= map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
+        map_edge_robots_cnt_ver[d][pos] += val;
+        cur_info.collision_count += map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
+    }
 }
 
 void PlannerSolver::process_robot_path(uint32_t r, int sign) {
