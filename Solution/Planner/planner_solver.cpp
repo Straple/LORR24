@@ -179,12 +179,24 @@ void PlannerSolver::build_dist(int target) {
 void PlannerSolver::build_dist() {
     auto start = std::chrono::steady_clock::now();
     dist_dp.resize(map.size());
-    for (int target = 0; target < map.size(); target++) {
-        build_dist(target);
+
+    auto do_work = [&](uint32_t thr) {
+        for (uint32_t target = thr; target < map.size(); target += THREADS) {
+            build_dist(target);
+        }
+    };
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr);
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
     }
 
     auto end = std::chrono::steady_clock::now();
-    std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << std::endl;
+    std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms"
+              << std::endl;
 }
 
 void PlannerSolver::init() {
@@ -245,7 +257,11 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
         robots[r].target = robots_target[r];
     }
 
+    auto start = std::chrono::steady_clock::now();
     init();
+    std::cout << "init time: "
+              << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count()
+              << "ms\n";
 }
 
 void PlannerSolver::change_map_robots_cnt(int d, int pos, int val) {
@@ -617,7 +633,13 @@ bool PlannerSolver::try_move_over() {
 void PlannerSolver::run(int time_limit) {
     auto start = std::chrono::steady_clock::now();
     temp = 1;
-    for (int step = 0; step < PLANNING_STEPS; step++) {
+    for (int step = 0;; step++) {
+        if (step % 100 == 0) {
+            int ms = std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count();
+            if (ms >= time_limit) {
+                break;
+            }
+        }
         //temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
         temp *= 0.9999;
 

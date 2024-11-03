@@ -4,14 +4,15 @@
 #include "dist_machine.hpp"
 #include "solution_info.hpp"
 
-// 227 мой
-// 246 их
+#include <thread>
 
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t PLANNING_STEPS = 500'000;
+
+static constexpr uint32_t THREADS = 8;
 
 struct PlannerPosition {
     int x = 0;
@@ -86,6 +87,7 @@ class PlannerSolver {
     [[nodiscard]] bool is_valid(const PlannerPosition &p) const;
 
     /* DIST MACHINE */
+
     [[nodiscard]] int get_dist(PlannerPosition source, int target) const;
 
     void build_dist(int target);
@@ -139,7 +141,7 @@ public:
 
     void run(int time_limit);
 
-    std::pair<SolutionInfo, std::vector<Action>> get() const;
+    [[nodiscard]] std::pair<SolutionInfo, std::vector<Action>> get() const;
 
     void build_dist();
 };
