@@ -13,15 +13,16 @@ void Entry::initialize(int preprocess_time_limit) {
 //time_limit in milliseconds
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
     //first call task schedule
-
-
-    scheduler->plan(time_limit, proposed_schedule);
+    scheduler->plan(time_limit * 0.1 + 10, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
 
     //then call planner
     planner->plan(time_limit, plan);
+
+    std::cout << "COMPUTE TIME: " << std::chrono::duration_cast<milliseconds>(
+            std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
 }
 
 void Entry::update_goal_locations(std::vector<int> &proposed_schedule) {

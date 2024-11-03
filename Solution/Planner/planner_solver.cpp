@@ -216,9 +216,8 @@ void PlannerSolver::init() {
 }
 
 PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
-                             std::vector<int> robots_target, uint64_t random_seed) : rows(rows), cols(cols),
-                                                                                     map(std::move(map)),
-                                                                                     rnd(random_seed) {
+                             std::vector<int> robots_target) : rows(rows), cols(cols),
+                                                               map(std::move(map)) {
     robots.resize(robots_pos.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].start.x = robots_pos[r].x;
@@ -228,11 +227,7 @@ PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map
         robots[r].target = robots_target[r];
     }
 
-    auto start = std::chrono::steady_clock::now();
     init();
-    std::cout << "init time: "
-              << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count()
-              << "ms\n";
 }
 
 void PlannerSolver::change_map_robots_cnt(int d, int pos, int val) {
@@ -398,7 +393,7 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
     return info;
 }
 
-double PlannerSolver::get_x(SolutionInfo info) {
+double PlannerSolver::get_x(SolutionInfo info) const {
     double fw = info.count_forward;
     fw /= robots.size();
     fw /= PLANNER_DEPTH;
@@ -407,15 +402,16 @@ double PlannerSolver::get_x(SolutionInfo info) {
     dist_change /= robots.size();
     dist_change /= PLANNER_DEPTH;
 
-    return dist_change  //
-           - info.collision_count * 100LL * info.collision_count //
-           + 1e-1 * fw;
+    return 30 * dist_change  //
+           - info.collision_count * 1e5 * info.collision_count //
+           + fw;
 }
 
 bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) {
     double oldx = get_x(old);
     double curx = get_x(cur);
     return oldx <= curx || rnd.get_d() < exp((curx - oldx) / temp);
+    //return oldx <= curx || curx <= oldx * (1 + score_vector + rnd.get_d(0, 0.003));
 }
 
 bool PlannerSolver::try_change_robot_action() {
@@ -610,18 +606,18 @@ bool PlannerSolver::try_move_over() {
     });
 }
 
-void PlannerSolver::run(int time_limit) {
-    auto start = std::chrono::steady_clock::now();
+void PlannerSolver::run(TimePoint end_time, uint64_t random_seed) {
+    rnd = Randomizer(random_seed);
+
     temp = 1;
     for (int step = 0;; step++) {
-        if (step % 100 == 0) {
-            int ms = std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count();
-            if (ms >= time_limit) {
+        if (step % 10 == 0) {
+            if (std::chrono::steady_clock::now() >= end_time) {
                 break;
             }
         }
-        //temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
-        temp *= 0.9999;
+        //temp = (PLANNING_STEPS - step) * 0.1 / PLANNING_STEPS;
+        temp *= 0.999;
 
         int k = rnd.get(0, 6);
 
@@ -634,13 +630,26 @@ void PlannerSolver::run(int time_limit) {
         } else {
             try_move_over();
         }
+
+        /*scores.push_back(get_x(get_solution_info()));
+        if (scores.size() > 100) {
+            scores.erase(scores.begin());
+        }
+        double a = 0, b = 0;
+        for (int i = 0; i < scores.size() / 2; i++) {
+            a += scores[i];
+        }
+        for (int i = scores.size() / 2; i < scores.size(); i++) {
+            b += scores[i];
+        }
+        score_vector = (b - a) / (std::abs(a) + std::abs(b) + 1);*/
     }
-    auto end = std::chrono::steady_clock::now();
+    /*auto end = std::chrono::steady_clock::now();
     std::cout << get_solution_info().collision_count << ' ' //
               << get_solution_info().sum_dist_change << ' ' //
               << get_solution_info().count_forward << ' ' //
               << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms" << std::endl;
-    ASSERT(get_solution_info().collision_count == 0, "invalid collision count");
+    ASSERT(get_solution_info().collision_count == 0, "invalid collision count");*/
 }
 
 std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
@@ -649,7 +658,7 @@ std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
     // рассмотреть роботов
     for (uint32_t r = 0; r < robots.size(); r++) {
         actions[r] = Action::W;
-        PlannerPosition p = robots[r].start;
+        const PlannerPosition p = robots[r].start;
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
             PlannerPosition to = simulate_action(p, robots[r].actions[d]);
             if (is_valid(to)) {

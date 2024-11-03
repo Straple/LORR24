@@ -10,9 +10,9 @@
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
-static constexpr uint32_t PLANNING_STEPS = 500'000;
+static constexpr uint32_t PLANNING_STEPS = 1'000'000;
 
-static constexpr uint32_t THREADS = 8;
+static constexpr uint32_t THREADS = 6;
 
 struct PlannerPosition {
     int x = 0;
@@ -71,6 +71,9 @@ class PlannerSolver {
 
     SolutionInfo cur_info;
 
+    //std::vector<double> scores;
+    //double score_vector = 0;
+
     /* PLANNER POSITION */
 
     [[nodiscard]] PlannerPosition move_forward(PlannerPosition p) const;
@@ -90,10 +93,6 @@ class PlannerSolver {
 
     void build_dist(int target);
 
-    /* SOLUTION INFO */
-
-    [[nodiscard]] SolutionInfo get_solution_info() const;
-
     /* CHANGE STATE TOOLS*/
 
     void change_map_robots_cnt(int d, int pos, int val);
@@ -107,8 +106,6 @@ class PlannerSolver {
     void remove_robot_path(uint32_t r);
 
     /* ALGO TOOLS */
-
-    double get_x(SolutionInfo info);
 
     bool compare(SolutionInfo old, SolutionInfo cur);
 
@@ -134,12 +131,20 @@ class PlannerSolver {
     void init();
 
 public:
-    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
-                  std::vector<int> robots_target, uint64_t random_seed);
+    PlannerSolver() = default;
 
-    void run(int time_limit);
+    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
+                  std::vector<int> robots_target);
+
+    void run(TimePoint end_time, uint64_t random_seed);
+
+    void build_dist();
 
     [[nodiscard]] std::pair<SolutionInfo, std::vector<Action>> get() const;
 
-    void build_dist();
+    /* SOLUTION INFO */
+
+    [[nodiscard]] SolutionInfo get_solution_info() const;
+
+    [[nodiscard]] double get_x(SolutionInfo info) const;
 };
