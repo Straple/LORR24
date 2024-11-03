@@ -7,6 +7,17 @@ bool operator<(const PlannerPosition &lhs, const PlannerPosition &rhs) {
     return lhs.dir < rhs.dir;
 }
 
+bool operator==(const PlannerPosition &lhs, const PlannerPosition &rhs) {
+    return lhs.x == rhs.x && //
+           lhs.y == rhs.y && //
+           lhs.pos == rhs.pos && //
+           lhs.dir == rhs.dir;
+}
+
+bool operator!=(const PlannerPosition &lhs, const PlannerPosition &rhs) {
+    return !(lhs == rhs);
+}
+
 PlannerPosition PlannerSolver::move_forward(PlannerPosition p) const {
     if (p.dir == 0) {
         p.y++;
@@ -247,7 +258,7 @@ void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) 
     cur_info.collision_count += map_edge_robots_cnt[d][idx] * (map_edge_robots_cnt[d][idx] - 1);
 }
 
-void PlannerSolver::process_robot_path(uint32_t r, int sign){
+void PlannerSolver::process_robot_path(uint32_t r, int sign) {
     auto robot = robots[r];
     PlannerPosition p = robot.start;
     int t = 0;
@@ -503,6 +514,109 @@ bool PlannerSolver::try_change_many_robots() {
     });
 }
 
+bool PlannerSolver::try_move_over() {
+    SolutionInfo old = get_solution_info();
+
+    auto find_robot = [&](int pos) {
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            if (robots[r].start.pos == pos) {
+                return static_cast<int>(r);
+            }
+        }
+        return -1;
+    };
+
+    uint32_t r = rnd.get(0, static_cast<int>(robots.size()) - 1);
+
+    // найдем рандомную цепочку перемещений
+    PlannerPosition v = robots[r].start;
+    std::vector<int> dirs = {0, 1, 2, 3};
+
+    std::set<int> visited;
+
+    // [robot] = actions
+    std::map<int, Actions> new_actions;
+    while (true) {
+        visited.insert(v.pos);
+
+        int r = find_robot(v.pos);
+        if (r == -1) {
+            break;
+        }
+
+        shuffle(dirs.begin(), dirs.end(), rnd.generator);
+
+        bool find = false;
+        for (int dir: dirs) {
+            v.dir = dir;
+            auto to = move_forward(v);
+            if (is_valid(to) && !visited.count(to.pos)) {
+                find = true;
+                // вычислим необходимые действия для этого робота, чтобы попасть в to
+
+                std::vector<Action> a;
+                {
+                    PlannerPosition p = robots[r].start;
+                    while (p.dir != dir) {
+                        a.push_back(Action::CR);
+                        p = rotate(p);
+                    }
+                    a.push_back(Action::FW);
+                    p = move_forward(p);
+                    ASSERT(p == to, "invalid move");
+                }
+                std::vector<Action> b;
+                {
+                    PlannerPosition p = robots[r].start;
+                    while (p.dir != dir) {
+                        b.push_back(Action::CCR);
+                        p = counter_rotate(p);
+                    }
+                    b.push_back(Action::FW);
+                    p = move_forward(p);
+                    ASSERT(p == to, "invalid move");
+                }
+
+                if (a.size() > b.size()) {
+                    std::swap(a, b);
+                }
+
+                // a is best
+
+                Actions new_action{Action::W};
+                for (uint32_t k = 0; k < PLANNER_DEPTH && k < a.size(); k++) {
+                    new_action[k] = a[k];
+                }
+                for (uint32_t k = a.size(); k < PLANNER_DEPTH; k++) {
+                    new_action[k] = static_cast<Action>(rnd.get(0, 3));
+                }
+                new_actions[r] = new_action;
+
+                v = to;
+                break;
+            }
+        }
+
+        if (!find) {
+            return false;
+        }
+    }
+
+    for (auto &[r, new_action]: new_actions) {
+        remove_robot_path(r);
+        std::swap(robots[r].actions, new_action);
+        add_robot_path(r);
+    }
+
+    return consider(old, [&]() {
+        for (auto &[r, new_action]: new_actions) {
+            remove_robot_path(r);
+            std::swap(robots[r].actions, new_action);
+            add_robot_path(r);
+        }
+    });
+}
+
 void PlannerSolver::run(int time_limit) {
     auto start = std::chrono::steady_clock::now();
     temp = 1;
@@ -510,7 +624,7 @@ void PlannerSolver::run(int time_limit) {
         //temp = (PLANNING_STEPS - step) * 1.0 / PLANNING_STEPS;
         temp *= 0.9999;
 
-        int k = rnd.get(0, 2);
+        int k = rnd.get(0, 6);
 
         if (k == 0) {
             try_change_robot_action();
@@ -519,7 +633,7 @@ void PlannerSolver::run(int time_limit) {
         } else if (k == 2) {
             try_change_many_robots();
         } else {
-            ASSERT(false, "invalid k: " + std::to_string(k));
+            try_move_over();
         }
     }
     auto end = std::chrono::steady_clock::now();

@@ -22,12 +22,18 @@ struct PlannerPosition {
 
 bool operator<(const PlannerPosition &lhs, const PlannerPosition &rhs);
 
+bool operator==(const PlannerPosition &lhs, const PlannerPosition &rhs);
+
+bool operator!=(const PlannerPosition &lhs, const PlannerPosition &rhs);
+
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
 
     // обозначения:
     // r = robot idx
     // d = planner depth idx
+
+    using Actions = std::array<Action, PLANNER_DEPTH>;
 
     struct Robot {
         PlannerPosition start;
@@ -37,7 +43,7 @@ class PlannerSolver {
         // (без учета других роботов)
         // если это действие выходит за карту или переходит в препятствие
         // то мы его не выполняем
-        std::array<Action, PLANNER_DEPTH> actions{Action::W};
+        Actions actions{Action::W};
     };
 
     std::vector<Robot> robots;
@@ -119,6 +125,8 @@ class PlannerSolver {
     bool try_change_robot_path();
 
     bool try_change_many_robots();
+
+    bool try_move_over();
 
     void init();
 
