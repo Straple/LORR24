@@ -33,6 +33,7 @@ file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
         # team solution
         "Solution/assert.cpp"
         "Solution/randomizer.cpp"
+        "Solution/dsu.cpp"
         #"Solution/Planner/*.cpp"
 
         "Solution/Planner/position.cpp"
@@ -40,6 +41,7 @@ file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
         "Solution/Planner/solution_info.cpp"
         "Solution/Planner/planner_solver.cpp"
         "Solution/Planner/environment.cpp"
+        "Solution/Planner/global_dp.cpp"
         )
 
 
