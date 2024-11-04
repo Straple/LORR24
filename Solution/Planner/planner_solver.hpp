@@ -12,7 +12,9 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t PLANNING_STEPS = 1'000'000;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 31;
+
+#define BUILD_DIST_DP
 
 struct PlannerPosition {
     int x = 0;
@@ -63,7 +65,7 @@ class PlannerSolver {
     double temp = 1;
 
     // dist_dp[target][source][dir]
-    static inline std::vector<std::vector<std::vector<int> > > dist_dp;
+    static inline std::vector<std::vector<std::array<uint16_t, 4> > > dist_dp;
 
     std::vector<std::vector<uint32_t>> map_robots_cnt;
 

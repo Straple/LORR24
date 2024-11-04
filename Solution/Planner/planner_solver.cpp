@@ -76,7 +76,9 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
     ASSERT(0 <= source.pos && source.pos < map.size(), "invalid source: " + std::to_string(source.pos));
     ASSERT(0 <= source.dir && source.dir < 4, "invalid dir: " + std::to_string(source.dir));
 
+#ifdef BUILD_DIST_DP
     return dist_dp[target][source.pos][source.dir];
+#endif
 
     vector<PlannerPosition> Q0, Q1;
     Q0.push_back(source);
@@ -101,7 +103,7 @@ int PlannerSolver::get_dist(PlannerPosition source, int target) const {
 
         if (p.pos == target) {
             //std::cout << "dist: " << dist_dp[p.pos][source.pos][source.dir] << ' ' << d << std::endl;
-            ASSERT(dist_dp[p.pos][source.pos][source.dir] == d, "invalid dist_dp");
+            //ASSERT(dist_dp[p.pos][source.pos][source.dir] == d, "invalid dist_dp");
             return d;
         }
 
@@ -131,7 +133,7 @@ void PlannerSolver::build_dist(int target) {
         return;
     }
 
-    dist_dp[target].assign(map.size(), std::vector<int>(4));
+    dist_dp[target].resize(map.size());
 
     vector<PlannerPosition> Q0, Q1;
     std::vector<std::array<bool, 4>> visited(map.size());
@@ -176,6 +178,7 @@ void PlannerSolver::build_dist(int target) {
 }
 
 void PlannerSolver::build_dist() {
+#ifdef BUILD_DIST_DP
     auto start = std::chrono::steady_clock::now();
     dist_dp.resize(map.size());
 
@@ -194,6 +197,7 @@ void PlannerSolver::build_dist() {
     }
 
     auto end = std::chrono::steady_clock::now();
+#endif
     //std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms"
     //          << std::endl;
 }
