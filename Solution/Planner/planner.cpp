@@ -2,6 +2,7 @@
 
 #include "../assert.hpp"
 #include "planner_solver.hpp"
+#include "environment.hpp"
 
 int EPlanner::get_target(int r) const {
     int task_id = env->curr_task_schedule[r];
@@ -26,13 +27,7 @@ EPlanner::EPlanner() {
 }
 
 void EPlanner::initialize(int preprocess_time_limit) {
-    std::vector<bool> map(env->map.size());
-    ASSERT(env->map.size() == env->cols * env->rows, "invalid map size");
-    for (int pos = 0; pos < map.size(); pos++) {
-        map[pos] = env->map[pos] == 0;
-    }
-    PlannerSolver solver(env->rows, env->cols, map, {}, {});
-    solver.build_dist();
+    get_env().init(env);
 }
 
 // return next states for all agents
@@ -52,16 +47,16 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         std::vector<Position> robots_pos(env->num_of_agents);
         std::vector<int> robots_target(env->num_of_agents);
         for (int r = 0; r < robots_pos.size(); r++) {
-            robots_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation, env);
+            robots_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation);
             robots_target[r] = get_target(r);
         }
-        solvers.assign(SOLVERS_SIZE, PlannerSolver(env->rows, env->cols, map, robots_pos, robots_target));
+        solvers.assign(SOLVERS_SIZE, PlannerSolver(robots_pos, robots_target));
     }
 
     static Randomizer rnd(42);
 
     while (std::chrono::steady_clock::now() < end_time) {
-        TimePoint end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
+        //TimePoint end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
 
         std::vector<uint64_t> random_vals(solvers.size());
         for (uint32_t i = 0; i < solvers.size(); i++) {
@@ -100,9 +95,4 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             plan[r] = actions[r];
         }
     }
-
-    //std::cout << "Total solution info: " //
-    //          << solution_info.collision_count << ' ' //
-    //          << solution_info.count_forward << ' '//
-    //          << solution_info.sum_dist_change << std::endl;
 }

@@ -1,213 +1,13 @@
 #include "planner_solver.hpp"
 
-bool operator<(const PlannerPosition &lhs, const PlannerPosition &rhs) {
-    if (lhs.pos != rhs.pos) {
-        return lhs.pos < rhs.pos;
-    }
-    return lhs.dir < rhs.dir;
-}
-
-bool operator==(const PlannerPosition &lhs, const PlannerPosition &rhs) {
-    return lhs.x == rhs.x && //
-           lhs.y == rhs.y && //
-           lhs.pos == rhs.pos && //
-           lhs.dir == rhs.dir;
-}
-
-bool operator!=(const PlannerPosition &lhs, const PlannerPosition &rhs) {
-    return !(lhs == rhs);
-}
-
-PlannerPosition PlannerSolver::move_forward(PlannerPosition p) const {
-    if (p.dir == 0) {
-        p.y++;
-        p.pos++;
-    } else if (p.dir == 1) {
-        p.pos += static_cast<int>(cols);
-        p.x++;
-    } else if (p.dir == 2) {
-        p.pos--;
-        p.y--;
-    } else if (p.dir == 3) {
-        p.pos -= static_cast<int>(cols);
-        p.x--;
-    } else {
-        FAILED_ASSERT("invalid position dir: " + std::to_string(p.dir));
-    }
-    return p;
-}
-
-PlannerPosition PlannerSolver::rotate(PlannerPosition p) const {
-    p.dir = (p.dir + 1) % 4;
-    return p;
-}
-
-PlannerPosition PlannerSolver::counter_rotate(PlannerPosition p) const {
-    p.dir = (p.dir - 1 + 4) % 4;
-    return p;
-}
-
-PlannerPosition PlannerSolver::simulate_action(PlannerPosition p, Action action) const {
-    if (action == Action::FW) {
-        return move_forward(p);
-    } else if (action == Action::CR) {
-        return rotate(p);
-    } else if (action == Action::CCR) {
-        return counter_rotate(p);
-    } else if (action == Action::W) {
-        return p;
-    } else {
-        ASSERT(false, "unexpected action");
-        return p;
-    }
-}
-
-bool PlannerSolver::is_valid(const PlannerPosition &p) const {
-    return 0 <= p.x && p.x < rows && //
-           0 <= p.y && p.y < cols && //
-           map[p.pos];
-}
-
-int PlannerSolver::get_dist(PlannerPosition source, int target) const {
-    if (target == -1) {
-        return 0;
-    }
-    ASSERT(0 <= target && target < map.size(), "invalid target: " + std::to_string(target));
-    ASSERT(0 <= source.pos && source.pos < map.size(), "invalid source: " + std::to_string(source.pos));
-    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir: " + std::to_string(source.dir));
-
-#ifdef BUILD_DIST_DP
-    return dist_dp[target][source.pos][source.dir];
-#endif
-
-    vector<PlannerPosition> Q0, Q1;
-    Q0.push_back(source);
-
-    std::set<PlannerPosition> visited;
-    visited.insert(source);
-
-    ASSERT(is_valid(source), "source is invalid");
-
-    int d = 0;
-    while (!Q0.empty() || !Q1.empty()) {
-        if (Q0.empty()) {
-            std::swap(Q0, Q1);
-            d++;
-        }
-
-        ASSERT(!Q0.empty(), "Q0 is empty");
-        PlannerPosition p = Q0.back();
-        Q0.pop_back();
-
-        ASSERT(is_valid(p), "p is invalid");
-
-        if (p.pos == target) {
-            //std::cout << "dist: " << dist_dp[p.pos][source.pos][source.dir] << ' ' << d << std::endl;
-            //ASSERT(dist_dp[p.pos][source.pos][source.dir] == d, "invalid dist_dp");
-            return d;
-        }
-
-#define STEP(init)                                                  \
-    {                                                               \
-        PlannerPosition to = (init);                                \
-        if (is_valid(to) && visited.find(to) == visited.end()) {    \
-            visited.insert(to);                                     \
-            Q1.push_back(to);                                       \
-        }                                                           \
-    }
-
-        STEP(move_forward(p));
-        STEP(rotate(p));
-        STEP(counter_rotate(p));
-
-#undef STEP
-    }
-
-    ASSERT(false, "not found path");
-    return 0;
-}
-
-void PlannerSolver::build_dist(int target) {
-    PlannerPosition planner_source = {target / static_cast<int>(cols), target % static_cast<int>(cols), target, 0};
-    if (!is_valid(planner_source)) {
-        return;
-    }
-
-    dist_dp[target].resize(map.size());
-
-    vector<PlannerPosition> Q0, Q1;
-    std::vector<std::array<bool, 4>> visited(map.size());
-    {
-        for (int dir = 0; dir < 4; dir++) {
-            planner_source.dir = dir;
-            Q0.push_back(planner_source);
-            visited[planner_source.pos][planner_source.dir] = true;
-        }
-    }
-
-    int d = 0;
-    while (!Q0.empty() || !Q1.empty()) {
-        if (Q0.empty()) {
-            std::swap(Q0, Q1);
-            d++;
-        }
-
-        ASSERT(!Q0.empty(), "Q0 is empty");
-        PlannerPosition p = Q0.back();
-        Q0.pop_back();
-
-        dist_dp[target][p.pos][(p.dir + 2) % 4] = d;
-
-        ASSERT(is_valid(p), "p is invalid");
-
-#define STEP(init)                                                  \
-    {                                                               \
-        PlannerPosition to = (init);                                \
-        if (is_valid(to) && !visited[to.pos][to.dir]) {              \
-            visited[to.pos][to.dir] = true;                         \
-            Q1.push_back(to);                                       \
-        }                                                           \
-    }
-
-        STEP(move_forward(p));
-        STEP(rotate(p));
-        STEP(counter_rotate(p));
-
-#undef STEP
-    }
-}
-
-void PlannerSolver::build_dist() {
-#ifdef BUILD_DIST_DP
-    auto start = std::chrono::steady_clock::now();
-    dist_dp.resize(map.size());
-
-    auto do_work = [&](uint32_t thr) {
-        for (uint32_t target = thr; target < map.size(); target += THREADS) {
-            build_dist(target);
-        }
-    };
-
-    std::vector <std::thread> threads(THREADS);
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        threads[thr] = std::thread(do_work, thr);
-    }
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        threads[thr].join();
-    }
-
-    auto end = std::chrono::steady_clock::now();
-#endif
-    //std::cout << "build dist time: " << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms"
-    //          << std::endl;
-}
+#include "environment.hpp"
 
 void PlannerSolver::init() {
-    map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
-    map_edge_robots_cnt_ver.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
-    map_edge_robots_cnt_gor.resize(PLANNER_DEPTH, std::vector<uint32_t>(map.size()));
+    map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
+    map_edge_robots_cnt_ver.resize(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
+    map_edge_robots_cnt_gor.resize(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
 
-    pos_to_robot.resize(map.size(), -1);
+    pos_to_robot.resize(get_env().get_size(), -1);
     for (uint32_t r = 0; r < robots.size(); r++) {
         ASSERT(pos_to_robot[robots[r].start.pos] == -1, "pos_to_robot already init by other robot");
         pos_to_robot[robots[r].start.pos] = r;
@@ -219,9 +19,7 @@ void PlannerSolver::init() {
     }
 }
 
-PlannerSolver::PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
-                             std::vector<int> robots_target) : rows(rows), cols(cols),
-                                                               map(std::move(map)) {
+PlannerSolver::PlannerSolver(std::vector<Position> robots_pos, std::vector<int> robots_target) {
     robots.resize(robots_pos.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].start.x = robots_pos[r].x;
@@ -251,7 +49,7 @@ void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) 
         cur_info.collision_count += map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
     } else {
         // ver
-        ASSERT(to - pos == cols, "invalid pos and to");
+        ASSERT(to - pos == get_env().get_cols(), "invalid pos and to");
 
         cur_info.collision_count -= map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
         map_edge_robots_cnt_ver[d][pos] += val;
@@ -261,20 +59,19 @@ void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) 
 
 void PlannerSolver::process_robot_path(uint32_t r, int sign) {
     auto robot = robots[r];
-    PlannerPosition p = robot.start;
+    Position p = robot.start;
     int t = 0;
-    int best_dist = get_dist(p, robot.target);
+    int best_dist = get_env().get_dist(p, robot.target);
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-        PlannerPosition to = simulate_action(p, robot.actions[d]);
-        if (is_valid(to)) {
+        Position to = p.simulate_action(robot.actions[d]);
+        if (to.is_valid()) {
             if (robot.actions[d] == Action::FW) {
                 cur_info.count_forward += sign;
                 change_map_edge_robots_cnt(t, p.pos, to.pos, sign);
             }
 
             change_map_robots_cnt(t, to.pos, sign);
-            best_dist = min(best_dist, get_dist(to, robot.target));
-            //cur_info.sum_dist_change += sign * (get_dist(p, robot.target) - get_dist(to, robot.target));
+            best_dist = min(best_dist, get_env().get_dist(to, robot.target));
 
             p = to;
             t++;
@@ -282,10 +79,9 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
     }
     while (t < PLANNER_DEPTH) {
         change_map_robots_cnt(t, p.pos, sign);
-        //cur_info.sum_dist_change += sign * (get_dist(p, robot.target) - get_dist(p, robot.target));
         t++;
     }
-    cur_info.sum_dist_change += sign * (get_dist(robot.start, robot.target) - best_dist);
+    cur_info.sum_dist_change += sign * (get_env().get_dist(robot.start, robot.target) - best_dist);
 }
 
 void PlannerSolver::add_robot_path(uint32_t r) {
@@ -522,7 +318,7 @@ bool PlannerSolver::try_move_over() {
     uint32_t r = rnd.get(0, static_cast<int>(robots.size()) - 1);
 
     // найдем рандомную цепочку перемещений
-    PlannerPosition v = robots[r].start;
+    Position v = robots[r].start;
     std::vector<int> dirs = {0, 1, 2, 3};
 
     std::set<int> visited;
@@ -542,31 +338,31 @@ bool PlannerSolver::try_move_over() {
         bool find = false;
         for (int dir: dirs) {
             v.dir = dir;
-            auto to = move_forward(v);
-            if (is_valid(to) && !visited.count(to.pos)) {
+            auto to = v.move_forward();
+            if (to.is_valid() && !visited.count(to.pos)) {
                 find = true;
                 // вычислим необходимые действия для этого робота, чтобы попасть в to
 
                 std::vector<Action> a;
                 {
-                    PlannerPosition p = robots[r].start;
+                    Position p = robots[r].start;
                     while (p.dir != dir) {
                         a.push_back(Action::CR);
-                        p = rotate(p);
+                        p = p.rotate();
                     }
                     a.push_back(Action::FW);
-                    p = move_forward(p);
+                    p = p.move_forward();
                     ASSERT(p == to, "invalid move");
                 }
                 std::vector<Action> b;
                 {
-                    PlannerPosition p = robots[r].start;
+                    Position p = robots[r].start;
                     while (p.dir != dir) {
                         b.push_back(Action::CCR);
-                        p = counter_rotate(p);
+                        p = p.counter_rotate();
                     }
                     b.push_back(Action::FW);
-                    p = move_forward(p);
+                    p = p.move_forward();
                     ASSERT(p == to, "invalid move");
                 }
 
@@ -662,10 +458,10 @@ std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
     // рассмотреть роботов
     for (uint32_t r = 0; r < robots.size(); r++) {
         actions[r] = Action::W;
-        const PlannerPosition p = robots[r].start;
+        const Position p = robots[r].start;
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
-            PlannerPosition to = simulate_action(p, robots[r].actions[d]);
-            if (is_valid(to)) {
+            Position to = p.simulate_action(robots[r].actions[d]);
+            if (to.is_valid()) {
                 actions[r] = robots[r].actions[d];
                 break;
             }

@@ -3,8 +3,6 @@
 #include "ActionModel.h"
 #include "SharedEnv.h"
 
-#include "dist_machine.hpp"
-
 class EPlanner {
     [[nodiscard]] int get_target(int r) const;
 

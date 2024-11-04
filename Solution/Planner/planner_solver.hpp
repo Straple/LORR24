@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../randomizer.hpp"
-#include "dist_machine.hpp"
 #include "solution_info.hpp"
+#include "position.hpp"
 
 #include <thread>
 
@@ -12,22 +12,7 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t PLANNING_STEPS = 1'000'000;
 
-static constexpr uint32_t THREADS = 31;
-
 #define BUILD_DIST_DP
-
-struct PlannerPosition {
-    int x = 0;
-    int y = 0;
-    int pos = 0;
-    int dir = 0;
-};
-
-bool operator<(const PlannerPosition &lhs, const PlannerPosition &rhs);
-
-bool operator==(const PlannerPosition &lhs, const PlannerPosition &rhs);
-
-bool operator!=(const PlannerPosition &lhs, const PlannerPosition &rhs);
 
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
@@ -39,7 +24,7 @@ class PlannerSolver {
     using Actions = std::array<Action, PLANNER_DEPTH>;
 
     struct Robot {
-        PlannerPosition start;
+        Position start;
         int target = -1;
 
         // применяем действие только если оно корректно для статической карты
@@ -51,49 +36,18 @@ class PlannerSolver {
 
     std::vector<Robot> robots;
 
-    uint32_t rows = 0, cols = 0;
-
-    // map[pos] = true if this pos is free
-    // otherwise: false
-    std::vector<bool> map;
-
-    // pos_to_robot[pos] = robot id or -1
-    std::vector<int> pos_to_robot;
-
     Randomizer rnd;
 
     double temp = 1;
-
-    // dist_dp[target][source][dir]
-    static inline std::vector<std::vector<std::array<uint16_t, 4> > > dist_dp;
 
     std::vector<std::vector<uint32_t>> map_robots_cnt;
 
     std::vector<std::vector<uint32_t>> map_edge_robots_cnt_gor, map_edge_robots_cnt_ver;
 
+    // pos_to_robot[pos] = robot id or -1
+    std::vector<int> pos_to_robot;
+
     SolutionInfo cur_info;
-
-    //std::vector<double> scores;
-    //double score_vector = 0;
-
-    /* PLANNER POSITION */
-
-    [[nodiscard]] PlannerPosition move_forward(PlannerPosition p) const;
-
-    [[nodiscard]] PlannerPosition rotate(PlannerPosition p) const;
-
-    [[nodiscard]] PlannerPosition counter_rotate(PlannerPosition p) const;
-
-    [[nodiscard]] PlannerPosition simulate_action(PlannerPosition p, Action action) const;
-
-    // корректная позиция и там нет препятствия
-    [[nodiscard]] bool is_valid(const PlannerPosition &p) const;
-
-    /* DIST MACHINE */
-
-    [[nodiscard]] int get_dist(PlannerPosition source, int target) const;
-
-    void build_dist(int target);
 
     /* CHANGE STATE TOOLS*/
 
@@ -135,10 +89,9 @@ class PlannerSolver {
 public:
     PlannerSolver() = default;
 
-    PlannerSolver(uint32_t rows, uint32_t cols, std::vector<bool> map, std::vector<Position> robots_pos,
-                  std::vector<int> robots_target);
+    PlannerSolver(std::vector<Position> robots_pos, std::vector<int> robots_target);
 
-    void run(TimePoint end_time, uint64_t random_seed);
+    void run(std::chrono::steady_clock::time_point end_time, uint64_t random_seed);
 
     void build_dist();
 
