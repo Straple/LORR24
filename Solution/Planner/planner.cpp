@@ -34,7 +34,7 @@ void EPlanner::initialize(int preprocess_time_limit) {
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.resize(env->num_of_agents, Action::W);
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 90);
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 300);
 
     constexpr uint32_t SOLVERS_SIZE = THREADS;
     std::vector<PlannerSolver> solvers;
@@ -89,10 +89,22 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 
+    std::cout << solvers[0].get_trivial_solution_info() << std::endl;
+    std::cout << solvers[0].get_solution_info() << std::endl;
+    ASSERT(solvers[0].get_trivial_solution_info() == solvers[0].get_solution_info(), "invalid solutions");
+
     auto [solution_info, actions] = solvers[0].get();
-    if(solution_info.collision_count == 0) {
+    if (solution_info.collision_count == 0) {
         for (uint32_t r = 0; r < actions.size(); r++) {
             plan[r] = actions[r];
         }
     }
+    else{
+        for (uint32_t r = 0; r < actions.size(); r++) {
+            plan[r] = Action::W;
+        }
+    }
+
+    std::cout << solution_info << ", time: " << std::chrono::duration_cast<milliseconds>(
+            std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
 }

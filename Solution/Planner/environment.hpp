@@ -7,7 +7,9 @@
 #include <vector>
 #include <array>
 
-static constexpr uint32_t THREADS = 31;
+#define TRIVIAL_DIST_HEURISTIC
+
+static constexpr uint32_t THREADS = 4;
 
 class Environment {
     int rows = 0, cols = 0;

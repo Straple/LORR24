@@ -83,7 +83,9 @@ void Environment::init(SharedEnvironment *env) {
         map[pos] = env->map[pos] == 0;
     }
 
+#ifndef TRIVIAL_DIST_HEURISTIC
     build_dists();
+#endif
 }
 
 int Environment::get_rows() const {
@@ -104,10 +106,15 @@ bool Environment::is_free(uint32_t pos) const {
 }
 
 int Environment::get_dist(Position p, uint32_t target) const {
-    ASSERT(target < dist_dp.size(), "invalid target");
-    ASSERT(p.pos < dist_dp[target].size(), "invalid pos");
+#ifdef TRIVIAL_DIST_HEURISTIC
+    Position to(target, 0);
+    return std::abs(p.x - to.x) + std::abs(p.y - to.y);
+#else
+    ASSERT(target < dist_dp.size(), "invalid target: " + std::to_string(target));
+    ASSERT(p.pos < dist_dp[target].size(), "invalid pos: " + std::to_string(p.pos));
     ASSERT(p.dir < 4, "invalid dir");
     return dist_dp[target][p.pos][p.dir];
+#endif
 }
 
 Environment &get_env() {

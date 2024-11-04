@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 
 struct SolutionInfo {
 
@@ -17,3 +18,9 @@ struct SolutionInfo {
 
     uint32_t count_forward = 0;
 };
+
+bool operator==(const SolutionInfo &lhs, const SolutionInfo &rhs);
+
+bool operator!=(const SolutionInfo &lhs, const SolutionInfo &rhs);
+
+std::ostream &operator<<(std::ostream &output, const SolutionInfo &info);

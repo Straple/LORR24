@@ -2,6 +2,7 @@ build
 .vscode
 Dockerfile
 local
+warehouse_test.json
 test.json
 test.txt
 .DS_Store

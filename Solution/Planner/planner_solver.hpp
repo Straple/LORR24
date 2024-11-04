@@ -101,5 +101,7 @@ public:
 
     [[nodiscard]] SolutionInfo get_solution_info() const;
 
+    [[nodiscard]] SolutionInfo get_trivial_solution_info() const;
+
     [[nodiscard]] double get_x(SolutionInfo info) const;
 };
