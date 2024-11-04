@@ -7,9 +7,9 @@
 #include <vector>
 #include <array>
 
-#define TRIVIAL_DIST_HEURISTIC
+//#define TRIVIAL_DIST_HEURISTIC
 
-static constexpr uint32_t THREADS = 1;
+static constexpr uint32_t THREADS = 31;
 
 class Environment {
     int rows = 0, cols = 0;
@@ -37,7 +37,7 @@ public:
 
     [[nodiscard]] bool is_free(uint32_t pos) const;
 
-    [[nodiscard]] int get_dist(Position p, uint32_t target) const;
+    [[nodiscard]] int get_dist(Position p, int target) const;
 
 
 };

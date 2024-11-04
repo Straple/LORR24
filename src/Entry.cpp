@@ -13,7 +13,7 @@ void Entry::initialize(int preprocess_time_limit) {
 //time_limit in milliseconds
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
     //first call task schedule
-    scheduler->plan(time_limit * 0.1 + 10, proposed_schedule);
+    scheduler->plan(time_limit * 0.2 + 10, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);

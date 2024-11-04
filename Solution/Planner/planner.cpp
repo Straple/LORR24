@@ -39,7 +39,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
 
-    auto start = std::chrono::steady_clock::now();
+    //auto start = std::chrono::steady_clock::now();
     auto robots_set = get_global_dp().split_robots(env);
     //std::cout << "split time: "<< std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count()<< "ms" << std::endl;
 
@@ -71,28 +71,21 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     auto do_work = [&](uint32_t thr) {
         uint64_t x = 0;
-        //while (true) {
         for (int step = 0; step < 100'000; step++) {
-            for (uint32_t i = thr; i < solvers.size(); i += 1) {
+            for (uint32_t i = thr; i < solvers.size(); i += THREADS) {
                 //std::cout << thr << std::endl;
-                TimePoint end_calc = std::chrono::steady_clock::now() + milliseconds(10);
+                TimePoint end_calc = std::chrono::steady_clock::now() + milliseconds(5);
                 if (end_calc >= end_time) {
                     return;
                 }
-                double old = solvers[i].get_x(solvers[i].get().first);
                 solvers[i].run(end_calc, x + random_vals[i]);
-                double cur = solvers[i].get_x(solvers[i].get().first);
-
-                if(old > cur){
-//                    std::cout << "oh no: " + std::to_string(old) + " > " + std::to_string(cur) << std::endl;
-                }
-                //ASSERT(old <= cur, "oh no: " + std::to_string(old) + " > " + std::to_string(cur));
 
                 x = x * 13 + 7 + thr;
             }
         }
     };
-    std::vector<std::thread> threads(1);
+
+    std::vector<std::thread> threads(THREADS);
     for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr] = std::thread(do_work, thr);
     }
@@ -154,16 +147,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 
-    static int total = 0;
+    /*static int total = 0;
     static int ok = 0;
-    total++;
-    /*auto [solution_info, actions] = solvers[0].get();
-    if (solution_info.collision_count == 0) {
-        ok++;
-        for (uint32_t r = 0; r < actions.size(); r++) {
-            plan[r] = actions[r];
-        }
-    }*/
+    total++;*/
 
     //std::cout << total << ' ' << ok * 100.0 / total << "% " << total_info << ", time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
 }

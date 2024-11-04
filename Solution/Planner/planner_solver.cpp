@@ -344,18 +344,19 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
         uint64_t x = rnd.get();
         v.dir = robots[r].start.dir;
         Actions new_action{Action::W};
+
+        std::vector<std::pair<Actions, Position>> data;
         for (int k = 0; k < 4; k++) {
-            if ((x >> (k + 1)) & 1) {
-                auto to = v.move_forward();
-                if (to.is_valid() && !visited.count(to.pos)) {
-                    if (k < PLANNER_DEPTH) {
-                        new_action[k] = Action::FW;
-                    }
-                    find = true;
-                    new_actions[r] = new_action;
-                    v = to;
-                    break;
+            auto to = v.move_forward();
+            if (to.is_valid() && !visited.count(to.pos)) {
+                if (k < PLANNER_DEPTH) {
+                    new_action[k] = Action::FW;
                 }
+                data.emplace_back(new_action, to);
+                find = true;
+                new_actions[r] = new_action;
+                v = to;
+                break;
             }
 
             if (x & 1) {
@@ -370,57 +371,6 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
                 v = v.counter_rotate();
             }
         }
-
-        /*shuffle(dirs.begin(), dirs.end(), rnd.generator);
-        for (int dir: dirs) {
-            v.dir = dir;
-            auto to = v.move_forward();
-            if (to.is_valid() && !visited.count(to.pos)) {
-                find = true;
-                // вычислим необходимые действия для этого робота, чтобы попасть в to
-
-                std::vector<Action> a;
-                {
-                    Position p = robots[r].start;
-                    while (p.dir != dir) {
-                        a.push_back(Action::CR);
-                        p = p.rotate();
-                    }
-                    a.push_back(Action::FW);
-                    p = p.move_forward();
-                    ASSERT(p == to, "invalid move");
-                }
-                std::vector<Action> b;
-                {
-                    Position p = robots[r].start;
-                    while (p.dir != dir) {
-                        b.push_back(Action::CCR);
-                        p = p.counter_rotate();
-                    }
-                    b.push_back(Action::FW);
-                    p = p.move_forward();
-                    ASSERT(p == to, "invalid move");
-                }
-
-                if (a.size() > b.size()) {
-                    std::swap(a, b);
-                }
-
-                // a is best
-
-                Actions new_action{Action::W};
-                for (uint32_t k = 0; k < PLANNER_DEPTH && k < a.size(); k++) {
-                    new_action[k] = a[k];
-                }
-                for (uint32_t k = a.size(); k < PLANNER_DEPTH; k++) {
-                    new_action[k] = static_cast<Action>(rnd.get(0, 3));
-                }
-                new_actions[r] = new_action;
-
-                v = to;
-                break;
-            }
-        }*/
 
         if (!find) {
             return false;
@@ -445,7 +395,7 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
 void PlannerSolver::run(TimePoint end_time, uint64_t random_seed) {
     Randomizer rnd(random_seed);
 
-    temp = 1;
+    // temp = 1;
     for (int step = 0;; step++) {
         if (step % 10 == 0) {
             if (std::chrono::steady_clock::now() >= end_time) {

@@ -105,15 +105,19 @@ bool Environment::is_free(uint32_t pos) const {
     return map[pos];
 }
 
-int Environment::get_dist(Position p, uint32_t target) const {
+int Environment::get_dist(Position p, int target) const {
+    if (target == -1) {
+        return 0;
+    }
+    ASSERT(p.is_valid(), "invalid p");
+    ASSERT(0 <= target && target < map.size(), "invalid target: " + std::to_string(target));
+    ASSERT(0 <= p.pos && p.pos < map.size(), "invalid pos: " + std::to_string(p.pos));
+    ASSERT(0 <= p.dir && p.dir < 4, "invalid dir");
+
 #ifdef TRIVIAL_DIST_HEURISTIC
     Position to(target, 0);
     return std::abs(p.x - to.x) + std::abs(p.y - to.y);
 #else
-    ASSERT(p.is_valid(), "invalid p");
-    ASSERT(target < dist_dp.size(), "invalid target: " + std::to_string(target));
-    ASSERT(0 <= p.pos && p.pos < dist_dp[target].size(), "invalid pos: " + std::to_string(p.pos));
-    ASSERT(0 <= p.dir && p.dir < 4 && p.dir < dist_dp[target][p.pos].size(), "invalid dir");
     return dist_dp[target][p.pos][p.dir];
 #endif
 }
