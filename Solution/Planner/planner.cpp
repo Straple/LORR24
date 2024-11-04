@@ -70,7 +70,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     }
 
     auto do_work = [&](uint32_t thr) {
-        uint32_t x = 0;
+        uint64_t x = 0;
         //while (true) {
         for (int step = 0; step < 100'000; step++) {
             for (uint32_t i = thr; i < solvers.size(); i += 1) {
