@@ -25,6 +25,8 @@ public:
     void change_map_edge_robots_cnt(int d, int pos, int to, int val, SolutionInfo &info);
 
     void init(SharedEnvironment* env);
+
+    std::vector<std::vector<int>> split_robots(SharedEnvironment* env);
 };
 
 GlobalDP &get_global_dp();

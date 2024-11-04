@@ -5,12 +5,33 @@
 
 void PlannerSolver::init() {
     // init robots pathes
+    for (int r = 0; r < robots.size(); r++) {
+        robot_to_idx[get_global_dp().get_robot(robots[r].start.pos)] = r;
+    }
     for (uint32_t r = 0; r < robots.size(); r++) {
         add_robot_path(r);
     }
 }
 
+void PlannerSolver::update_answer() {
+    if (get_x(solution_info) > get_x(answer_info)) {
+        answer_info = solution_info;
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            answer_actions[r] = Action::W;
+            const Position p = robots[r].start;
+            for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
+                Position to = p.simulate_action(robots[r].actions[d]);
+                if (to.is_valid()) {
+                    answer_actions[r] = robots[r].actions[d];
+                    break;
+                }
+            }
+        }
+    }
+}
+
 PlannerSolver::PlannerSolver(std::vector<Position> robots_pos, std::vector<int> robots_target) {
+    ASSERT(robots_pos.size() == robots_target.size(), "invalid sizes");
     robots.resize(robots_pos.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].start.x = robots_pos[r].x;
@@ -21,11 +42,16 @@ PlannerSolver::PlannerSolver(std::vector<Position> robots_pos, std::vector<int> 
     }
 
     init();
+
+    answer_actions.resize(robots.size(), Action::W);
+    answer_info = solution_info;
 }
 
 void PlannerSolver::process_robot_path(uint32_t r, int sign) {
+    ASSERT(r < robots.size(), "invalid r");
     auto robot = robots[r];
     Position p = robot.start;
+    ASSERT(p.is_valid(), "invalid p");
     int t = 0;
     int best_dist = get_env().get_dist(p, robot.target);
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
@@ -63,6 +89,7 @@ SolutionInfo PlannerSolver::get_solution_info() const {
 }
 
 SolutionInfo PlannerSolver::get_trivial_solution_info() const {
+    //return solution_info;
     SolutionInfo info;
 
     // calc collision_count
@@ -159,6 +186,9 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
     }*/
     info.sum_dist_change = solution_info.sum_dist_change;
 
+    if (info != solution_info) {
+        std::cout << info << '\n' << solution_info << std::endl;
+    }
     ASSERT(info == solution_info, "invalid solution info");
 
     return info;
@@ -178,14 +208,16 @@ double PlannerSolver::get_x(SolutionInfo info) const {
            + fw;
 }
 
-bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur) {
+bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur, Randomizer &rnd) {
+    update_answer();
+
     double oldx = get_x(old);
     double curx = get_x(cur);
     return oldx <= curx || rnd.get_d() < exp((curx - oldx) / temp);
     //return oldx <= curx || curx <= oldx * (1 + score_vector + rnd.get_d(0, 0.003));
 }
 
-bool PlannerSolver::try_change_robot_action() {
+bool PlannerSolver::try_change_robot_action(Randomizer &rnd) {
     SolutionInfo old = get_solution_info();
 
     // берем робота
@@ -200,14 +232,14 @@ bool PlannerSolver::try_change_robot_action() {
     robots[r].actions[d] = static_cast<Action>(rnd.get(0, 3));
     add_robot_path(r);
 
-    return consider(old, [&]() {
+    return consider(old, rnd, [&]() {
         remove_robot_path(r);
         robots[r].actions[d] = old_action;
         add_robot_path(r);
     });
 }
 
-bool PlannerSolver::try_change_robot_path() {
+bool PlannerSolver::try_change_robot_path(Randomizer &rnd) {
     SolutionInfo old = get_solution_info();
 
     // берем робота
@@ -228,14 +260,14 @@ bool PlannerSolver::try_change_robot_path() {
     robots[r].actions = new_actions;
     add_robot_path(r);
 
-    return consider(old, [&]() {
+    return consider(old, rnd, [&]() {
         remove_robot_path(r);
         robots[r].actions = old_actions;
         add_robot_path(r);
     });
 }
 
-bool PlannerSolver::try_change_many_robots() {
+bool PlannerSolver::try_change_many_robots(Randomizer &rnd) {
     SolutionInfo old = get_solution_info();
 
     uint32_t r1 = rnd.get(0, static_cast<int>(robots.size()) - 1);
@@ -273,7 +305,7 @@ bool PlannerSolver::try_change_many_robots() {
     add_robot_path(r1);
     add_robot_path(r2);
 
-    return consider(old, [&]() {
+    return consider(old, rnd, [&]() {
         remove_robot_path(r1);
         remove_robot_path(r2);
         robots[r1].actions = old_actions1;
@@ -283,7 +315,7 @@ bool PlannerSolver::try_change_many_robots() {
     });
 }
 
-bool PlannerSolver::try_move_over() {
+bool PlannerSolver::try_move_over(Randomizer &rnd) {
     SolutionInfo old = get_solution_info();
 
     uint32_t r = rnd.get(0, static_cast<int>(robots.size()) - 1);
@@ -304,6 +336,9 @@ bool PlannerSolver::try_move_over() {
         if (r == -1) {
             break;
         }
+        ASSERT(robot_to_idx.count(r), "no contains r");
+        r = robot_to_idx[r];
+        ASSERT(0 <= r && r < robots.size(), "invalid r");
 
         bool find = false;
         uint64_t x = rnd.get();
@@ -398,7 +433,7 @@ bool PlannerSolver::try_move_over() {
         add_robot_path(r);
     }
 
-    return consider(old, [&]() {
+    return consider(old, rnd, [&]() {
         for (auto &[r, new_action]: new_actions) {
             remove_robot_path(r);
             std::swap(robots[r].actions, new_action);
@@ -408,7 +443,7 @@ bool PlannerSolver::try_move_over() {
 }
 
 void PlannerSolver::run(TimePoint end_time, uint64_t random_seed) {
-    rnd = Randomizer(random_seed);
+    Randomizer rnd(random_seed);
 
     temp = 1;
     for (int step = 0;; step++) {
@@ -423,40 +458,22 @@ void PlannerSolver::run(TimePoint end_time, uint64_t random_seed) {
         int k = rnd.get(0, 6);
 
         if (k == 0) {
-            try_change_robot_action();
+            try_change_robot_action(rnd);
         } else if (k == 1) {
-            try_change_robot_path();
+            try_change_robot_path(rnd);
         } else if (k == 2) {
-            try_change_many_robots();
+            try_change_many_robots(rnd);
         } else {
-            try_move_over();
+            try_move_over(rnd);
         }
-
-        /*scores.push_back(get_x(get_solution_info()));
-        if (scores.size() > 100) {
-            scores.erase(scores.begin());
-        }
-        double a = 0, b = 0;
-        for (int i = 0; i < scores.size() / 2; i++) {
-            a += scores[i];
-        }
-        for (int i = scores.size() / 2; i < scores.size(); i++) {
-            b += scores[i];
-        }
-        score_vector = (b - a) / (std::abs(a) + std::abs(b) + 1);*/
     }
-    /*auto end = std::chrono::steady_clock::now();
-    std::cout << get_solution_info().collision_count << ' ' //
-              << get_solution_info().sum_dist_change << ' ' //
-              << get_solution_info().count_forward << ' ' //
-              << std::chrono::duration_cast<milliseconds>(end - start).count() << "ms" << std::endl;
-    ASSERT(get_solution_info().collision_count == 0, "invalid collision count");*/
 }
 
 std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
-    std::vector<Action> actions(robots.size());
+    return {answer_info, answer_actions};
 
-    // рассмотреть роботов
+    /*std::vector<Action> actions(robots.size());
+
     for (uint32_t r = 0; r < robots.size(); r++) {
         actions[r] = Action::W;
         const Position p = robots[r].start;
@@ -469,5 +486,5 @@ std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
         }
     }
 
-    return {get_solution_info(), actions};
+    return {get_solution_info(), actions};*/
 }

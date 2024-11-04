@@ -34,11 +34,14 @@ class PlannerSolver {
 
     std::vector<Robot> robots;
 
-    Randomizer rnd;
-
     double temp = 1;
 
     SolutionInfo solution_info;
+
+    std::unordered_map<int, int> robot_to_idx;
+
+    std::vector<Action> answer_actions;
+    SolutionInfo answer_info;
 
     /* CHANGE STATE TOOLS*/
 
@@ -50,12 +53,12 @@ class PlannerSolver {
 
     /* ALGO TOOLS */
 
-    bool compare(SolutionInfo old, SolutionInfo cur);
+    bool compare(SolutionInfo old, SolutionInfo cur, Randomizer &rnd);
 
     template<typename rollback_t>
-    bool consider(SolutionInfo old, rollback_t &&rollback) {
+    bool consider(SolutionInfo old, Randomizer &rnd, rollback_t &&rollback) {
         SolutionInfo cur = get_solution_info();
-        if (compare(old, cur)) {
+        if (compare(old, cur, rnd)) {
             return true;
         } else {
             rollback();
@@ -63,15 +66,17 @@ class PlannerSolver {
         }
     }
 
-    bool try_change_robot_action();
+    bool try_change_robot_action(Randomizer &rnd);
 
-    bool try_change_robot_path();
+    bool try_change_robot_path(Randomizer &rnd);
 
-    bool try_change_many_robots();
+    bool try_change_many_robots(Randomizer &rnd);
 
-    bool try_move_over();
+    bool try_move_over(Randomizer &rnd);
 
     void init();
+
+    void update_answer();
 
 public:
     PlannerSolver() = default;

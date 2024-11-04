@@ -23,4 +23,6 @@ bool operator==(const SolutionInfo &lhs, const SolutionInfo &rhs);
 
 bool operator!=(const SolutionInfo &lhs, const SolutionInfo &rhs);
 
+SolutionInfo operator+(const SolutionInfo &lhs, const SolutionInfo &rhs);
+
 std::ostream &operator<<(std::ostream &output, const SolutionInfo &info);

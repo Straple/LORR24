@@ -110,9 +110,10 @@ int Environment::get_dist(Position p, uint32_t target) const {
     Position to(target, 0);
     return std::abs(p.x - to.x) + std::abs(p.y - to.y);
 #else
+    ASSERT(p.is_valid(), "invalid p");
     ASSERT(target < dist_dp.size(), "invalid target: " + std::to_string(target));
-    ASSERT(p.pos < dist_dp[target].size(), "invalid pos: " + std::to_string(p.pos));
-    ASSERT(p.dir < 4, "invalid dir");
+    ASSERT(0 <= p.pos && p.pos < dist_dp[target].size(), "invalid pos: " + std::to_string(p.pos));
+    ASSERT(0 <= p.dir && p.dir < 4 && p.dir < dist_dp[target][p.pos].size(), "invalid dir");
     return dist_dp[target][p.pos][p.dir];
 #endif
 }

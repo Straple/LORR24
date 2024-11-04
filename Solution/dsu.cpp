@@ -1,5 +1,7 @@
 #include "dsu.hpp"
 
+#include "assert.hpp"
+
 #include <numeric>
 
 DSU::DSU(uint32_t size) {
@@ -8,6 +10,7 @@ DSU::DSU(uint32_t size) {
 }
 
 uint32_t DSU::get(uint32_t x) {
+    ASSERT(x < parent.size(), "invalid x");
     if (parent[x] == x) {
         return x;
     } else {
