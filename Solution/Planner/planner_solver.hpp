@@ -12,8 +12,6 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t PLANNING_STEPS = 1'000'000;
 
-#define BUILD_DIST_DP
-
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
 
@@ -40,20 +38,9 @@ class PlannerSolver {
 
     double temp = 1;
 
-    std::vector<std::vector<uint32_t>> map_robots_cnt;
-
-    std::vector<std::vector<uint32_t>> map_edge_robots_cnt_gor, map_edge_robots_cnt_ver;
-
-    // pos_to_robot[pos] = robot id or -1
-    std::vector<int> pos_to_robot;
-
-    SolutionInfo cur_info;
+    SolutionInfo solution_info;
 
     /* CHANGE STATE TOOLS*/
-
-    void change_map_robots_cnt(int d, int pos, int val);
-
-    void change_map_edge_robots_cnt(int d, int pos, int to, int val);
 
     void process_robot_path(uint32_t r, int sign);
 

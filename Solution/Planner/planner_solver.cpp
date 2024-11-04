@@ -1,18 +1,9 @@
 #include "planner_solver.hpp"
 
 #include "environment.hpp"
+#include "global_dp.hpp"
 
 void PlannerSolver::init() {
-    map_robots_cnt.resize(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
-    map_edge_robots_cnt_ver.resize(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
-    map_edge_robots_cnt_gor.resize(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
-
-    pos_to_robot.resize(get_env().get_size(), -1);
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        ASSERT(pos_to_robot[robots[r].start.pos] == -1, "pos_to_robot already init by other robot");
-        pos_to_robot[robots[r].start.pos] = r;
-    }
-
     // init robots pathes
     for (uint32_t r = 0; r < robots.size(); r++) {
         add_robot_path(r);
@@ -32,31 +23,6 @@ PlannerSolver::PlannerSolver(std::vector<Position> robots_pos, std::vector<int> 
     init();
 }
 
-void PlannerSolver::change_map_robots_cnt(int d, int pos, int val) {
-    cur_info.collision_count -= map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
-    map_robots_cnt[d][pos] += val;
-    cur_info.collision_count += map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
-}
-
-void PlannerSolver::change_map_edge_robots_cnt(int d, int pos, int to, int val) {
-    if (pos > to) {
-        std::swap(pos, to);
-    }
-    if (to - pos == 1) {
-        // gor
-        cur_info.collision_count -= map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
-        map_edge_robots_cnt_gor[d][pos] += val;
-        cur_info.collision_count += map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
-    } else {
-        // ver
-        ASSERT(to - pos == get_env().get_cols(), "invalid pos and to");
-
-        cur_info.collision_count -= map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
-        map_edge_robots_cnt_ver[d][pos] += val;
-        cur_info.collision_count += map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
-    }
-}
-
 void PlannerSolver::process_robot_path(uint32_t r, int sign) {
     auto robot = robots[r];
     Position p = robot.start;
@@ -66,11 +32,11 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
         Position to = p.simulate_action(robot.actions[d]);
         if (to.is_valid()) {
             if (robot.actions[d] == Action::FW) {
-                cur_info.count_forward += sign;
-                change_map_edge_robots_cnt(t, p.pos, to.pos, sign);
+                solution_info.count_forward += sign;
+                get_global_dp().change_map_edge_robots_cnt(t, p.pos, to.pos, sign, solution_info);
             }
 
-            change_map_robots_cnt(t, to.pos, sign);
+            get_global_dp().change_map_robots_cnt(t, to.pos, sign, solution_info);
             best_dist = min(best_dist, get_env().get_dist(to, robot.target));
 
             p = to;
@@ -78,10 +44,10 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
         }
     }
     while (t < PLANNER_DEPTH) {
-        change_map_robots_cnt(t, p.pos, sign);
+        get_global_dp().change_map_robots_cnt(t, p.pos, sign, solution_info);
         t++;
     }
-    cur_info.sum_dist_change += sign * (get_env().get_dist(robot.start, robot.target) - best_dist);
+    solution_info.sum_dist_change += sign * (get_env().get_dist(robot.start, robot.target) - best_dist);
 }
 
 void PlannerSolver::add_robot_path(uint32_t r) {
@@ -93,7 +59,7 @@ void PlannerSolver::remove_robot_path(uint32_t r) {
 }
 
 SolutionInfo PlannerSolver::get_solution_info() const {
-    return cur_info;
+    return solution_info;
 }
 
 SolutionInfo PlannerSolver::get_trivial_solution_info() const {
@@ -131,10 +97,10 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
 
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
             for (uint32_t pos = 0; pos < get_env().get_size(); pos++) {
-                if (map_robots_cnt[d][pos] != map_cnt[d][pos]) {
+                /*if (map_robots_cnt[d][pos] != map_cnt[d][pos]) {
                     std::cout << "diff: " << d << ' ' << pos << ' ' << map_robots_cnt[d][pos] << " != " <<
                               map_cnt[d][pos] << std::endl;
-                }
+                }*/
                 info.collision_count += map_cnt[d][pos] * (map_cnt[d][pos] - 1);
             }
 
@@ -143,11 +109,11 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
             }
         }
 
-        ASSERT(map_robots_cnt == map_cnt, "invalid map_cnt");
+        //ASSERT(map_robots_cnt == map_cnt, "invalid map_cnt");
 
-        ASSERT(info.collision_count == cur_info.collision_count,
+        ASSERT(info.collision_count == solution_info.collision_count,
                "invalid collision count: " + std::to_string(info.collision_count) +
-               " != " + std::to_string(cur_info.collision_count));
+               " != " + std::to_string(solution_info.collision_count));
     }
 
     // calc mean_dist_change
@@ -191,7 +157,9 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
         //info.mean_dist_change = total_sum / total_cnt;
         //info.mean_dist_change /= PLANNER_DEPTH;
     }*/
-    info.sum_dist_change = cur_info.sum_dist_change;
+    info.sum_dist_change = solution_info.sum_dist_change;
+
+    ASSERT(info == solution_info, "invalid solution info");
 
     return info;
 }
@@ -322,23 +290,53 @@ bool PlannerSolver::try_move_over() {
 
     // найдем рандомную цепочку перемещений
     Position v = robots[r].start;
-    std::vector<int> dirs = {0, 1, 2, 3};
 
     std::set<int> visited;
+
+    //static std::vector<int> dirs = {0, 1, 2, 3};
 
     // [robot] = actions
     std::map<int, Actions> new_actions;
     while (true) {
         visited.insert(v.pos);
 
-        int r = pos_to_robot[v.pos];
+        int r = get_global_dp().get_robot(v.pos);
         if (r == -1) {
             break;
         }
 
-        shuffle(dirs.begin(), dirs.end(), rnd.generator);
-
         bool find = false;
+        uint64_t x = rnd.get();
+        v.dir = robots[r].start.dir;
+        Actions new_action{Action::W};
+        for (int k = 0; k < 4; k++) {
+            if ((x >> (k + 1)) & 1) {
+                auto to = v.move_forward();
+                if (to.is_valid() && !visited.count(to.pos)) {
+                    if (k < PLANNER_DEPTH) {
+                        new_action[k] = Action::FW;
+                    }
+                    find = true;
+                    new_actions[r] = new_action;
+                    v = to;
+                    break;
+                }
+            }
+
+            if (x & 1) {
+                if (k < PLANNER_DEPTH) {
+                    new_action[k] = Action::CR;
+                }
+                v = v.rotate();
+            } else {
+                if (k < PLANNER_DEPTH) {
+                    new_action[k] = Action::CCR;
+                }
+                v = v.counter_rotate();
+            }
+        }
+
+        /*shuffle(dirs.begin(), dirs.end(), rnd.generator);
         for (int dir: dirs) {
             v.dir = dir;
             auto to = v.move_forward();
@@ -387,7 +385,7 @@ bool PlannerSolver::try_move_over() {
                 v = to;
                 break;
             }
-        }
+        }*/
 
         if (!find) {
             return false;
