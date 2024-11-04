@@ -62,7 +62,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     //std::cout << "build solvers time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
 
-    static Randomizer rnd(42);
+    static Randomizer rnd(36);
 
     std::vector<uint64_t> random_vals(solvers.size());
     for (uint32_t i = 0; i < solvers.size(); i++) {
@@ -72,10 +72,10 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     auto do_work = [&](uint32_t thr) {
         uint32_t x = 0;
         //while (true) {
-        for (int i = 0; i < 100'000; i++) {
-            for (uint32_t i = thr; i < solvers.size(); i += THREADS) {
+        for (int step = 0; step < 100'000; step++) {
+            for (uint32_t i = thr; i < solvers.size(); i += 1) {
                 //std::cout << thr << std::endl;
-                TimePoint end_calc = std::chrono::steady_clock::now() + milliseconds(30);
+                TimePoint end_calc = std::chrono::steady_clock::now() + milliseconds(10);
                 if (end_calc >= end_time) {
                     return;
                 }
@@ -92,11 +92,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             }
         }
     };
-    std::vector<std::thread> threads(THREADS);
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
+    std::vector<std::thread> threads(1);
+    for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr] = std::thread(do_work, thr);
     }
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
+    for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr].join();
     }
 
