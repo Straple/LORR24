@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ActionModel.h"
-#include "SharedEnv.h"
 
 struct Position {
     int pos = 0;
@@ -10,13 +9,13 @@ struct Position {
 
     Position() = default;
 
-    Position(int pos, int dir, SharedEnvironment *env);
+    Position(int pos, int dir);
 
     // корректная позиция + проходимо
-    [[nodiscard]] bool is_valide(SharedEnvironment *env) const;
+    [[nodiscard]] bool is_valid() const;
 
     // двигает вперед учитывая направление
-    [[nodiscard]] Position move_forward(SharedEnvironment *env) const;
+    [[nodiscard]] Position move_forward() const;
 
     // поворачивает по часовой стрелке
     [[nodiscard]] Position rotate() const;
@@ -24,7 +23,7 @@ struct Position {
     // поворачивает против часовой стрелке
     [[nodiscard]] Position counter_rotate() const;
 
-    [[nodiscard]] Position simulate_action(Action action, SharedEnvironment *env) const;
+    [[nodiscard]] Position simulate_action(Action action) const;
 };
 
 bool operator==(const Position &lhs, const Position &rhs);

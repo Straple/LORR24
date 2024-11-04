@@ -1,31 +1,33 @@
 #include "position.hpp"
 
 #include "../assert.hpp"
+#include "environment.hpp"
 
-Position::Position(int pos, int dir, SharedEnvironment *env) : pos(pos), x(pos / env->cols), y(pos % env->cols), dir(dir) {
+Position::Position(int pos, int dir) : pos(pos), x(pos / get_env().get_cols()), y(pos % get_env().get_cols()),
+                                       dir(dir) {
 }
 
-bool Position::is_valide(SharedEnvironment *env) const {
+bool Position::is_valid() const {
     ASSERT(0 <= dir && dir < 4, "invalid position dir: " + std::to_string(dir));
-    return 0 <= x && x < env->rows &&
-           0 <= y && y < env->cols &&
-           0 <= pos && pos < env->cols * env->rows &&
-           env->map[pos] == 0;
+    return 0 <= x && x < get_env().get_rows() &&
+           0 <= y && y < get_env().get_cols() &&
+           0 <= pos && pos < get_env().get_rows() * get_env().get_cols() &&
+           get_env().is_free(pos);
 }
 
-Position Position::move_forward(SharedEnvironment *env) const {
+Position Position::move_forward() const {
     Position p = *this;
     if (dir == 0) {
         p.y++;
         p.pos++;
     } else if (dir == 1) {
-        p.pos += env->cols;
+        p.pos += get_env().get_cols();
         p.x++;
     } else if (dir == 2) {
         p.pos--;
         p.y--;
     } else if (dir == 3) {
-        p.pos -= env->cols;
+        p.pos -= get_env().get_cols();
         p.x--;
     } else {
         FAILED_ASSERT("invalid position dir: " + std::to_string(dir));
@@ -33,23 +35,21 @@ Position Position::move_forward(SharedEnvironment *env) const {
     return p;
 }
 
-// поворачивает по часовой стрелке
 Position Position::rotate() const {
     Position p = *this;
     p.dir = (p.dir + 1) % 4;
     return p;
 }
 
-// поворачивает против часовой стрелке
 Position Position::counter_rotate() const {
     Position p = *this;
     p.dir = (p.dir - 1 + 4) % 4;
     return p;
 }
 
-[[nodiscard]] Position Position::simulate_action(Action action, SharedEnvironment *env) const {
+[[nodiscard]] Position Position::simulate_action(Action action) const {
     if (action == Action::FW) {
-        return move_forward(env);
+        return move_forward();
     } else if (action == Action::CR) {
         return rotate();
     } else if (action == Action::CCR) {
