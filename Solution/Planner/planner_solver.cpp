@@ -340,40 +340,53 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
         r = robot_to_idx[r];
         ASSERT(0 <= r && r < robots.size(), "invalid r");
 
-        bool find = false;
-        uint64_t x = rnd.get();
+        //uint64_t x = rnd.get();
         v.dir = robots[r].start.dir;
-        Actions new_action{Action::W};
+        Actions new_actiona{Action::W}, new_actionb{Action::W};
 
         std::vector<std::pair<Actions, Position>> data;
+        Position a = v;
+        Position b = v;
         for (int k = 0; k < 4; k++) {
-            auto to = v.move_forward();
-            if (to.is_valid() && !visited.count(to.pos)) {
+            auto toa = a.move_forward();
+            if (toa.is_valid() && !visited.count(toa.pos)) {
                 if (k < PLANNER_DEPTH) {
-                    new_action[k] = Action::FW;
+                    new_actiona[k] = Action::FW;
                 }
-                data.emplace_back(new_action, to);
-                find = true;
-                new_actions[r] = new_action;
-                v = to;
-                break;
+                data.emplace_back(new_actiona, toa);
             }
 
-            if (x & 1) {
+            auto tob = b.move_forward();
+            if (tob.is_valid() && !visited.count(tob.pos)) {
                 if (k < PLANNER_DEPTH) {
-                    new_action[k] = Action::CR;
+                    new_actionb[k] = Action::FW;
                 }
-                v = v.rotate();
-            } else {
-                if (k < PLANNER_DEPTH) {
-                    new_action[k] = Action::CCR;
-                }
-                v = v.counter_rotate();
+                data.emplace_back(new_actionb, tob);
             }
+
+            if (k < PLANNER_DEPTH) {
+                new_actiona[k] = Action::CR;
+            }
+            a = a.rotate();
+
+            if (k < PLANNER_DEPTH) {
+                new_actionb[k] = Action::CCR;
+            }
+            b = b.counter_rotate();
         }
 
-        if (!find) {
-            return false;
+        if (data.empty()) {
+            break;
+        }
+
+        if (rnd.get() & 1) {
+            auto [new_action, to] = data[0];
+            new_actions[r] = new_action;
+            v = to;
+        } else {
+            auto [new_action, to] = rnd.get(data);
+            new_actions[r] = new_action;
+            v = to;
         }
     }
 

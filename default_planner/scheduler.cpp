@@ -68,5 +68,11 @@ void schedule_plan(int time_limit, std::vector<int> & proposed_schedule,  Shared
         }
     }
     // cout << ((float)(clock() - start))/CLOCKS_PER_SEC <<endl;
+
+    for (int i = 0; i < env->num_of_agents; i++){
+        if (proposed_schedule[i] == -1 && env->curr_task_schedule[i] != -1){
+            proposed_schedule[i] = env->curr_task_schedule[i];
+        }
+    }
 }
 }

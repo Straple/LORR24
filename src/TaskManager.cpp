@@ -10,6 +10,7 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
 {
     if (assignment.size() != num_of_agents)
     {
+        // std::cout << "why is not equal sizes?" << std::endl;
         return false;
     }
 
@@ -21,6 +22,7 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
         // task should be a ongoing task
         if (assignment[i_agent] != -1 && ongoing_tasks.find(assignment[i_agent]) == ongoing_tasks.end())
         {
+            // std::cout << "task already finished" << std::endl;
             schedule_errors.push_back(make_tuple("task already finished",assignment[i_agent],i_agent,-1,curr_timestep+1));
             return false;
         }
@@ -28,6 +30,7 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
         // one task should not appear in the assignment twice
         if (assignment[i_agent] != -1 && idx_set.find(assignment[i_agent]) != idx_set.end())
         {
+            // std::cout << "task is already assigned by the second agent at the same time" << std::endl;
             schedule_errors.push_back(make_tuple("task is already assigned by the second agent at the same time",assignment[i_agent],i_agent,idx_set[assignment[i_agent]],curr_timestep+1));
             return false;
         }
@@ -37,6 +40,7 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment)
         {
             if (ongoing_tasks[current_assignment[i_agent]]->idx_next_loc > 0 && (current_assignment[i_agent] == -1  || assignment[i_agent] != current_assignment[i_agent]))
             {
+                // std::cout << "task is already opened by the second agent" << std::endl;
                 schedule_errors.push_back(make_tuple("task is already opened by the second agent",assignment[i_agent],i_agent,ongoing_tasks[current_assignment[i_agent]]->agent_assigned,curr_timestep+1));
                 return false;
             }

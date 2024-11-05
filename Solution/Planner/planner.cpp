@@ -37,7 +37,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     get_global_dp().init(env);
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
     //auto start = std::chrono::steady_clock::now();
     auto robots_set = get_global_dp().split_robots(env);
@@ -147,9 +147,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 
-    /*static int total = 0;
-    static int ok = 0;
-    total++;*/
-
-    //std::cout << total << ' ' << ok * 100.0 / total << "% " << total_info << ", time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
+    static int step = 0;
+    step++;
+    std::cout << step << ' ' << total_info << ", time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
 }
