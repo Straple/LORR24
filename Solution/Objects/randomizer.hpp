@@ -28,4 +28,10 @@ public:
         ASSERT(!container.empty(), "container is empty");
         return *std::next(container.begin(), get(0, container.size() - 1));
     }
+
+    template<typename Container_t>
+    const auto &get(const Container_t &container) {
+        ASSERT(!container.empty(), "container is empty");
+        return *std::next(container.begin(), get(0, container.size() - 1));
+    }
 };

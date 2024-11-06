@@ -1,4 +1,5 @@
 #pragma once
+
 #include "ActionModel.h"
 #include "MAPFPlanner.h"
 #include "SharedEnv.h"
@@ -6,23 +7,24 @@
 #include <ctime>
 
 #include "../Solution/Planner/planner.hpp"
-
-using PLANNER = EPlanner;//MAPFPlanner;
+#include "../Solution/settings.hpp"
 
 class Entry {
 public:
     SharedEnvironment *env;
     PLANNER *planner;
-    TaskScheduler *scheduler;
+    TASKSHEDULLER *scheduler;
 
     Entry(SharedEnvironment *env) : env(env) {
         planner = new PLANNER(env);
     };
+
     Entry() {
         env = new SharedEnvironment();
         planner = new PLANNER(env);
-        scheduler = new TaskScheduler(env);
+        scheduler = new TASKSHEDULLER(env);
     };
+
     virtual ~Entry() { delete env; };
 
     virtual void initialize(int preprocess_time_limit);

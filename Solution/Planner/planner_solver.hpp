@@ -1,12 +1,10 @@
 #pragma once
 
-#include "../randomizer.hpp"
+#include "../Objects/randomizer.hpp"
 #include "solution_info.hpp"
-#include "position.hpp"
+#include "../Objects/position.hpp"
 
 #include <thread>
-
-// python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 

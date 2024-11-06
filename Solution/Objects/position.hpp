@@ -23,6 +23,7 @@ struct Position {
     // поворачивает против часовой стрелке
     [[nodiscard]] Position counter_rotate() const;
 
+    // применяет action на эту точку
     [[nodiscard]] Position simulate_action(Action action) const;
 };
 

@@ -1,6 +1,7 @@
 #include "environment.hpp"
 
-#include "../assert.hpp"
+#include "assert.hpp"
+#include "../settings.hpp"
 
 #include <thread>
 
@@ -77,13 +78,14 @@ void Environment::init(SharedEnvironment *env) {
     rows = env->rows;
     cols = env->cols;
 
-    ASSERT(env->map.size() == cols * rows, "invalid env sizes");
+    ASSERT(env->map.size() == cols * rows, "invalid env sizes: " + std::to_string(env->map.size()) + " != " +
+                                           std::to_string(cols) + " * " + std::to_string(rows));
     map.resize(env->map.size());
     for (uint32_t pos = 0; pos < map.size(); pos++) {
         map[pos] = env->map[pos] == 0;
     }
 
-#ifndef TRIVIAL_DIST_HEURISTIC
+#ifdef ENABLE_DIST_MATRIX
     build_dists();
 #endif
 }
@@ -101,7 +103,7 @@ int Environment::get_size() const {
 }
 
 bool Environment::is_free(uint32_t pos) const {
-    ASSERT(pos < map.size(), "invalid pos");
+    ASSERT(pos < map.size(), "invalid pos: " + std::to_string(pos));
     return map[pos];
 }
 
@@ -112,9 +114,9 @@ int Environment::get_dist(Position p, int target) const {
     ASSERT(p.is_valid(), "invalid p");
     ASSERT(0 <= target && target < map.size(), "invalid target: " + std::to_string(target));
     ASSERT(0 <= p.pos && p.pos < map.size(), "invalid pos: " + std::to_string(p.pos));
-    ASSERT(0 <= p.dir && p.dir < 4, "invalid dir");
+    ASSERT(0 <= p.dir && p.dir < 4, "invalid dir: " + std::to_string(p.dir));
 
-#ifdef TRIVIAL_DIST_HEURISTIC
+#ifndef ENABLE_DIST_MATRIX
     Position to(target, 0);
     return std::abs(p.x - to.x) + std::abs(p.y - to.y);
 #else

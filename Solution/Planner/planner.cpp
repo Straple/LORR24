@@ -1,8 +1,8 @@
 #include "planner.hpp"
 
-#include "../assert.hpp"
+#include "../Objects/assert.hpp"
 #include "planner_solver.hpp"
-#include "environment.hpp"
+#include "../Objects/environment.hpp"
 #include "global_dp.hpp"
 
 int EPlanner::get_target(int r) const {
@@ -28,22 +28,27 @@ EPlanner::EPlanner() {
 }
 
 void EPlanner::initialize(int preprocess_time_limit) {
-    get_env().init(env);
+
 }
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.assign(env->num_of_agents, Action::W);
 
+    static std::ofstream output("log.txt");
+    output << "timestep: " << env->curr_timestep << ' ';
+
     get_global_dp().init(env);
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
-    //auto start = std::chrono::steady_clock::now();
+    auto start = std::chrono::steady_clock::now();
     auto robots_set = get_global_dp().split_robots(env);
-    //std::cout << "split time: "<< std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count()<< "ms" << std::endl;
-
-    //start = std::chrono::steady_clock::now();
+    std::sort(robots_set.begin(), robots_set.end(), [&](const auto &lhs, const auto &rhs) {
+        return lhs.size() > rhs.size();
+    });
+    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    start = std::chrono::steady_clock::now();
 
     std::vector<PlannerSolver> solvers;
     std::set<int> used;
@@ -59,6 +64,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         solvers.emplace_back(robots_pos, robots_target);
     }
     ASSERT(used.size() == env->num_of_agents, "invalid used");
+
+    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    start = std::chrono::steady_clock::now();
 
     //std::cout << "build solvers time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
 
@@ -92,6 +100,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr].join();
     }
+
+    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    start = std::chrono::steady_clock::now();
 
     /*while (std::chrono::steady_clock::now() < end_time) {
         //TimePoint end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
@@ -147,7 +158,16 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 
-    static int step = 0;
-    step++;
-    std::cout << step << ' ' << total_info << ", time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
+    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    start = std::chrono::steady_clock::now();
+    output << "\n";
+
+    //std::cout << step << ' ' << total_info << ", time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
+
+    output << total_info << '\n';
+    output << robots_set.size() << ": ";
+    for (auto &vec: robots_set) {
+        output << vec.size() << " ";
+    }
+    output << std::endl;
 }

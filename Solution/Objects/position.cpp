@@ -1,6 +1,6 @@
 #include "position.hpp"
 
-#include "../assert.hpp"
+#include "assert.hpp"
 #include "environment.hpp"
 
 Position::Position(int pos, int dir) : pos(pos), x(pos / get_env().get_cols()), y(pos % get_env().get_cols()),
@@ -55,6 +55,7 @@ Position Position::counter_rotate() const {
     } else if (action == Action::CCR) {
         return counter_rotate();
     } else {
+        ASSERT(action == Action::W, "unexpected action");
         return *this;
     }
 }
