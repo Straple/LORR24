@@ -2,12 +2,10 @@
 #include <boost/tokenizer.hpp>
 
 
-Grid::Grid(string fname)
-{
+Grid::Grid(string fname) {
     std::string line;
-    std::ifstream myfile ((fname).c_str());
-    if (!myfile.is_open())
-    {
+    std::ifstream myfile((fname).c_str());
+    if (!myfile.is_open()) {
         cout << "Map file " << fname << " does not exist. " << std::endl;
         exit(-1);
     }
@@ -15,35 +13,32 @@ Grid::Grid(string fname)
     // cout << "*** Loading map ***" << std::endl;
     clock_t t = std::clock();
     size_t pos = fname.rfind('.');  // position of the file extension
-    map_name = fname.substr(0, pos);  // get the name without extension
-    getline (myfile, line);
+    map_name = fname.substr(0, pos);// get the name without extension
+    getline(myfile, line);
 
-    if (line[0] == 't')
-    {
-        // Benchmark 
+    if (line[0] == 't') {
+        // Benchmark
         boost::char_separator<char> sep(" ");
         getline(myfile, line);
         boost::tokenizer<boost::char_separator<char>> tok(line, sep);
         boost::tokenizer<boost::char_separator<char>>::iterator beg;
         beg = tok.begin();
         beg++;
-        rows = atoi((*beg).c_str()); // read number of rows
+        rows = atoi((*beg).c_str());// read number of rows
         getline(myfile, line);
         boost::tokenizer<boost::char_separator<char>> tok2(line, sep);
         beg = tok2.begin();
         beg++;
-        cols = atoi((*beg).c_str()); // read number of cols
-        getline(myfile, line); // skip "map"
+        cols = atoi((*beg).c_str());// read number of cols
+        getline(myfile, line);      // skip "map"
 
-    }
-    else
-    {
+    } else {
         boost::char_separator<char> sep(",");
-        boost::tokenizer< boost::char_separator<char> > tok(line, sep);
-        boost::tokenizer< boost::char_separator<char> >::iterator beg = tok.begin();
-        rows = atoi((*beg).c_str());  // read number of rows
+        boost::tokenizer<boost::char_separator<char>> tok(line, sep);
+        boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin();
+        rows = atoi((*beg).c_str());// read number of rows
         beg++;
-        cols = atoi((*beg).c_str());  // read number of cols
+        cols = atoi((*beg).c_str());// read number of cols
     }
 
     map.resize(cols * rows, 0);
@@ -51,15 +46,13 @@ Grid::Grid(string fname)
     //DeliverGoal.resize(row*col, false);
     // read map
     //int ep = 0, ag = 0;
-    for (int i = 0; i < rows; i++)
-    {
+    for (int i = 0; i < rows; i++) {
         getline(myfile, line);
-        for (int j = 0; j < cols; j++)
-        {
+        for (int j = 0; j < cols; j++) {
             int id = cols * i + j;
-            if (line[j] == '@' || line[j] == 'T') // obstacle
+            if (line[j] == '@' || line[j] == 'T')// obstacle
                 map[id] = 1;
-            else   // free space
+            else// free space
                 map[id] = 0;
         }
     }

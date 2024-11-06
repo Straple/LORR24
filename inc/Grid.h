@@ -2,8 +2,7 @@
 
 #include "common.h"
 
-class Grid
-{
+class Grid {
 public:
     Grid(string fname);
 
@@ -11,5 +10,4 @@ public:
     int cols = 0;
     std::vector<int> map;
     string map_name;
-
 };

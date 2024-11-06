@@ -90,13 +90,13 @@ std::vector<std::vector<int>> GlobalDP::split_robots(SharedEnvironment *env) {
                 }
             }
 
-#define STEP(init)                                                  \
-    {                                                               \
-        Position to = (init);                                       \
-        if (to.is_valid() && !visited.count(to)) {                  \
-            visited.insert(to);                                     \
-            Q1.push_back(to);                                       \
-        }                                                           \
+#define STEP(init)                                 \
+    {                                              \
+        Position to = (init);                      \
+        if (to.is_valid() && !visited.count(to)) { \
+            visited.insert(to);                    \
+            Q1.push_back(to);                      \
+        }                                          \
     }
 
             STEP(p.move_forward());
@@ -132,4 +132,3 @@ std::vector<std::vector<int>> GlobalDP::split_robots(SharedEnvironment *env) {
     }*/
     return ans;
 }
-

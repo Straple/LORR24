@@ -8,24 +8,19 @@
 //has function (1) simulate move (based on the given actions and current states)
 //             (2) sync share env?
 
-class Simulator
-{
+class Simulator {
 public:
-    Simulator(Grid &grid, std::vector<int>& start_locs, ActionModelWithRotate* model):
-        map(grid), model(model)
-    {
+    Simulator(Grid &grid, std::vector<int> &start_locs, ActionModelWithRotate *model) : map(grid), model(model) {
         num_of_agents = start_locs.size();
         starts.resize(num_of_agents);
         paths.resize(num_of_agents);
 
-        for (size_t i = 0; i < start_locs.size(); i++)
-            {
-                if (grid.map[start_locs[i]] == 1)
-                {
-                    cout<<"error: agent "<<i<<"'s start location is an obstacle("<<start_locs[i]<<")"<<endl;
-                    exit(0);
-                }
-                starts[i] = State(start_locs[i], 0, 0);
+        for (size_t i = 0; i < start_locs.size(); i++) {
+            if (grid.map[start_locs[i]] == 1) {
+                cout << "error: agent " << i << "'s start location is an obstacle(" << start_locs[i] << ")" << endl;
+                exit(0);
+            }
+            starts[i] = State(start_locs[i], 0, 0);
         }
 
         curr_states = starts;
@@ -34,17 +29,17 @@ public:
         planner_movements.resize(num_of_agents);
     }
 
-    vector<State> move(vector<Action>& next_actions);
+    vector<State> move(vector<Action> &next_actions);
 
     //void sync_shared_env(SharedEnvironment* env);
 
-    vector<State> get_current_state(){ return curr_states; }
+    vector<State> get_current_state() { return curr_states; }
 
-    int get_curr_timestep() {return timestep;}
+    int get_curr_timestep() { return timestep; }
 
-    bool get_all_valid(){ return all_valid;}
+    bool get_all_valid() { return all_valid; }
 
-    void sync_shared_env(SharedEnvironment* env);
+    void sync_shared_env(SharedEnvironment *env);
 
     nlohmann::ordered_json actual_path_to_json() const;
 
@@ -57,7 +52,7 @@ public:
 private:
     Grid map;
 
-    ActionModelWithRotate* model;
+    ActionModelWithRotate *model;
 
 
     // #timesteps for simulation
@@ -74,5 +69,4 @@ private:
     vector<list<Action>> planner_movements;
 
     bool all_valid = true;
-    
 };

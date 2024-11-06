@@ -1,9 +1,9 @@
 #include "planner.hpp"
 
 #include "../Objects/assert.hpp"
-#include "planner_solver.hpp"
 #include "../Objects/environment.hpp"
 #include "global_dp.hpp"
+#include "planner_solver.hpp"
 
 int EPlanner::get_target(int r) const {
     int task_id = env->curr_task_schedule[r];
@@ -28,7 +28,6 @@ EPlanner::EPlanner() {
 }
 
 void EPlanner::initialize(int preprocess_time_limit) {
-
 }
 
 // return next states for all agents

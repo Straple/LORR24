@@ -1,20 +1,20 @@
 #include "CompetitionSystem.h"
 #include "Evaluation.h"
-#include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/tokenizer.hpp>
 #include "nlohmann/json.hpp"
-#include <signal.h>
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <boost/tokenizer.hpp>
 #include <climits>
 #include <memory>
+#include <signal.h>
 
 
 #ifdef PYTHON
 #if PYTHON
-#include "pyMAPFPlanner.hpp"
-#include <pybind11/embed.h>
 #include "pyEntry.hpp"
+#include "pyMAPFPlanner.hpp"
 #include "pyTaskScheduler.hpp"
+#include <pybind11/embed.h>
 #endif
 #endif
 
@@ -25,19 +25,16 @@ po::variables_map vm;
 std::unique_ptr<BaseSystem> system_ptr;
 
 
-void sigint_handler(int a)
-{
+void sigint_handler(int a) {
     fprintf(stdout, "stop the simulation...\n");
-    if (!vm["evaluationMode"].as<bool>())
-    {
-        system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
+    if (!vm["evaluationMode"].as<bool>()) {
+        system_ptr->saveResults(vm["output"].as<std::string>(), vm["outputScreen"].as<int>());
     }
     _exit(0);
 }
 
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 #ifdef PYTHON
     // st::cout<<"Using Python="<<PYTHON<<std::endl;
 #if PYTHON
@@ -47,21 +44,12 @@ int main(int argc, char **argv)
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")
-        // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
-        ("inputFile,i", po::value<std::string>()->required(), "input file name")
-        ("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")
-        ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")
-        ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")
-        ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")
-        ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")
-        ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")
-        ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")
-        ("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
+            // ("inputFolder", po::value<std::string>()->default_value("."), "input folder")
+            ("inputFile,i", po::value<std::string>()->required(), "input file name")("output,o", po::value<std::string>()->default_value("./test.json"), "output file name")("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")("fileStoragePath,f", po::value<std::string>()->default_value(""), "the path to the storage path")("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")("logFile,l", po::value<std::string>()->default_value(""), "issue log file name");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
-    if (vm.count("help"))
-    {
+    if (vm.count("help")) {
         std::cout << desc << std::endl;
         return 1;
     }
@@ -72,8 +60,7 @@ int main(int argc, char **argv)
     boost::filesystem::path p(vm["inputFile"].as<std::string>());
     boost::filesystem::path dir = p.parent_path();
     std::string base_folder = dir.string();
-    if (base_folder.size() > 0 && base_folder.back() != '/')
-    {
+    if (base_folder.size() > 0 && base_folder.back() != '/') {
         base_folder += "/";
     }
 
@@ -90,9 +77,9 @@ int main(int argc, char **argv)
     // {
 #ifdef PYTHON
 #if PYTHON
-        planner = new PyEntry();
+    planner = new PyEntry();
 #else
-        planner = new Entry();
+    planner = new Entry();
 #endif
 #endif
     //}
@@ -100,12 +87,9 @@ int main(int argc, char **argv)
     auto input_json_file = vm["inputFile"].as<std::string>();
     json data;
     std::ifstream f(input_json_file);
-    try
-    {
+    try {
         data = json::parse(f);
-    }
-    catch (json::parse_error error)
-    {
+    } catch (json::parse_error error) {
         std::cerr << "Failed to load " << input_json_file << std::endl;
         std::cerr << "Message: " << error.what() << std::endl;
         exit(1);
@@ -140,9 +124,8 @@ int main(int argc, char **argv)
 
     system_ptr->simulate(vm["simulationTime"].as<int>());
 
-    if (!vm["evaluationMode"].as<bool>())
-    {
-        system_ptr->saveResults(vm["output"].as<std::string>(),vm["outputScreen"].as<int>());
+    if (!vm["evaluationMode"].as<bool>()) {
+        system_ptr->saveResults(vm["output"].as<std::string>(), vm["outputScreen"].as<int>());
     }
 
     delete model;

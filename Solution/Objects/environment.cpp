@@ -1,7 +1,7 @@
 #include "environment.hpp"
 
-#include "assert.hpp"
 #include "../settings.hpp"
+#include "assert.hpp"
 
 #include <thread>
 
@@ -38,13 +38,13 @@ void Environment::build_dists(uint32_t target) {
 
         ASSERT(p.is_valid(), "p is invalid");
 
-#define STEP(init)                                                  \
-    {                                                               \
-        Position to = (init);                                       \
-        if (to.is_valid() && !visited[to.pos][to.dir]) {            \
-            visited[to.pos][to.dir] = true;                         \
-            Q1.push_back(to);                                       \
-        }                                                           \
+#define STEP(init)                                       \
+    {                                                    \
+        Position to = (init);                            \
+        if (to.is_valid() && !visited[to.pos][to.dir]) { \
+            visited[to.pos][to.dir] = true;              \
+            Q1.push_back(to);                            \
+        }                                                \
     }
 
         STEP(p.move_forward());
@@ -79,7 +79,7 @@ void Environment::init(SharedEnvironment *env) {
     cols = env->cols;
 
     ASSERT(env->map.size() == cols * rows, "invalid env sizes: " + std::to_string(env->map.size()) + " != " +
-                                           std::to_string(cols) + " * " + std::to_string(rows));
+                                                   std::to_string(cols) + " * " + std::to_string(rows));
     map.resize(env->map.size());
     for (uint32_t pos = 0; pos < map.size(); pos++) {
         map[pos] = env->map[pos] == 0;

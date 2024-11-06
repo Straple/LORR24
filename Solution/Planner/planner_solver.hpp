@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../Objects/position.hpp"
 #include "../Objects/randomizer.hpp"
 #include "solution_info.hpp"
-#include "../Objects/position.hpp"
 
 #include <thread>
 

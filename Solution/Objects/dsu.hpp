@@ -1,12 +1,12 @@
 #pragma once
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 class DSU {
     std::vector<uint32_t> parent;
-public:
 
+public:
     DSU(uint32_t size);
 
     uint32_t get(uint32_t x);

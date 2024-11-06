@@ -2,16 +2,13 @@
 #include "common.h"
 
 
-struct State
-{
+struct State {
     int location;
     int timestep;
-    int orientation;  // 0:east, 1:south, 2:west, 3:north
+    int orientation;// 0:east, 1:south, 2:west, 3:north
 
-    struct Hasher
-    {
-        size_t operator()(const State& n) const
-        {
+    struct Hasher {
+        size_t operator()(const State &n) const {
             size_t loc_hash = std::hash<int>()(n.location);
             size_t time_hash = std::hash<int>()(n.timestep);
             size_t ori_hash = std::hash<int>()(n.orientation);
@@ -19,34 +16,29 @@ struct State
         }
     };
 
-    void operator = (const State& other)
-    {
+    void operator=(const State &other) {
         timestep = other.timestep;
         location = other.location;
         orientation = other.orientation;
     }
 
-    bool operator == (const State& other) const
-    {
+    bool operator==(const State &other) const {
         return timestep == other.timestep && location == other.location && orientation == other.orientation;
     }
 
-    bool operator != (const State& other) const
-    {
+    bool operator!=(const State &other) const {
         return timestep != other.timestep || location != other.location || orientation != other.orientation;
     }
 
-    State(): location(-1), timestep(-1), orientation(-1) {}
+    State() : location(-1), timestep(-1), orientation(-1) {}
     // State(int loc): loc(loc), timestep(0), orientation(0) {}
     // State(int loc, int timestep): loc(loc), timestep(timestep), orientation(0) {}
-    State(int location, int timestep = -1, int orientation = -1):
-        location(location), timestep(timestep), orientation(orientation) {}
-    State(const State& other):
-        location(other.location), timestep(other.timestep), orientation(other.orientation) {}
+    State(int location, int timestep = -1, int orientation = -1) : location(location), timestep(timestep), orientation(orientation) {}
+    State(const State &other) : location(other.location), timestep(other.timestep), orientation(other.orientation) {}
 };
 
-std::ostream & operator << (std::ostream &out, const State &s);
+std::ostream &operator<<(std::ostream &out, const State &s);
 
 typedef std::vector<State> Path;
 
-std::ostream & operator << (std::ostream &out, const Path &path);
+std::ostream &operator<<(std::ostream &out, const Path &path);

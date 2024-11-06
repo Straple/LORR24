@@ -11,9 +11,9 @@
 
 static constexpr uint32_t THREADS = 4;
 
-struct EPlanner; // мой алгоритм
+struct EPlanner;// мой алгоритм
 // struct MAPFPlanner; // их алгоритм
 using PLANNER = EPlanner;
 
-struct TaskScheduler; // их алгоритм
+struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = TaskScheduler;

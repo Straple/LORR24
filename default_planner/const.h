@@ -1,9 +1,8 @@
 
 #ifndef CONST_H
 #define CONST_H
-namespace DefaultPlanner
-{
-    // pibt runtime (ms) per 100 agents. 
+namespace DefaultPlanner {
+    // pibt runtime (ms) per 100 agents.
     // The default planner will use this value to determine how much time to allocate for PIBT action time.
     // The default planner compute the end time for traffic flow assignment by subtracting PIBT action time from the time limit.
     const int PIBT_RUNTIME_PER_100_AGENTS = 1;
@@ -22,6 +21,5 @@ namespace DefaultPlanner
     const int SCHEDULER_TIMELIMIT_TOLERANCE = 10;
 
 
-
-}
+}// namespace DefaultPlanner
 #endif

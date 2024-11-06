@@ -3,9 +3,9 @@
 #include "SharedEnv.h"
 #include "position.hpp"
 
+#include <array>
 #include <cstdint>
 #include <vector>
-#include <array>
 
 class Environment {
     int rows = 0, cols = 0;
@@ -15,14 +15,13 @@ class Environment {
     std::vector<bool> map;
 
     // dist_dp[target][source][dir] = dist from (source, dir) -> target
-    std::vector<std::vector<std::array<uint16_t, 4> > > dist_dp;
+    std::vector<std::vector<std::array<uint16_t, 4>>> dist_dp;
 
     void build_dists(uint32_t target);
 
     void build_dists();
 
 public:
-
     void init(SharedEnvironment *env);
 
     [[nodiscard]] int get_rows() const;

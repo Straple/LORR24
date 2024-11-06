@@ -140,7 +140,7 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
 
         ASSERT(info.collision_count == solution_info.collision_count,
                "invalid collision count: " + std::to_string(info.collision_count) +
-               " != " + std::to_string(solution_info.collision_count));
+                       " != " + std::to_string(solution_info.collision_count));
     }
 
     // calc mean_dist_change
@@ -187,7 +187,8 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
     info.sum_dist_change = solution_info.sum_dist_change;
 
     if (info != solution_info) {
-        std::cout << info << '\n' << solution_info << std::endl;
+        std::cout << info << '\n'
+                  << solution_info << std::endl;
     }
     ASSERT(info == solution_info, "invalid solution info");
 
@@ -203,8 +204,8 @@ double PlannerSolver::get_x(SolutionInfo info) const {
     dist_change /= robots.size();
     dist_change /= PLANNER_DEPTH;
 
-    return 30 * dist_change  //
-           - info.collision_count * 1e5 * info.collision_count //
+    return 30 * dist_change                                   //
+           - info.collision_count * 1e5 * info.collision_count//
            + fw;
 }
 
