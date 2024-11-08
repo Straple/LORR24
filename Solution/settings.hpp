@@ -7,7 +7,7 @@
 // if disabled then use manhattan heuristic (very bad), without build dist matrix
 #define ENABLE_DIST_MATRIX
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 static constexpr uint32_t THREADS = 31;
 
