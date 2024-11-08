@@ -2,13 +2,8 @@
 
 #include "../Objects/position.hpp"
 #include "../Objects/randomizer.hpp"
+#include "../settings.hpp"
 #include "solution_info.hpp"
-
-#include <thread>
-
-static constexpr uint32_t PLANNER_DEPTH = 3;
-
-static constexpr uint32_t PLANNING_STEPS = 1'000'000;
 
 // планирует следующие PLANNER_DEPTH шагов
 class PlannerSolver {
@@ -40,6 +35,10 @@ class PlannerSolver {
 
     std::vector<Action> answer_actions;
     SolutionInfo answer_info;
+
+    /* TOOLS */
+
+    [[nodiscard]] bool is_valid(const Position& p) const;
 
     /* CHANGE STATE TOOLS*/
 

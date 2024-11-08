@@ -21,6 +21,8 @@ class Environment {
 
     void build_dists();
 
+    std::vector<int> map_major;
+
 public:
     void init(SharedEnvironment *env);
 
@@ -30,10 +32,16 @@ public:
 
     [[nodiscard]] int get_size() const;
 
+    // no '#'
     [[nodiscard]] bool is_free(uint32_t pos) const;
 
     // p -> target
     [[nodiscard]] int get_dist(Position p, int target) const;
+
+    // and build map_major for get_major()
+    std::vector<std::vector<int>> split_robots(SharedEnvironment *env);
+
+    [[nodiscard]] int get_major(uint32_t pos) const;
 };
 
 Environment &get_env();

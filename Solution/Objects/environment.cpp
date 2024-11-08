@@ -1,7 +1,9 @@
 #include "environment.hpp"
 
+#include "../Planner/planner_solver.hpp"
 #include "../settings.hpp"
 #include "assert.hpp"
+#include "dsu.hpp"
 
 #include <thread>
 
@@ -122,6 +124,109 @@ int Environment::get_dist(Position p, int target) const {
 #else
     return dist_dp[target][p.pos][p.dir];
 #endif
+}
+
+std::vector<std::vector<int>> Environment::split_robots(SharedEnvironment *env) {
+    DSU dsu(env->num_of_agents);
+
+    map_major.assign(map.size(), -1);
+
+    std::vector<std::pair<Position, int>> Q0, Q1;
+    std::vector<std::set<Position>> visited(env->num_of_agents);
+
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        Position p(env->curr_states[r].location, env->curr_states[r].orientation);
+        Q0.emplace_back(p, r);
+        visited[r].insert(p);
+    }
+
+    int d = 0;
+    while (!Q0.empty() || !Q1.empty()) {
+        if (Q0.empty()) {
+            std::swap(Q0, Q1);
+            d++;
+        }
+
+        ASSERT(d <= PLANNER_DEPTH, "invalid d");
+
+        auto [p, r] = Q0.back();
+        Q0.pop_back();
+
+        ASSERT(p.is_valid(), "p is invalid");
+
+        // paint
+        {
+            if (map_major[p.pos] == -1) {
+                map_major[p.pos] = r;
+            } else {
+                uint32_t a = dsu.get(map_major[p.pos]);
+                uint32_t b = dsu.get(r);
+                if (a != b && dsu.get_size(a) + dsu.get_size(b) <= SPLIT_ROBOTS_BOUND) {
+                    dsu.uni(map_major[p.pos], r);
+                }
+            }
+        }
+
+        if (d == PLANNER_DEPTH) {
+            continue;
+        }
+
+#define STEP(init)                                    \
+    {                                                 \
+        Position to = (init);                         \
+        if (to.is_valid() && !visited[r].count(to)) { \
+            visited[r].insert(to);                    \
+            Q1.emplace_back(to, r);                   \
+        }                                             \
+    }
+
+        STEP(p.move_forward());
+        STEP(p.rotate());
+        STEP(p.counter_rotate());
+
+#undef STEP
+    }
+
+    std::set<pair<uint32_t, int>> S;
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        S.insert({dsu.get_size(r), dsu.get(r)});
+    }
+    while (S.size() >= 2) {
+        if (S.begin()->first + (++S.begin())->first <= SPLIT_ROBOTS_BOUND) {
+            dsu.uni(S.begin()->second, (++S.begin())->second);
+            int r = dsu.get(S.begin()->second);
+            uint32_t sz = dsu.get_size(r);
+            S.erase(S.begin());
+            S.erase(S.begin());
+            S.insert({sz, r});
+        } else {
+            break;
+        }
+    }
+
+    std::vector<std::vector<int>> robots(env->num_of_agents);
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        robots[dsu.get(r)].push_back(r);
+    }
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        if (robots[r].empty()) {
+            std::swap(robots[r], robots.back());
+            robots.pop_back();
+            r--;
+        }
+    }
+
+    for (uint32_t p = 0; p < map.size(); p++) {
+        if (map_major[p] != -1) {
+            map_major[p] = dsu.get(map_major[p]);
+        }
+    }
+    return robots;
+}
+
+int Environment::get_major(uint32_t pos) const {
+    ASSERT(pos < map_major.size(), "invalid pos: " + std::to_string(pos) + "/" + std::to_string(map_major.size()));
+    return map_major[pos];
 }
 
 Environment &get_env() {

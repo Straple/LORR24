@@ -9,7 +9,11 @@
 
 #define ENABLE_ASSERT
 
-static constexpr uint32_t THREADS = 4;
+static constexpr uint32_t THREADS = 31;
+
+static constexpr uint32_t PLANNER_DEPTH = 3;
+
+static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 
 struct EPlanner;// мой алгоритм
 // struct MAPFPlanner; // их алгоритм

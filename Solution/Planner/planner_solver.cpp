@@ -3,6 +3,11 @@
 #include "../Objects/environment.hpp"
 #include "global_dp.hpp"
 
+bool PlannerSolver::is_valid(const Position &p) const {
+    ASSERT(!robots.empty(), "robots is empty");
+    return p.is_valid() && get_env().get_major(p.pos) == get_env().get_major(robots[0].start.pos);
+}
+
 void PlannerSolver::init() {
     // init robots pathes
     for (int r = 0; r < robots.size(); r++) {
@@ -21,7 +26,7 @@ void PlannerSolver::update_answer() {
             const Position p = robots[r].start;
             for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
                 Position to = p.simulate_action(robots[r].actions[d]);
-                if (to.is_valid()) {
+                if (is_valid(to)) {
                     answer_actions[r] = robots[r].actions[d];
                     break;
                 }
@@ -51,12 +56,12 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
     ASSERT(r < robots.size(), "invalid r");
     auto robot = robots[r];
     Position p = robot.start;
-    ASSERT(p.is_valid(), "invalid p");
+    ASSERT(is_valid(p), "invalid p");
     int t = 0;
     int best_dist = get_env().get_dist(p, robot.target);
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
         Position to = p.simulate_action(robot.actions[d]);
-        if (to.is_valid()) {
+        if (is_valid(to)) {
             if (robot.actions[d] == Action::FW) {
                 solution_info.count_forward += sign;
                 get_global_dp().change_map_edge_robots_cnt(t, p.pos, to.pos, sign, solution_info);
@@ -101,7 +106,7 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
             int t = 0;
             for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
                 Position to = p.simulate_action(robot.actions[d]);
-                if (to.is_valid()) {
+                if (is_valid(to)) {
                     if (robot.actions[d] == Action::FW) {
                         info.count_forward++;
                         int a = to.pos;
@@ -350,7 +355,7 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
         Position b = v;
         for (int k = 0; k < 4; k++) {
             auto toa = a.move_forward();
-            if (toa.is_valid() && !visited.count(toa.pos)) {
+            if (is_valid(toa) && !visited.count(toa.pos)) {
                 if (k < PLANNER_DEPTH) {
                     new_actiona[k] = Action::FW;
                 }
@@ -358,7 +363,7 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
             }
 
             auto tob = b.move_forward();
-            if (tob.is_valid() && !visited.count(tob.pos)) {
+            if (is_valid(tob) && !visited.count(tob.pos)) {
                 if (k < PLANNER_DEPTH) {
                     new_actionb[k] = Action::FW;
                 }
@@ -443,7 +448,7 @@ std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
         const Position p = robots[r].start;
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
             Position to = p.simulate_action(robots[r].actions[d]);
-            if (to.is_valid()) {
+            if (is_valid(to)) {
                 actions[r] = robots[r].actions[d];
                 break;
             }

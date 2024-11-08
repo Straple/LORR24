@@ -5,6 +5,8 @@
 #include "global_dp.hpp"
 #include "planner_solver.hpp"
 
+#include <thread>
+
 int EPlanner::get_target(int r) const {
     int task_id = env->curr_task_schedule[r];
     if (task_id == -1) {
@@ -34,37 +36,33 @@ void EPlanner::initialize(int preprocess_time_limit) {
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.assign(env->num_of_agents, Action::W);
 
-    static std::ofstream output("log.txt");
-    output << "timestep: " << env->curr_timestep << ' ';
+    //static std::ofstream output("log.txt");
+    //output << "timestep: " << env->curr_timestep << ' ';
 
     get_global_dp().init(env);
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
     auto start = std::chrono::steady_clock::now();
-    auto robots_set = get_global_dp().split_robots(env);
+    auto robots_set = get_env().split_robots(env);
     std::sort(robots_set.begin(), robots_set.end(), [&](const auto &lhs, const auto &rhs) {
         return lhs.size() > rhs.size();
     });
-    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    //output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
     start = std::chrono::steady_clock::now();
 
     std::vector<PlannerSolver> solvers;
-    std::set<int> used;
     for (const auto &set: robots_set) {
         std::vector<Position> robots_pos;
         std::vector<int> robots_target;
         for (int r: set) {
-            ASSERT(!used.count(r), "already used");
-            used.insert(r);
             robots_pos.emplace_back(env->curr_states[r].location, env->curr_states[r].orientation);
             robots_target.emplace_back(get_target(r));
         }
         solvers.emplace_back(robots_pos, robots_target);
     }
-    ASSERT(used.size() == env->num_of_agents, "invalid used");
 
-    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    //output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
     start = std::chrono::steady_clock::now();
 
     //std::cout << "build solvers time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
@@ -100,46 +98,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         threads[thr].join();
     }
 
-    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    //output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
     start = std::chrono::steady_clock::now();
-
-    /*while (std::chrono::steady_clock::now() < end_time) {
-        //TimePoint end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
-
-        std::vector<uint64_t> random_vals(solvers.size());
-        for (uint32_t i = 0; i < solvers.size(); i++) {
-            random_vals[i] = rnd.get();
-        }
-
-        auto do_work = [&](uint32_t thr) {
-            for (uint32_t i = thr; i < solvers.size(); i += THREADS) {
-                solvers[i].run(end_time, random_vals[i]);
-            }
-        };
-        std::vector<std::thread> threads(THREADS);
-        for (uint32_t thr = 0; thr < THREADS; thr++) {
-            threads[thr] = std::thread(do_work, thr);
-        }
-        for (uint32_t thr = 0; thr < THREADS; thr++) {
-            threads[thr].join();
-        }
-
-        // merge answers
-        std::sort(solvers.begin(), solvers.end(), [&](const auto &lhs, const auto &rhs) {
-            return lhs.get_x(lhs.get_solution_info()) > rhs.get_x(rhs.get_solution_info());
-        });
-
-        if (solvers.size() > 3) {
-            solvers.resize(3);
-            while (solvers.size() < SOLVERS_SIZE) {
-                solvers.emplace_back(solvers[rnd.get(0, 2)]);
-            }
-        }
-    }
-
-    std::cout << solvers[0].get_trivial_solution_info() << std::endl;
-    std::cout << solvers[0].get_solution_info() << std::endl;
-    ASSERT(solvers[0].get_trivial_solution_info() == solvers[0].get_solution_info(), "invalid solutions");*/
 
     SolutionInfo total_info;
     for (int idx = 0; idx < solvers.size(); idx++) {
@@ -157,16 +117,16 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 
-    output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
+    //output << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms ";
     start = std::chrono::steady_clock::now();
-    output << "\n";
+    //output << "\n";
 
     //std::cout << step << ' ' << total_info << ", time: " << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() << "ms" << std::endl;
 
-    output << total_info << '\n';
-    output << robots_set.size() << ": ";
-    for (auto &vec: robots_set) {
-        output << vec.size() << " ";
-    }
-    output << std::endl;
+    //output << total_info << '\n';
+    //output << robots_set.size() << ": ";
+    //for (auto &vec: robots_set) {
+        //output << vec.size() << " ";
+    //}
+    //output << std::endl;
 }
