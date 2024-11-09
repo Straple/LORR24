@@ -414,7 +414,7 @@ bool PlannerSolver::try_move_over(Randomizer &rnd) {
 void PlannerSolver::run(TimePoint end_time, uint64_t random_seed) {
     Randomizer rnd(random_seed);
 
-    // temp = 1;
+    temp = 0.3;
     for (int step = 0;; step++) {
         if (step % 10 == 0) {
             if (std::chrono::steady_clock::now() >= end_time) {

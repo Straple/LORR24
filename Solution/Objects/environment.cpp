@@ -140,10 +140,14 @@ std::vector<std::vector<int>> Environment::split_robots(SharedEnvironment *env) 
         visited[r].insert(p);
     }
 
+    Randomizer rnd(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::shuffle(Q0.begin(), Q0.end(), rnd.generator);
+
     int d = 0;
     while (!Q0.empty() || !Q1.empty()) {
         if (Q0.empty()) {
             std::swap(Q0, Q1);
+            std::shuffle(Q0.begin(), Q0.end(), rnd.generator);
             d++;
         }
 

@@ -79,7 +79,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         for (int step = 0; step < 100'000; step++) {
             for (uint32_t i = thr; i < solvers.size(); i += THREADS) {
                 //std::cout << thr << std::endl;
-                TimePoint end_calc = std::chrono::steady_clock::now() + milliseconds(5);
+                TimePoint end_calc = std::chrono::steady_clock::now() + milliseconds(2);
                 if (end_calc >= end_time) {
                     return;
                 }

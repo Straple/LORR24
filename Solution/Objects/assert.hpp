@@ -15,8 +15,8 @@ bool my_assert_failed(const std::string &message, const std::string &filename, c
 
 #else
 
-#define ASSERT(condition, message) /*condition*/ /**THIS CONDITION VERY IMPORTANT */
-
 #define FAILED_ASSERT(message)
+
+#define ASSERT(condition, message) /*condition*/ /**THIS CONDITION VERY IMPORTANT */
 
 #endif// ENABLE_ASSERT
