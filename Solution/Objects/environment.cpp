@@ -109,20 +109,20 @@ bool Environment::is_free(uint32_t pos) const {
     return map[pos];
 }
 
-int Environment::get_dist(Position p, int target) const {
+int Environment::get_dist(Position source, int target) const {
     if (target == -1) {
         return 0;
     }
-    ASSERT(p.is_valid(), "invalid p");
+    ASSERT(source.is_valid(), "invalid p");
     ASSERT(0 <= target && target < map.size(), "invalid target: " + std::to_string(target));
-    ASSERT(0 <= p.pos && p.pos < map.size(), "invalid pos: " + std::to_string(p.pos));
-    ASSERT(0 <= p.dir && p.dir < 4, "invalid dir: " + std::to_string(p.dir));
+    ASSERT(0 <= source.pos && source.pos < map.size(), "invalid pos: " + std::to_string(source.pos));
+    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir: " + std::to_string(source.dir));
 
 #ifndef ENABLE_DIST_MATRIX
     Position to(target, 0);
-    return std::abs(p.x - to.x) + std::abs(p.y - to.y);
+    return std::abs(source.x - to.x) + std::abs(source.y - to.y);
 #else
-    return dist_dp[target][p.pos][p.dir];
+    return dist_dp[target][source.pos][source.dir];
 #endif
 }
 

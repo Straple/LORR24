@@ -1,12 +1,16 @@
 #include "scheduler.h"
 
+#include "../Solution/Objects/environment.hpp"
+
 namespace DefaultPlanner {
 
     std::mt19937 mt;
 
     void schedule_initialize(int preprocess_time_limit, SharedEnvironment *env) {
         // cout<<"schedule initialise limit" << preprocess_time_limit<<endl;
+#ifdef ENABLE_THEIR_HEURISTIC
         DefaultPlanner::init_heuristics(env);
+#endif
         mt.seed(0);
     }
 
@@ -36,7 +40,7 @@ namespace DefaultPlanner {
                     dist = 0;
                     c_loc = env->curr_states.at(i).location;
                     for (int loc: env->task_pool[i_task].locations) {
-                        dist += DefaultPlanner::get_h(env, c_loc, loc);
+                        dist += get_env().get_dist(Position(c_loc, 0), loc);//DefaultPlanner::get_h(env, c_loc, loc);
                         c_loc = loc;
                     }
                     if (dist < min_task_makespan) {

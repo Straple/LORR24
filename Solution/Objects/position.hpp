@@ -3,7 +3,7 @@
 #include "ActionModel.h"
 
 struct Position {
-    int pos = 0;
+    int pos = 0;// = x * cols + y
     int x = 0, y = 0;
     int dir = 0;// 0:east, 1:south, 2:west, 3:north
 

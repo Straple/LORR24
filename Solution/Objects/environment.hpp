@@ -36,7 +36,7 @@ public:
     [[nodiscard]] bool is_free(uint32_t pos) const;
 
     // p -> target
-    [[nodiscard]] int get_dist(Position p, int target) const;
+    [[nodiscard]] int get_dist(Position source, int target) const;
 
     // and build map_major for get_major()
     std::vector<std::vector<int>> split_robots(SharedEnvironment *env);
