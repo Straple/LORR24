@@ -8,14 +8,14 @@
 
 //#define ENABLE_THEIR_HEURISTIC
 
-// 356 ->
+// 356 -> 377
 
 // if disabled then use manhattan heuristic (very bad), without build dist matrix
 #define ENABLE_DIST_MATRIX
 
 #define ENABLE_ASSERT
 
-static constexpr uint32_t THREADS = 4;
+static constexpr uint32_t THREADS = 31;
 
 static constexpr uint32_t PLANNER_DEPTH = 4;
 
