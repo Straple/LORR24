@@ -43,6 +43,14 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
+    std::vector<int> robot_target(env->num_of_agents, -1);
+    for (auto &task: env->task_pool) {
+        if (task.agent_assigned != -1) {
+            robot_target[task.agent_assigned] = task.get_next_loc();
+            ASSERT(0 <= robot_target[task.agent_assigned] && robot_target[task.agent_assigned] < env->cols * env->rows, "invalid target: " + std::to_string(robot_target[task.agent_assigned]));
+        }
+    }
+
     auto start = std::chrono::steady_clock::now();
     auto robots_set = get_env().split_robots(env);
     std::sort(robots_set.begin(), robots_set.end(), [&](const auto &lhs, const auto &rhs) {
@@ -57,7 +65,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         std::vector<int> robots_target;
         for (int r: set) {
             robots_pos.emplace_back(env->curr_states[r].location, env->curr_states[r].orientation);
-            robots_target.emplace_back(get_target(r));
+            robots_target.emplace_back(robot_target[r]);
         }
         solvers.emplace_back(robots_pos, robots_target);
     }
@@ -126,7 +134,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     //output << total_info << '\n';
     //output << robots_set.size() << ": ";
     //for (auto &vec: robots_set) {
-        //output << vec.size() << " ";
+    //output << vec.size() << " ";
     //}
     //output << std::endl;
 }
