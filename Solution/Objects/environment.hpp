@@ -8,6 +8,8 @@
 #include <vector>
 
 class Environment {
+    SharedEnvironment *env_ptr = nullptr;
+
     int rows = 0, cols = 0;
 
     // map[pos] = true if this pos is free
@@ -42,6 +44,8 @@ public:
     std::vector<std::vector<int>> split_robots(SharedEnvironment *env);
 
     [[nodiscard]] int get_major(uint32_t pos) const;
+
+    [[nodiscard]] SharedEnvironment& get_shared_env() const;
 };
 
 Environment &get_env();

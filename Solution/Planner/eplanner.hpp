@@ -2,8 +2,12 @@
 
 #include "ActionModel.h"
 #include "SharedEnv.h"
+#include "planner_machine.hpp"
 
 class EPlanner {
+
+    PlannerMachine* planner_machine = nullptr;
+
     [[nodiscard]] int get_target(int r) const;
 
 public:

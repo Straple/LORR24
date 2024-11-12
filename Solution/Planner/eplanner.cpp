@@ -1,4 +1,4 @@
-#include "planner.hpp"
+#include "eplanner.hpp"
 
 #include "../Objects/assert.hpp"
 #include "../Objects/environment.hpp"
@@ -34,6 +34,9 @@ void EPlanner::initialize(int preprocess_time_limit) {
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
+    if(planner_machine == nullptr){
+        planner_machine = new PlannerMachine();
+    }
     plan.assign(env->num_of_agents, Action::W);
 
     //static std::ofstream output("log.txt");
@@ -43,7 +46,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
-    std::vector<int> robot_target(env->num_of_agents, -1);
+    planner_machine->run(end_time);
+    planner_machine->set_plan(plan);
+    planner_machine->simulate_world();
+
+    /*std::vector<int> robot_target(env->num_of_agents, -1);
     for (auto &task: env->task_pool) {
         if (task.agent_assigned != -1) {
             robot_target[task.agent_assigned] = task.get_next_loc();
@@ -137,4 +144,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     //output << vec.size() << " ";
     //}
     //output << std::endl;
+
+     */
 }

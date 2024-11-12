@@ -77,6 +77,7 @@ void Environment::build_dists() {
 }
 
 void Environment::init(SharedEnvironment *env) {
+    env_ptr = env;
     rows = env->rows;
     cols = env->cols;
 
@@ -231,6 +232,11 @@ std::vector<std::vector<int>> Environment::split_robots(SharedEnvironment *env) 
 int Environment::get_major(uint32_t pos) const {
     ASSERT(pos < map_major.size(), "invalid pos: " + std::to_string(pos) + "/" + std::to_string(map_major.size()));
     return map_major[pos];
+}
+
+SharedEnvironment &Environment::get_shared_env() const {
+    ASSERT(env_ptr != nullptr, "is nullptr");
+    return *env_ptr;
 }
 
 Environment &get_env() {

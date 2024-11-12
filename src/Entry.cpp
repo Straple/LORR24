@@ -8,7 +8,6 @@
 
 void Entry::initialize(int preprocess_time_limit) {
     get_env().init(env);
-
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
 }
