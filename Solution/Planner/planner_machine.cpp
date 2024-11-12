@@ -58,7 +58,7 @@ void PlannerMachine::simulate_world() {
     map_ver[PLANNER_DEPTH - 1].assign(get_env().get_size(), -1);
 }
 
-PlannerMachine::Actions PlannerMachine::get_path(uint32_t r) const {
+std::optional<PlannerMachine::Actions> PlannerMachine::get_path(uint32_t r) const {
     struct State {
         Actions path;
         Position p;
@@ -103,14 +103,14 @@ PlannerMachine::Actions PlannerMachine::get_path(uint32_t r) const {
             continue;
         }
 
-#define STEP(action)                                                                \
-    {                                                                               \
-        Position to = p.simulate_action(action);                                    \
+#define STEP(action)                                               \
+    {                                                              \
+        Position to = p.simulate_action(action);                   \
         if (is_allowed(d, p, action) && !visited.count({d, to})) { \
-            visited.insert({d, to});                                                \
-            path[d] = action;                                                       \
-            Q1.push_back({path, to});                                               \
-        }                                                                           \
+            visited.insert({d, to});                               \
+            path[d] = action;                                      \
+            Q1.push_back({path, to});                              \
+        }                                                          \
     }
 
         STEP(Action::W)
@@ -121,9 +121,11 @@ PlannerMachine::Actions PlannerMachine::get_path(uint32_t r) const {
 #undef STEP
     }
 
-    ASSERT(best_dist <= 1e10, "invalid best_dist: " + std::to_string(best_dist));
-
-    return best_path;
+    if (best_dist <= 1e10) {
+        return best_path;
+    } else {
+        return std::nullopt;
+    }
 }
 
 void PlannerMachine::add_path(uint32_t r) {
@@ -200,21 +202,55 @@ PlannerMachine::PlannerMachine() {
     }
 }
 
+void PlannerMachine::try_remove_and_add(Randomizer &rnd) {
+    uint32_t r1 = rnd.get(0, robots.size() - 1);
+    uint32_t r2 = rnd.get(0, robots.size() - 1);
+
+    if (r1 == r2) {
+        return;
+    }
+
+    auto r1a = robots[r1].actions;
+    auto r2a = robots[r2].actions;
+
+    remove_path(r1);
+    remove_path(r2);
+
+    auto act = get_path(r2);
+    if (!act) {
+        ASSERT(false, "invalid");
+        add_path(r1);
+        add_path(r2);
+        return;
+    }
+    robots[r2].actions = *act;
+    add_path(r2);
+
+    act = get_path(r1);
+
+    if(!act){
+        remove_path(r2);
+        robots[r2].actions = r2a;
+        add_path(r1);
+        add_path(r2);
+        return;
+    }
+
+    robots[r1].actions = *act;
+    add_path(r1);
+}
+
 void PlannerMachine::run(TimePoint end_time) {
     update_targets();
-    for (int r = 0; r < robots.size(); r++) {
-        /*for (uint32_t step = 0;; step++) {
+    Randomizer rnd(clock());
+    for (uint32_t step = 0;; step++) {
         if (step % 10 == 0) {
             if (std::chrono::steady_clock::now() >= end_time) {
                 break;
             }
-        }*/
+        }
 
-        //uint32_t r = step % robots.size();
-        remove_path(r);
-        Actions act = get_path(r);
-        robots[r].actions = act;
-        add_path(r);
+        try_remove_and_add(rnd);
     }
 }
 

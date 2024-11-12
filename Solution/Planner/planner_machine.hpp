@@ -5,6 +5,9 @@
 #include "../settings.hpp"
 #include "SharedEnv.h"
 
+// their: 359
+// my: 337
+
 class PlannerMachine {
 
     using Actions = std::array<Action, PLANNER_DEPTH>;
@@ -37,13 +40,15 @@ class PlannerMachine {
 
     // возвращает лучший путь для робота r без коллизий
     // [робот не должен иметь путь!]
-    [[nodiscard]] Actions get_path(uint32_t r) const;
+    [[nodiscard]] std::optional<Actions> get_path(uint32_t r) const;
 
     // добавляет путь робота на карту
     void add_path(uint32_t r);
 
     // удаляет путь робота из карты
     void remove_path(uint32_t r);
+
+    void try_remove_and_add(Randomizer& rnd);
 
 public:
     explicit PlannerMachine();
