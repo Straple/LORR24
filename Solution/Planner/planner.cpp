@@ -115,7 +115,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         //std::cout << "info: " << solution_info << std::endl;
         //std::cout << "expe: " << solvers[idx].get_trivial_solution_info() << std::endl;
         //ASSERT(solvers[idx].get_trivial_solution_info() == solution_info, "failed");
-        if (solution_info.collision_count == 0) {
+        if (solution_info.collision_count[0] == 0) {
             total_info = total_info + solution_info;
             //std::cout << actions.size() << ' ' << robots_set[idx].size() << std::endl;
             ASSERT(actions.size() == robots_set[idx].size(), "unmatch sizes");

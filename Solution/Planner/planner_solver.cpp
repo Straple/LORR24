@@ -63,9 +63,11 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
         Position to = p.simulate_action(robot.actions[d]);
         if (is_valid(to)) {
             if (robot.actions[d] == Action::FW) {
-                solution_info.count_forward += sign;
+                solution_info.count_forward[t] += sign;
                 get_global_dp().change_map_edge_robots_cnt(t, p.pos, to.pos, sign, solution_info);
             }
+
+            solution_info.sum_dist_change[t] += sign * (get_env().get_dist(p, robot.target) - get_env().get_dist(to, robot.target));
 
             get_global_dp().change_map_robots_cnt(t, to.pos, sign, solution_info);
             best_dist = min(best_dist, get_env().get_dist(to, robot.target));
@@ -75,10 +77,11 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
         }
     }
     while (t < PLANNER_DEPTH) {
+        //solution_info.sum_dist_change[t] += sign * (get_env().get_dist(p, robot.target) - get_env().get_dist(p, robot.target));
         get_global_dp().change_map_robots_cnt(t, p.pos, sign, solution_info);
         t++;
     }
-    solution_info.sum_dist_change += sign * (get_env().get_dist(robot.start, robot.target) - best_dist);
+    //solution_info.sum_dist_change += sign * (get_env().get_dist(robot.start, robot.target) - best_dist);
 }
 
 void PlannerSolver::add_robot_path(uint32_t r) {
@@ -98,7 +101,7 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
     SolutionInfo info;
 
     // calc collision_count
-    {
+    /*{
         std::vector<std::vector<uint32_t>> map_cnt(PLANNER_DEPTH, std::vector<uint32_t>(get_env().get_size()));
         std::vector<std::map<std::pair<uint32_t, uint32_t>, uint32_t>> edge_map_cnt(PLANNER_DEPTH);
         for (const auto &robot: robots) {
@@ -129,10 +132,10 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
 
         for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
             for (uint32_t pos = 0; pos < get_env().get_size(); pos++) {
-                /*if (map_robots_cnt[d][pos] != map_cnt[d][pos]) {
-                    std::cout << "diff: " << d << ' ' << pos << ' ' << map_robots_cnt[d][pos] << " != " <<
-                              map_cnt[d][pos] << std::endl;
-                }*/
+                //if (map_robots_cnt[d][pos] != map_cnt[d][pos]) {
+                //    std::cout << "diff: " << d << ' ' << pos << ' ' << map_robots_cnt[d][pos] << " != " <<
+                //              map_cnt[d][pos] << std::endl;
+                //}
                 info.collision_count += map_cnt[d][pos] * (map_cnt[d][pos] - 1);
             }
 
@@ -146,7 +149,7 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
         ASSERT(info.collision_count == solution_info.collision_count,
                "invalid collision count: " + std::to_string(info.collision_count) +
                        " != " + std::to_string(solution_info.collision_count));
-    }
+    }*/
 
     // calc mean_dist_change
     /*{
@@ -189,19 +192,35 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
         //info.mean_dist_change = total_sum / total_cnt;
         //info.mean_dist_change /= PLANNER_DEPTH;
     }*/
-    info.sum_dist_change = solution_info.sum_dist_change;
+    /*info.sum_dist_change = solution_info.sum_dist_change;
 
     if (info != solution_info) {
         std::cout << info << '\n'
                   << solution_info << std::endl;
     }
-    ASSERT(info == solution_info, "invalid solution info");
+    ASSERT(info == solution_info, "invalid solution info");*/
 
     return info;
 }
 
-double PlannerSolver::get_x(SolutionInfo info) const {
-    double fw = info.count_forward;
+double PlannerSolver::get_x(const SolutionInfo &info) const {
+
+    constexpr double r = 0.9;
+
+    const double norm = 1 / static_cast<double>(robots.size() * PLANNER_DEPTH);
+
+    double res = 0;
+    double m = 1;
+    for (uint32_t k = 0; k < PLANNER_DEPTH; k++) {
+        res -= info.collision_count[k] * 10000 * m;
+        res += info.sum_dist_change[k] * 3 / norm * m;
+        //res += info.count_forward[k] / norm * m;
+
+        m *= r;
+    }
+    return res;
+
+    /*double fw = info.count_forward;
     fw /= robots.size();
     fw /= PLANNER_DEPTH;
 
@@ -211,7 +230,7 @@ double PlannerSolver::get_x(SolutionInfo info) const {
 
     return 30 * dist_change                                   //
            - info.collision_count * 1e5 * info.collision_count//
-           + fw;
+           + fw;*/
 }
 
 bool PlannerSolver::compare(SolutionInfo old, SolutionInfo cur, Randomizer &rnd) {

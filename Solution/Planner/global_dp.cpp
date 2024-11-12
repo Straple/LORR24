@@ -16,9 +16,9 @@ int GlobalDP::get_robot(int pos) const {
 }
 
 void GlobalDP::change_map_robots_cnt(int d, int pos, int val, SolutionInfo &info) {
-    info.collision_count -= map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
+    info.collision_count[d] -= map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
     map_robots_cnt[d][pos] += val;
-    info.collision_count += map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
+    info.collision_count[d] += map_robots_cnt[d][pos] * (map_robots_cnt[d][pos] - 1);
 }
 
 void GlobalDP::change_map_edge_robots_cnt(int d, int pos, int to, int val, SolutionInfo &info) {
@@ -27,16 +27,16 @@ void GlobalDP::change_map_edge_robots_cnt(int d, int pos, int to, int val, Solut
     }
     if (to - pos == 1) {
         // gor
-        info.collision_count -= map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
+        info.collision_count[d] -= map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
         map_edge_robots_cnt_gor[d][pos] += val;
-        info.collision_count += map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
+        info.collision_count[d] += map_edge_robots_cnt_gor[d][pos] * (map_edge_robots_cnt_gor[d][pos] - 1);
     } else {
         // ver
         ASSERT(to - pos == get_env().get_cols(), "invalid pos and to");
 
-        info.collision_count -= map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
+        info.collision_count[d] -= map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
         map_edge_robots_cnt_ver[d][pos] += val;
-        info.collision_count += map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
+        info.collision_count[d] += map_edge_robots_cnt_ver[d][pos] * (map_edge_robots_cnt_ver[d][pos] - 1);
     }
 }
 
