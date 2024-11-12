@@ -59,6 +59,8 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
     ASSERT(is_valid(p), "invalid p");
     int t = 0;
     int best_dist = get_env().get_dist(p, robot.target);
+    std::array<int32_t, PLANNER_DEPTH + 1> dists{};
+    dists[0] = get_env().get_dist(p, robot.target);
     for (uint32_t d = 0; d < PLANNER_DEPTH; d++) {
         Position to = p.simulate_action(robot.actions[d]);
         if (is_valid(to)) {
@@ -67,7 +69,8 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
                 get_global_dp().change_map_edge_robots_cnt(t, p.pos, to.pos, sign, solution_info);
             }
 
-            solution_info.sum_dist_change[t] += sign * (get_env().get_dist(p, robot.target) - get_env().get_dist(to, robot.target));
+            dists[t + 1] = get_env().get_dist(to, robot.target);
+            //solution_info.sum_dist_change[t] += sign * (get_env().get_dist(p, robot.target) - get_env().get_dist(to, robot.target));
 
             get_global_dp().change_map_robots_cnt(t, to.pos, sign, solution_info);
             best_dist = min(best_dist, get_env().get_dist(to, robot.target));
@@ -77,11 +80,19 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
         }
     }
     while (t < PLANNER_DEPTH) {
+        dists[t + 1] = get_env().get_dist(p, robot.target);
         //solution_info.sum_dist_change[t] += sign * (get_env().get_dist(p, robot.target) - get_env().get_dist(p, robot.target));
         get_global_dp().change_map_robots_cnt(t, p.pos, sign, solution_info);
         t++;
     }
     //solution_info.sum_dist_change += sign * (get_env().get_dist(robot.start, robot.target) - best_dist);
+
+    for (uint32_t t = 0; t < PLANNER_DEPTH; t++) {
+        solution_info.sum_dist_change[t] += sign * (dists[t] - dists[t + 1]);
+        //for(int b = 0; b < t; b++){
+        //    solution_info.sum_dist_change[t] += sign * (dists[b] - dists[t]);
+        //}
+    }
 }
 
 void PlannerSolver::add_robot_path(uint32_t r) {
@@ -205,15 +216,15 @@ SolutionInfo PlannerSolver::get_trivial_solution_info() const {
 
 double PlannerSolver::get_x(const SolutionInfo &info) const {
 
-    constexpr double r = 0.9;
+    constexpr double r = 0.95;
 
-    const double norm = 1 / static_cast<double>(robots.size() * PLANNER_DEPTH);
+    const double norm = 1 / static_cast<double>(robots.size());
 
     double res = 0;
     double m = 1;
     for (uint32_t k = 0; k < PLANNER_DEPTH; k++) {
-        res -= info.collision_count[k] * 10000 * m;
-        res += info.sum_dist_change[k] * 3 / norm * m;
+        res -= info.collision_count[k] * static_cast<double>(robots.size()) * 0.5 * m;
+        res += info.sum_dist_change[k] * m;
         //res += info.count_forward[k] / norm * m;
 
         m *= r;
