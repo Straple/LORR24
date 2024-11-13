@@ -7,6 +7,7 @@
 #include <ctime>
 
 #include "../Solution/Planner/eplanner.hpp"
+#include "../Solution/Scheduler/scheduler.hpp"
 #include "../Solution/settings.hpp"
 
 class Entry {
