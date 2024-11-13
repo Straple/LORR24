@@ -44,11 +44,13 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     get_global_dp().init(env);
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
 
     planner_machine->run(end_time);
     planner_machine->set_plan(plan);
     planner_machine->simulate_world();
+
+    std::cout << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - end_time).count() << "ms" << std::endl;
 
     /*std::vector<int> robot_target(env->num_of_agents, -1);
     for (auto &task: env->task_pool) {
@@ -146,4 +148,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     //output << std::endl;
 
      */
+
+
 }
