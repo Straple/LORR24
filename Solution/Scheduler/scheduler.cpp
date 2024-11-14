@@ -1,14 +1,13 @@
 #include "scheduler.hpp"
 
-#include "../Objects/environment.hpp"
 #include "../Objects/assert.hpp"
+#include "../Objects/environment.hpp"
 
 void MyScheduler::initialize(int preprocess_time_limit) {
-
 }
 
 void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(100);
+    TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(time_limit - 30);
 
     ASSERT(env->curr_task_schedule.size() == env->num_of_agents, "invalid sizes");
     proposed_schedule = env->curr_task_schedule;
@@ -26,10 +25,11 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     for (int i = 0; i < env->num_of_agents; i++) {
         int my_id = robot_task_id[i];
         if (proposed_schedule[i] == -1 ||
-                (env->task_pool[my_id].idx_next_loc == 0 && env->curr_states[i].location != env->task_pool[my_id].locations[0])) {
+            (env->task_pool[my_id].idx_next_loc <= 0)) {
             free_agents.push_back(i);
         }
     }
+
 
     for (int r: free_agents) {
         if (std::chrono::steady_clock::now() >= endtime) {
@@ -61,8 +61,8 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
 
         if (min_task_i != -1) {
             proposed_schedule[r] = env->task_pool[min_task_i].task_id;
+            ASSERT(env->task_pool[min_task_i].idx_next_loc == 0, "wtf?");
             env->task_pool[min_task_i].agent_assigned = r;
         }
     }
-    // cout << ((float)(clock() - start))/CLOCKS_PER_SEC << endl;
 }

@@ -25,6 +25,6 @@ struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
 using PLANNER = MAPFPlanner;
 
-struct MyScheduler;// мой алгоритм
+struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
-using TASKSHEDULLER = TaskScheduler;
+using TASKSHEDULLER = MyScheduler;

@@ -97,7 +97,7 @@ namespace DefaultPlanner {
         decision.at(prev_loc) = curr_id;
 
 #ifndef NDEBUG
-        std::cout << "false: " << next_states[curr_id].location << "," << next_states[curr_id].orientation << std::endl;
+        //std::cout << "false: " << next_states[curr_id].location << "," << next_states[curr_id].orientation << std::endl;
 #endif
 
         return false;
