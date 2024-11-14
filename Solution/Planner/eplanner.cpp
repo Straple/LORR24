@@ -3,6 +3,7 @@
 #include "../Objects/assert.hpp"
 #include "../Objects/environment.hpp"
 #include "global_dp.hpp"
+#include "pibt.hpp"
 #include "planner_solver.hpp"
 
 #include <thread>
@@ -34,7 +35,7 @@ void EPlanner::initialize(int preprocess_time_limit) {
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
-    if(planner_machine == nullptr){
+    if (planner_machine == nullptr) {
         planner_machine = new PlannerMachine();
     }
     plan.assign(env->num_of_agents, Action::W);
@@ -42,7 +43,23 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     //static std::ofstream output("log.txt");
     //output << "timestep: " << env->curr_timestep << ' ';
 
-    get_global_dp().init(env);
+    std::vector<int> robot_target(env->num_of_agents, -1);
+    for (auto &task: env->task_pool) {
+        if (task.agent_assigned != -1) {
+            robot_target[task.agent_assigned] = task.get_next_loc();
+            ASSERT(0 <= robot_target[task.agent_assigned] && robot_target[task.agent_assigned] < env->cols * env->rows, "invalid target: " + std::to_string(robot_target[task.agent_assigned]));
+        }
+    }
+
+    std::vector<Position> robot_pos(env->num_of_agents);
+    for (uint32_t r = 0; r < robot_pos.size(); r++) {
+        robot_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation);
+    }
+
+    PIBT pibt(robot_pos, robot_target);
+    plan = pibt.solve();
+
+    /*get_global_dp().init(env);
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
 
@@ -50,7 +67,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     planner_machine->set_plan(plan);
     planner_machine->simulate_world();
 
-    std::cout << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - end_time).count() << "ms" << std::endl;
+    std::cout << std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - end_time).count() << "ms" << std::endl;*/
 
     /*std::vector<int> robot_target(env->num_of_agents, -1);
     for (auto &task: env->task_pool) {
@@ -148,6 +165,4 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     //output << std::endl;
 
      */
-
-
 }

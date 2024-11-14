@@ -8,8 +8,6 @@
 
 //#define ENABLE_THEIR_HEURISTIC
 
-// 356 -> 377
-
 // if disabled then use manhattan heuristic (very bad), without build dist matrix
 #define ENABLE_DIST_MATRIX
 
