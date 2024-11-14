@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../Objects/position.hpp"
-#include "../Objects/randomizer.hpp"
-#include "../settings.hpp"
+#include "../../Objects/position.hpp"
+#include "../../Objects/randomizer.hpp"
+#include "../../settings.hpp"
+#include "../Solver/solution_info.hpp"
 #include "SharedEnv.h"
-#include "solution_info.hpp"
 
 // their: 359
 // my: 337

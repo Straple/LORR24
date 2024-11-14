@@ -10,7 +10,7 @@ using json = nlohmann::ordered_json;
 bool TaskManager::validate_task_assgnment(vector<int> assignment) {
     if (assignment.size() != num_of_agents) {
         // std::cout << "why is not equal sizes?" << std::endl;
-        FAILED_ASSERT("WTF?");
+        //FAILED_ASSERT("WTF?");
         return false;
     }
 

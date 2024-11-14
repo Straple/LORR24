@@ -1,7 +1,7 @@
-#include "pibt.hpp"
+/*#include "pibt.hpp"
 
-#include "../Objects/assert.hpp"
-#include "../Objects/environment.hpp"
+#include "../../Objects/assert.hpp"
+#include "../../Objects/environment.hpp"
 
 std::pair<double, int> PIBT::search(uint32_t r, int banned_direction) {
     if (pos_to_robot[robots[r].p.pos] == r) {
@@ -112,56 +112,6 @@ bool PIBT::build(uint32_t r, int banned_direction) {
     }
 
     return true;
-
-    // (priority, dir)
-    /*std::vector<std::pair<int, int>> actions;
-    for (int dir = 0; dir < 4; dir++) {
-        if (dir == banned_direction) {
-            continue;
-        }
-        Position to = robots[r].p;
-        to.dir = dir;
-        to = to.move_forward();
-        if (to.is_valid()) {
-            // если там никого нет или он еще не посчитан
-            if (!pos_to_robot.count(to.pos) || robots[pos_to_robot.at(to.pos)].dir == -1) {
-                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(to, robots[r].target), dir);
-            }
-        }
-    }
-
-    std::sort(actions.begin(), actions.end());
-
-    for (auto [_, dir]: actions) {
-        Position to = robots[r].p;
-        to.dir = dir;
-        to = to.move_forward();
-
-        if (!pos_to_robot.count(to.pos)) {
-            // отлично! там никого нет
-            pos_to_robot[to.pos] = r;
-            robots[r].dir = dir;
-            return true;
-        } else {
-            // о нет! там кто-то есть
-
-            uint32_t to_r = pos_to_robot.at(to.pos);
-            pos_to_robot[to.pos] = r;// теперь мы будем тут стоять
-            robots[r].dir = dir;     // определим это направление
-
-            // попробуем построить для to_r
-            // и запретим ему ходить в нас (коллизия по ребру)
-            if (build(to_r, (dir + 2) % 4)) {
-                // найс, получилось
-                return true;
-            }
-
-            robots[r].dir = -1;
-        }
-    }
-
-    pos_to_robot[robots[r].p.pos] = r;
-    return false;*/
 }
 
 PIBT::PIBT(const std::vector<Position> &robots_pos, const std::vector<int> &robots_target) {
@@ -280,4 +230,4 @@ std::vector<Action> PIBT::solve() {
     }
 
     return actions;
-}
+}*/

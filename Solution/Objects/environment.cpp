@@ -1,6 +1,6 @@
 #include "environment.hpp"
 
-#include "../Planner/planner_solver.hpp"
+#include "../Planner/Solver/planner_solver.hpp"
 #include "../settings.hpp"
 #include "assert.hpp"
 #include "dsu.hpp"

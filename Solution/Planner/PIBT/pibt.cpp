@@ -1,7 +1,9 @@
 #include "pibt.hpp"
 
-#include "../Objects/assert.hpp"
-#include "../Objects/environment.hpp"
+#include "../../Objects/assert.hpp"
+#include "../../Objects/environment.hpp"
+
+#include <unordered_set>
 
 bool PIBT::build(uint32_t r, int banned_direction) {
     if (pos_to_robot[robots[r].p.pos] == r) {
@@ -87,7 +89,7 @@ std::vector<Action> PIBT::solve() {
     }
 
     std::vector<Action> actions(robots.size(), Action::NA);
-    std::set<uint32_t> used;
+    std::unordered_set<uint32_t> used;
     // сначала разберемся с теми, кто поворачивается
     for (uint32_t r = 0; r < robots.size(); r++) {
         if (robots[r].dir == -1) {
@@ -119,7 +121,7 @@ std::vector<Action> PIBT::solve() {
         }
     }
 
-    std::map<uint32_t, std::vector<uint32_t>> forwards;
+    std::unordered_map<uint32_t, std::vector<uint32_t>> forwards;
     for (uint32_t r = 0; r < robots.size(); r++) {
         if (robots[r].dir == robots[r].p.dir) {
             ASSERT(!used.count(robots[r].p.pos), "already used");

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Objects/position.hpp"
+#include "../../Objects/position.hpp"
 
 // 1604 -> 1623
 
@@ -24,7 +24,7 @@ class PIBT {
 
     std::vector<Robot> robots;
 
-    std::map<uint32_t, uint32_t> pos_to_robot;
+    std::unordered_map<uint32_t, uint32_t> pos_to_robot;
 
     bool build(uint32_t r, int banned_direction = -1);
 

@@ -13,9 +13,15 @@
 
 #define ENABLE_ASSERT
 
+//#define ENABLE_PLANNER_SOLVER
+
+#define ENABLE_PIBT
+
+//#define ENABLE_PLANNER_MACHINE
+
 static constexpr uint32_t THREADS = 4;
 
-static constexpr uint32_t PLANNER_DEPTH = 8;
+static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 

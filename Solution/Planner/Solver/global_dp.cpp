@@ -1,10 +1,10 @@
 #include "global_dp.hpp"
 
-#include "../Objects/environment.hpp"
+#include "../../Objects/environment.hpp"
 #include "planner_solver.hpp"
 
-#include "../Objects/assert.hpp"
-#include "../Objects/dsu.hpp"
+#include "../../Objects/assert.hpp"
+#include "../../Objects/dsu.hpp"
 
 GlobalDP &get_global_dp() {
     static GlobalDP dp;

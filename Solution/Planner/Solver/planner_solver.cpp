@@ -1,6 +1,6 @@
 #include "planner_solver.hpp"
 
-#include "../Objects/environment.hpp"
+#include "../../Objects/environment.hpp"
 #include "global_dp.hpp"
 
 bool PlannerSolver::is_valid(const Position &p) const {

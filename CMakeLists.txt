@@ -33,6 +33,9 @@ file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
         # team solution
         "Solution/Objects/*.cpp"
         "Solution/Planner/*.cpp"
+        "Solution/Planner/Solver/*.cpp"
+        "Solution/Planner/Machine/*.cpp"
+        "Solution/Planner/PIBT/*.cpp"
         "Solution/Scheduler/*.cpp"
         )
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../settings.hpp"
+#include "../../settings.hpp"
 
 #include <array>
 #include <cstdint>
