@@ -23,8 +23,8 @@ static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
-using PLANNER = MAPFPlanner;
+using PLANNER = EPlanner;
 
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
-using TASKSHEDULLER = MyScheduler;
+using TASKSHEDULLER = TaskScheduler;
