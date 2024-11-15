@@ -36,12 +36,12 @@ void EPlanner::initialize(int preprocess_time_limit) {
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     //TimePoint start = std::chrono::steady_clock::now();
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
     plan.assign(env->num_of_agents, Action::W);
     get_env().build_robots();
-    get_env().build_robot_dists(std::chrono::steady_clock::now() + std::chrono::milliseconds(50));
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 10);
+    get_env().build_robot_dists(std::min(std::chrono::steady_clock::now() + std::chrono::milliseconds(400), end_time));
 
 #ifdef ENABLE_PIBT
     PIBT pibt;
