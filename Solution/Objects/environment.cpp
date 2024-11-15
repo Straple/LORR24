@@ -15,30 +15,31 @@ void Environment::build_dists(uint32_t target) {
 
     dist_dp[target].resize(map.size());
 
-    vector<Position> Q0, Q1;
-    std::vector<std::array<bool, 4>> visited(map.size());
-    {
-        for (int dir = 0; dir < 4; dir++) {
-            source.dir = dir;
+    auto build = [&](int target_dir) {
+        vector<Position> Q0, Q1;
+        std::vector<std::array<bool, 4>> visited(map.size());
+        {
+            //for (int dir = 0; dir < 4; dir++) {
+            source.dir = target_dir;
             Q0.push_back(source);
             visited[source.pos][source.dir] = true;
-        }
-    }
-
-    int d = 0;
-    while (!Q0.empty() || !Q1.empty()) {
-        if (Q0.empty()) {
-            std::swap(Q0, Q1);
-            d++;
+            //}
         }
 
-        ASSERT(!Q0.empty(), "Q0 is empty");
-        Position p = Q0.back();
-        Q0.pop_back();
+        int d = 0;
+        while (!Q0.empty() || !Q1.empty()) {
+            if (Q0.empty()) {
+                std::swap(Q0, Q1);
+                d++;
+            }
 
-        dist_dp[target][p.pos][(p.dir + 2) % 4] = d;
+            ASSERT(!Q0.empty(), "Q0 is empty");
+            Position p = Q0.back();
+            Q0.pop_back();
 
-        ASSERT(p.is_valid(), "p is invalid");
+            dist_dp[target][p.pos][(p.dir + 2) % 4][target_dir] = d;
+
+            ASSERT(p.is_valid(), "p is invalid");
 
 #define STEP(init)                                       \
     {                                                    \
@@ -49,12 +50,18 @@ void Environment::build_dists(uint32_t target) {
         }                                                \
     }
 
-        STEP(p.move_forward());
-        STEP(p.rotate());
-        STEP(p.counter_rotate());
+            STEP(p.move_forward());
+            STEP(p.rotate());
+            STEP(p.counter_rotate());
 
 #undef STEP
-    }
+        }
+    };
+
+    build(0);
+    build(1);
+    build(2);
+    build(3);
 }
 
 void Environment::build_dists() {
@@ -110,6 +117,27 @@ bool Environment::is_free(uint32_t pos) const {
     return map[pos];
 }
 
+int Environment::get_dist(Position source, Position target) const {
+    ASSERT(source.is_valid(), "invalid source");
+    ASSERT(target.is_valid(), "invalid target");
+
+    ASSERT(0 <= source.pos && source.pos < map.size(), "invalid pos");
+    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir");
+
+    ASSERT(0 <= source.pos && source.pos < map.size(), "invalid pos");
+    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir");
+
+    ASSERT(0 <= target.pos && target.pos < map.size(), "invalid pos");
+    ASSERT(0 <= target.dir && target.dir < 4, "invalid dir");
+
+#ifndef ENABLE_DIST_MATRIX
+    Position to(target, 0);
+    return std::abs(source.x - to.x) + std::abs(source.y - to.y);
+#else
+    return dist_dp[target.pos][source.pos][source.dir][target.dir];
+#endif
+}
+
 int Environment::get_dist(Position source, int target) const {
     if (target == -1) {
         return 0;
@@ -123,7 +151,10 @@ int Environment::get_dist(Position source, int target) const {
     Position to(target, 0);
     return std::abs(source.x - to.x) + std::abs(source.y - to.y);
 #else
-    return dist_dp[target][source.pos][source.dir];
+    return std::min({dist_dp[target][source.pos][source.dir][0],
+                     dist_dp[target][source.pos][source.dir][1],
+                     dist_dp[target][source.pos][source.dir][2],
+                     dist_dp[target][source.pos][source.dir][3]});
 #endif
 }
 
