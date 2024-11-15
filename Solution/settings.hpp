@@ -30,7 +30,7 @@
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 31;
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 

@@ -11,7 +11,7 @@ bool PIBT::build(uint32_t r, int banned_direction) {
     }
 
     // (priority, dir)
-    std::vector<std::pair<int, int>> actions;
+    std::vector<std::pair<int64_t, int>> actions;
     for (int dir = 0; dir < 4; dir++) {
         if (dir == banned_direction) {
             continue;

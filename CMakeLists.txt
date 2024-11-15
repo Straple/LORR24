@@ -36,6 +36,7 @@ file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
         "Solution/Planner/Solver/*.cpp"
         "Solution/Planner/Machine/*.cpp"
         "Solution/Planner/PIBT/*.cpp"
+        "Solution/Objects/GuidanceGraph/guidance_graph_solver.cpp"
         "Solution/Scheduler/*.cpp"
         )
 

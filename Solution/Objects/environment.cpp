@@ -4,6 +4,7 @@
 #include "../settings.hpp"
 #include "assert.hpp"
 #include "dsu.hpp"
+#include "guidance_graph.hpp"
 
 #include <thread>
 
@@ -15,44 +16,40 @@ void Environment::build_dists(uint32_t target) {
 
     dist_dp[target].resize(map.size());
 
-    vector<Position> Q0, Q1;
+    std::multiset<std::pair<int64_t, Position>> S;
     std::vector<std::array<bool, 4>> visited(map.size());
 
     for (int dir = 0; dir < 4; dir++) {
         source.dir = dir;
-        Q0.push_back(source);
-        visited[source.pos][source.dir] = true;
+        S.insert({0, source});
     }
 
-    int64_t d = 0;
-    while (!Q0.empty() || !Q1.empty()) {
-        if (Q0.empty()) {
-            std::swap(Q0, Q1);
-            d++;
-        }
-
-        ASSERT(!Q0.empty(), "Q0 is empty");
-        Position p = Q0.back();
-        Q0.pop_back();
-
-        dist_dp[target][p.pos][(p.dir + 2) % 4] = d;
+    while (!S.empty()) {
+        ASSERT(!S.empty(), "is empty");
+        auto [dist, p] = *S.begin();
+        S.erase(S.begin());
 
         ASSERT(p.is_valid(), "p is invalid");
+        if (visited[p.pos][p.dir]) {
+            continue;
+        }
+        visited[p.pos][p.dir] = true;
 
-#define STEP(init)                                       \
-    {                                                    \
-        Position to = (init);                            \
-        if (to.is_valid() && !visited[to.pos][to.dir]) { \
-            visited[to.pos][to.dir] = true;              \
-            Q1.push_back(to);                            \
-        }                                                \
-    }
+        ASSERT(static_cast<uint32_t>(dist) == dist, "overflow");
+        dist_dp[target][p.pos][(p.dir + 2) % 4] = dist;
 
-        STEP(p.move_forward());
-        STEP(p.rotate());
-        STEP(p.counter_rotate());
+        auto step = [&](Action action) {
+            Position to = p.simulate_action(action);
+            if (to.is_valid() && !visited[to.pos][to.dir]) {
+                int64_t d = dist;
+                d += get_gg().get(p.pos, p.dir, action);
+                S.insert({d, to});
+            }
+        };
 
-#undef STEP
+        step(Action::FW);
+        step(Action::CR);
+        step(Action::CCR);
     }
 }
 
@@ -73,9 +70,15 @@ void Environment::build_dists() {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
+
+    std::cout << "build_dists time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
 }
 
 void Environment::init(SharedEnvironment *env) {
+    {
+        std::ifstream input("gg.txt");
+        input >> get_gg();
+    }
     env_ptr = env;
     rows = env->rows;
     cols = env->cols;
