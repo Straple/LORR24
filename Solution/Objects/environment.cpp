@@ -54,7 +54,7 @@ void Environment::build_dists(uint32_t target) {
 }
 
 void Environment::build_dists() {
-    auto start = std::chrono::steady_clock::now();
+    //auto start = std::chrono::steady_clock::now();
     dist_dp.resize(map.size());
 
     auto do_work = [&](uint32_t thr) {
@@ -71,17 +71,115 @@ void Environment::build_dists() {
         threads[thr].join();
     }
 
-    std::cout << "build_dists time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
+    //std::cout << "build_dists time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
+}
+
+void Environment::build_robot_dist(uint32_t r) {
+    if (robots[r].target == -1) {
+        return;
+    }
+    robot_dists[r].resize(map.size());
+    for (uint32_t pos = 0; pos < map.size(); pos++) {
+        for (uint32_t dir = 0; dir < 4; dir++) {
+            robot_dists[r][pos][dir] = static_cast<uint32_t>(1e18);
+        }
+    }
+
+    std::multiset<std::pair<int64_t, Position>> S;
+    std::vector<std::array<bool, 4>> visited(map.size());
+
+    for (int dir = 0; dir < 4; dir++) {
+        Position source(robots[r].target, dir);
+        S.insert({0, source});
+    }
+
+    while (!S.empty()) {
+        ASSERT(!S.empty(), "is empty");
+        auto [dist, p] = *S.begin();
+        S.erase(S.begin());
+
+        ASSERT(p.is_valid(), "p is invalid");
+        if (visited[p.pos][p.dir]) {
+            continue;
+        }
+        visited[p.pos][p.dir] = true;
+
+        ASSERT(static_cast<uint32_t>(dist) == dist, "overflow");
+        robot_dists[r][p.pos][(p.dir + 2) % 4] = dist;
+
+        auto step = [&](Action action) {
+            Position to = p.simulate_action(action);
+            if (to.is_valid() && !visited[to.pos][to.dir]) {
+                int64_t d = dist;
+                d += get_gg().get(p.pos, p.dir, action);
+                if (pos_to_robot[to.pos] != -1) {
+                    d += 8000;
+                }
+
+                if (d < robot_dists[r][to.pos][(to.dir + 2) % 4]) {
+                    S.erase({robot_dists[r][to.pos][(to.dir + 2) % 4], to});
+                    S.insert({d, to});
+                }
+            }
+        };
+
+        step(Action::FW);
+        step(Action::CR);
+        step(Action::CCR);
+    }
+}
+
+void Environment::build_robot_dists(std::chrono::steady_clock::time_point end_time) {
+    //auto start = std::chrono::steady_clock::now();
+    ASSERT(robots.size() == get_agents_size(), "invalid sizes");
+    robot_dists.resize(robots.size());
+
+    auto do_work = [&](uint32_t thr) {
+        for (uint32_t i = 0; i < (robots.size() + THREADS - 1) / THREADS && std::chrono::steady_clock::now() < end_time; i++) {
+            ASSERT(last_finished_robot_dist.size() == THREADS, "invalid size");
+            auto &r = last_finished_robot_dist[thr];
+            if(r >= robots.size()){
+                break;
+            }
+            ASSERT(0 <= r && r < robots.size(), "invalid r");
+            build_robot_dist(r);
+            robots[r].predicted_dist = get_env().get_dist(r, robots[r].p);
+
+            r += THREADS;
+            if (r >= robots.size()) {
+                r = thr;
+            }
+        }
+    };
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr);
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+
+    //std::cout << "build_dists time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
 }
 
 void Environment::init(SharedEnvironment *env) {
-    {
-        std::ifstream input("gg.txt");
-        input >> get_gg();
-    }
     env_ptr = env;
     rows = env->rows;
     cols = env->cols;
+
+    {
+        //std::ifstream input("gg.txt");
+        //input >> get_gg();
+        get_gg().graph.resize(get_size());
+        for (uint32_t pos = 0; pos < get_size(); pos++) {
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                for (uint32_t action = 0; action < 3; action++) {
+                    get_gg().graph[pos][dir][action] = 10000;
+                }
+            }
+        }
+    }
 
     ASSERT(env->map.size() == cols * rows, "invalid env sizes: " + std::to_string(env->map.size()) + " != " +
                                                    std::to_string(cols) + " * " + std::to_string(rows));
@@ -90,9 +188,46 @@ void Environment::init(SharedEnvironment *env) {
         map[pos] = env->map[pos] == 0;
     }
 
+    last_finished_robot_dist.resize(THREADS);
+    for (uint32_t i = 0; i < THREADS; i++) {
+        last_finished_robot_dist[i] = i;
+    }
+
 #ifdef ENABLE_DIST_MATRIX
     build_dists();
 #endif
+}
+
+void Environment::build_robots() {
+    pos_to_robot.assign(map.size(), -1);
+    robots.resize(env_ptr->num_of_agents);
+    //robot_dists.resize(robots.size());
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        robots[r].p = Position(env_ptr->curr_states[r].location, env_ptr->curr_states[r].orientation);
+        robots[r].target = -1;
+        robots[r].task = -1;
+        robots[r].predicted_dist = 1e17;
+        ASSERT(pos_to_robot[robots[r].p.pos] == -1, "already used");
+        pos_to_robot[robots[r].p.pos] = r;
+
+        //robot_dists[r].resize(map.size());
+    }
+
+    for (uint32_t t = 0; t < env_ptr->task_pool.size(); t++) {
+        auto &task = env_ptr->task_pool[t];
+        int r = task.agent_assigned;
+        if (r != -1) {
+            robots[r].task = t;
+            robots[r].target = task.get_next_loc();
+            ASSERT(0 <= robots[r].target && robots[r].target < get_size(), "invalid target");
+            ASSERT(task.idx_next_loc < task.locations.size(), "why?");
+            robots[r].predicted_dist = get_env().get_dist(robots[r].p, robots[r].target);
+        }
+    }
+}
+
+[[nodiscard]] Environment::Robot Environment::get_robot(uint32_t r) const {
+    return robots[r];
 }
 
 int Environment::get_rows() const {
@@ -105,6 +240,10 @@ int Environment::get_cols() const {
 
 int Environment::get_size() const {
     return rows * cols;
+}
+
+int Environment::get_agents_size() const {
+    return env_ptr->num_of_agents;
 }
 
 bool Environment::is_free(uint32_t pos) const {
@@ -127,6 +266,20 @@ int64_t Environment::get_dist(Position source, int target) const {
 #else
     return dist_dp[target][source.pos][source.dir];
 #endif
+}
+
+int64_t Environment::get_dist(uint32_t r, Position source) const {
+    ASSERT(r < robot_dists.size() && r < robots.size(), "invalid r");
+    if (robots[r].target == -1) {
+        return 0;
+    }
+    ASSERT(source.is_valid(), "invalid source");
+    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir");
+    if (robot_dists[r].empty()) {
+        return get_dist(robots[r].p, robots[r].target);
+    }
+    ASSERT(source.pos < robot_dists[r].size(), "invalid pos");
+    return robot_dists[r][source.pos][source.dir];
 }
 
 std::vector<std::vector<int>> Environment::split_robots(SharedEnvironment *env) {

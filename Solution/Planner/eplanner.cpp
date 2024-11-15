@@ -35,33 +35,16 @@ void EPlanner::initialize(int preprocess_time_limit) {
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
+    //TimePoint start = std::chrono::steady_clock::now();
+
     plan.assign(env->num_of_agents, Action::W);
+    get_env().build_robots();
+    get_env().build_robot_dists(std::chrono::steady_clock::now() + std::chrono::milliseconds(50));
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 10);
 
 #ifdef ENABLE_PIBT
-
-    std::vector<Position> robot_pos(env->num_of_agents);
-    for (uint32_t r = 0; r < robot_pos.size(); r++) {
-        robot_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation);
-    }
-
-    std::vector<int> robot_priority(env->num_of_agents, 0);
-
-    std::vector<int> robot_target(env->num_of_agents, -1);
-    for (auto &task: env->task_pool) {
-        int r = task.agent_assigned;
-        if (r != -1) {
-            robot_target[r] = task.get_next_loc();
-            ASSERT(0 <= robot_target[r] && robot_target[r] < env->cols * env->rows, "invalid target: " + std::to_string(robot_target[r]));
-
-            ASSERT(task.idx_next_loc < task.locations.size(), "why?");
-
-            robot_priority[r] = get_env().get_dist(robot_pos[r], robot_target[r]);
-        }
-    }
-
-    PIBT pibt(robot_pos, robot_target, robot_priority);
+    PIBT pibt;
     plan = pibt.solve();
 #endif
 
@@ -159,4 +142,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 #endif
+
+    //static std::ofstream output("planner_log.txt");
+    //output << "planner time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << '\n';
 }
