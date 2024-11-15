@@ -15,11 +15,13 @@
 
 //#define ENABLE_PLANNER_SOLVER
 
-#define ENABLE_PIBT
+//#define ENABLE_PIBT
+
+#define ENABLE_PIBT_SOLVER
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
