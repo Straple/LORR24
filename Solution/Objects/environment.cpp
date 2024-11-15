@@ -24,7 +24,7 @@ void Environment::build_dists(uint32_t target) {
         visited[source.pos][source.dir] = true;
     }
 
-    int d = 0;
+    int64_t d = 0;
     while (!Q0.empty() || !Q1.empty()) {
         if (Q0.empty()) {
             std::swap(Q0, Q1);
@@ -109,7 +109,7 @@ bool Environment::is_free(uint32_t pos) const {
     return map[pos];
 }
 
-int Environment::get_dist(Position source, int target) const {
+int64_t Environment::get_dist(Position source, int target) const {
     if (target == -1) {
         return 0;
     }

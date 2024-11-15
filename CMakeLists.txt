@@ -80,9 +80,13 @@ ELSE()
     message(STATUS "Python support is disabled")
 
 
-    add_executable(lifelong ${SOURCES} )
+    add_executable(lifelong src/Evaluation/main.cpp ${SOURCES})
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+
+    add_executable(guidance_graph_builder Solution/Objects/GuidanceGraph/main.cpp ${SOURCES})
+    target_link_libraries(guidance_graph_builder ${Boost_LIBRARIES})
+    target_compile_definitions(guidance_graph_builder PRIVATE PYTHON=${PYTHON_FLAG})
 ENDIF()
 
 

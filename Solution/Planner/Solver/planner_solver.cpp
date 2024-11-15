@@ -73,7 +73,7 @@ void PlannerSolver::process_robot_path(uint32_t r, int sign) {
             //solution_info.sum_dist_change[t] += sign * (get_env().get_dist(p, robot.target) - get_env().get_dist(to, robot.target));
 
             get_global_dp().change_map_robots_cnt(t, to.pos, sign, solution_info);
-            best_dist = min(best_dist, get_env().get_dist(to, robot.target));
+            best_dist = min((int64_t)best_dist, get_env().get_dist(to, robot.target));
 
             p = to;
             t++;

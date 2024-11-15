@@ -16,8 +16,8 @@ class Environment {
     // otherwise: false
     std::vector<bool> map;
 
-    // dist_dp[target][source][source_dir][target_dir] = dist from (source, source_dir) -> (target, target_dir)
-    std::vector<std::vector<std::array<uint16_t, 4>>> dist_dp;
+    // dist_dp[target][source][dir] = dist from (source, dir) -> target
+    std::vector<std::vector<std::array<uint32_t, 4>>> dist_dp;
 
     void build_dists(uint32_t target);
 
@@ -38,14 +38,14 @@ public:
     [[nodiscard]] bool is_free(uint32_t pos) const;
 
     // p -> target
-    [[nodiscard]] int get_dist(Position source, int target) const;
+    [[nodiscard]] int64_t get_dist(Position source, int target) const;
 
     // and build map_major for get_major()
     std::vector<std::vector<int>> split_robots(SharedEnvironment *env);
 
     [[nodiscard]] int get_major(uint32_t pos) const;
 
-    [[nodiscard]] SharedEnvironment& get_shared_env() const;
+    [[nodiscard]] SharedEnvironment &get_shared_env() const;
 };
 
 Environment &get_env();

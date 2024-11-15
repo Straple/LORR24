@@ -151,6 +151,7 @@ namespace DefaultPlanner {
             return Action::CR;
         }
         assert(false);
+        return Action::NA;
     }
 
     bool moveCheck(int id, std::vector<bool> &checked,
