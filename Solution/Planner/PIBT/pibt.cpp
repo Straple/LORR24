@@ -22,7 +22,7 @@ bool PIBT::build(uint32_t r, int banned_direction) {
         if (to.is_valid()) {
             // если там никого нет или он еще не посчитан
             if (!pos_to_robot.count(to.pos) || robots[pos_to_robot[to.pos]].dir == -1) {
-                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(to, robots[r].target), dir);
+                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(r, to), dir);
             }
         }
     }
@@ -61,14 +61,12 @@ bool PIBT::build(uint32_t r, int banned_direction) {
     return false;
 }
 
-PIBT::PIBT(const std::vector<Position> &robots_pos, const std::vector<int> &robots_target, const std::vector<int> &robot_priority) {
-    ASSERT(robots_pos.size() == robots_target.size() && !robots_pos.empty(), "invalid sizes");
-
-    robots.resize(robots_pos.size());
+PIBT::PIBT() {
+    robots.resize(get_env().get_agents_size());
     for (uint32_t r = 0; r < robots.size(); r++) {
-        robots[r].p = robots_pos[r];
-        robots[r].target = robots_target[r];
-        robots[r].priority = robot_priority[r];
+        robots[r].p = get_env().get_robot(r).p;
+        robots[r].target = get_env().get_robot(r).target;
+        robots[r].priority = get_env().get_robot(r).predicted_dist;
         pos_to_robot[robots[r].p.pos] = r;
     }
 }
@@ -77,9 +75,6 @@ std::vector<Action> PIBT::solve() {
     std::vector<uint32_t> order(robots.size());
     iota(order.begin(), order.end(), 0);
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        if (robots[lhs].priority == robots[rhs].priority) {
-            //return lhs > rhs;
-        }
         return robots[lhs].priority < robots[rhs].priority;
     });
 
