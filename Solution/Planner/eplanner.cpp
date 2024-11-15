@@ -3,6 +3,7 @@
 #include "../Objects/assert.hpp"
 #include "../Objects/environment.hpp"
 #include "PIBT/pibt.hpp"
+#include "PIBT/pibt_solver.hpp"
 #include "Solver/global_dp.hpp"
 #include "Solver/planner_solver.hpp"
 
@@ -42,6 +43,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     get_env().build_robots();
 
     get_env().build_robot_dists(std::min(std::chrono::steady_clock::now() + std::chrono::milliseconds(400), end_time));
+
+#ifdef ENABLE_PIBT_SOLVER
+    PIBTSolver pibt_solver;
+    plan = pibt_solver.solve();
+#endif
 
 #ifdef ENABLE_PIBT
     PIBT pibt;
