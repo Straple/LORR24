@@ -21,7 +21,7 @@ bool PIBT::build(uint32_t r, int banned_direction) {
         to = to.move_forward();
         if (to.is_valid()) {
             // если там никого нет или он еще не посчитан
-            if (!pos_to_robot.count(to.pos) || robots[pos_to_robot.at(to.pos)].dir == -1) {
+            if (!pos_to_robot.count(to.pos) || robots[pos_to_robot[to.pos]].dir == -1) {
                 actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(to, robots[r].target), dir);
             }
         }
@@ -42,7 +42,7 @@ bool PIBT::build(uint32_t r, int banned_direction) {
         } else {
             // о нет! там кто-то есть
 
-            uint32_t to_r = pos_to_robot.at(to.pos);
+            uint32_t to_r = pos_to_robot[to.pos];
             pos_to_robot[to.pos] = r;// теперь мы будем тут стоять
             robots[r].dir = dir;     // определим это направление
 
@@ -61,13 +61,14 @@ bool PIBT::build(uint32_t r, int banned_direction) {
     return false;
 }
 
-PIBT::PIBT(const std::vector<Position> &robots_pos, const std::vector<int> &robots_target) {
+PIBT::PIBT(const std::vector<Position> &robots_pos, const std::vector<int> &robots_target, const std::vector<int> &robot_priority) {
     ASSERT(robots_pos.size() == robots_target.size() && !robots_pos.empty(), "invalid sizes");
 
     robots.resize(robots_pos.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].p = robots_pos[r];
         robots[r].target = robots_target[r];
+        robots[r].priority = robot_priority[r];
         pos_to_robot[robots[r].p.pos] = r;
     }
 }
@@ -75,12 +76,12 @@ PIBT::PIBT(const std::vector<Position> &robots_pos, const std::vector<int> &robo
 std::vector<Action> PIBT::solve() {
     std::vector<uint32_t> order(robots.size());
     iota(order.begin(), order.end(), 0);
-    std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        return get_env().get_dist(robots[lhs].p, robots[lhs].target) < get_env().get_dist(robots[rhs].p, robots[rhs].target);
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        if (robots[lhs].priority == robots[rhs].priority) {
+            //return lhs > rhs;
+        }
+        return robots[lhs].priority < robots[rhs].priority;
     });
-    for (uint32_t id = 0; id < robots.size(); id++) {
-        robots[order[id]].priority = id;
-    }
 
     for (uint32_t r: order) {
         if (robots[r].dir == -1) {
@@ -143,7 +144,7 @@ std::vector<Action> PIBT::solve() {
                     int lhs_a = (robots[lhs].p.pos == pos);
                     int rhs_a = (robots[rhs].p.pos == pos);
                     if (lhs_a == rhs_a) {
-                        return lhs < rhs;
+                        return robots[lhs].priority < robots[rhs].priority;
                     } else {
                         return lhs_a > rhs_a;
                     }

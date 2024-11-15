@@ -40,20 +40,28 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 10);
 
 #ifdef ENABLE_PIBT
-    std::vector<int> robot_target(env->num_of_agents, -1);
-    for (auto &task: env->task_pool) {
-        if (task.agent_assigned != -1) {
-            robot_target[task.agent_assigned] = task.get_next_loc();
-            ASSERT(0 <= robot_target[task.agent_assigned] && robot_target[task.agent_assigned] < env->cols * env->rows, "invalid target: " + std::to_string(robot_target[task.agent_assigned]));
-        }
-    }
 
     std::vector<Position> robot_pos(env->num_of_agents);
     for (uint32_t r = 0; r < robot_pos.size(); r++) {
         robot_pos[r] = Position(env->curr_states[r].location, env->curr_states[r].orientation);
     }
 
-    PIBT pibt(robot_pos, robot_target);
+    std::vector<int> robot_priority(env->num_of_agents, 0);
+
+    std::vector<int> robot_target(env->num_of_agents, -1);
+    for (auto &task: env->task_pool) {
+        int r = task.agent_assigned;
+        if (r != -1) {
+            robot_target[r] = task.get_next_loc();
+            ASSERT(0 <= robot_target[r] && robot_target[r] < env->cols * env->rows, "invalid target: " + std::to_string(robot_target[r]));
+
+            ASSERT(task.idx_next_loc < task.locations.size(), "why?");
+
+            robot_priority[r] = get_env().get_dist(robot_pos[r], robot_target[r]);
+        }
+    }
+
+    PIBT pibt(robot_pos, robot_target, robot_priority);
     plan = pibt.solve();
 #endif
 

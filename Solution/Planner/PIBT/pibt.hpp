@@ -2,7 +2,8 @@
 
 #include "../../Objects/position.hpp"
 
-// 1604 -> 1623
+// 1000: 1604 -> 1623 -> 1635
+// 10'000: 12131 -> 14132
 
 // Priority Inheritance with BackTracking
 class PIBT {
@@ -29,7 +30,7 @@ class PIBT {
     bool build(uint32_t r, int banned_direction = -1);
 
 public:
-    PIBT(const std::vector<Position>& robots_pos, const std::vector<int>& robots_target);
+    PIBT(const std::vector<Position>& robots_pos, const std::vector<int>& robots_target, const std::vector<int>& robot_priority);
 
     std::vector<Action> solve();
 };
