@@ -176,7 +176,7 @@ void Environment::init(SharedEnvironment *env) {
         get_gg().graph.resize(get_size());
         for (uint32_t pos = 0; pos < get_size(); pos++) {
             for (uint32_t dir = 0; dir < 4; dir++) {
-                for (uint32_t action = 0; action < 3; action++) {
+                for (uint32_t action = 0; action < 4; action++) {
                     get_gg().graph[pos][dir][action] = 10000;
                 }
             }

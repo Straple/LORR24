@@ -7,7 +7,7 @@
 
 struct GuidanceGraph {
     // graph[pos][dir][action] = weight
-    std::vector<std::array<std::array<uint16_t, 3>, 4>> graph;
+    std::vector<std::array<std::array<uint16_t, 4>, 4>> graph;
 
 public:
     [[nodiscard]] uint16_t get(uint32_t pos, uint32_t dir, uint32_t action) const;
