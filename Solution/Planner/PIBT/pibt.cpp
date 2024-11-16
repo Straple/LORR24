@@ -71,13 +71,7 @@ PIBT::PIBT() {
     }
 }
 
-std::vector<Action> PIBT::solve() {
-    std::vector<uint32_t> order(robots.size());
-    iota(order.begin(), order.end(), 0);
-    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        return robots[lhs].priority < robots[rhs].priority;
-    });
-
+std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order) {
     for (uint32_t r: order) {
         if (robots[r].dir == -1) {
             build(r);
@@ -173,4 +167,42 @@ std::vector<Action> PIBT::solve() {
     }
 
     return actions;
+}
+
+double PIBT::get_score() const {
+    double res = 0;
+    std::vector<uint32_t> order(robots.size());
+    iota(order.begin(), order.end(), 0);
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return robots[lhs].priority < robots[rhs].priority;
+    });
+    for (uint32_t i = 0; i < robots.size(); i++) {
+        uint32_t r = order[i];
+        if (robots[r].dir == -1) {
+            continue;
+        }
+
+        // (priority, dir)
+        std::vector<std::pair<int64_t, int>> actions;
+        for (int dir = 0; dir < 4; dir++) {
+            Position to = robots[r].p;
+            to.dir = dir;
+            to = to.move_forward();
+            if (to.is_valid()) {
+                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(r, to), dir);
+            }
+        }
+
+        std::sort(actions.begin(), actions.end());
+        int k = 0;
+        for (uint32_t i = 0; i < actions.size(); i++) {
+            if (actions[i].second == robots[r].dir) {
+                k = i;
+                break;
+            }
+        }
+
+        res += (actions.size() - k) * 1.0 * ((int64_t)robots.size() * robots.size() - (int64_t)i * i) * 1.0 / robots.size();
+    }
+    return res;
 }

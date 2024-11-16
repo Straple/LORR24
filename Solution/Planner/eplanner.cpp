@@ -7,6 +7,7 @@
 #include "Solver/global_dp.hpp"
 #include "Solver/planner_solver.hpp"
 
+#include <algorithm>
 #include <thread>
 
 int EPlanner::get_target(int r) const {
@@ -46,12 +47,18 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
 #ifdef ENABLE_PIBT_SOLVER
     PIBTSolver pibt_solver;
-    plan = pibt_solver.solve();
+    plan = pibt_solver.solve(end_time);
 #endif
 
 #ifdef ENABLE_PIBT
+    std::vector<uint32_t> order(get_env().get_agents_size());
+    iota(order.begin(), order.end(), 0);
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return get_env().get_robot(lhs).predicted_dist < get_env().get_robot(rhs).predicted_dist;
+    });
+
     PIBT pibt;
-    plan = pibt.solve();
+    plan = pibt.solve(order);
 #endif
 
 #ifdef ENABLE_PLANNER_MACHINE

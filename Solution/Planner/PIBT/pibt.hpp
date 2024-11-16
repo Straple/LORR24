@@ -13,6 +13,7 @@ class PIBT {
         // куда мы хотим
         // -1 -- не определено
         // иначе это направление для forward
+        // TODO: desired
         int dir = -1;
 
         // то куда мы хотим попасть
@@ -32,5 +33,7 @@ class PIBT {
 public:
     PIBT();
 
-    std::vector<Action> solve();
+    std::vector<Action> solve(const std::vector<uint32_t> &order);
+
+    [[nodiscard]] double get_score() const;
 };

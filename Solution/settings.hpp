@@ -15,9 +15,9 @@
 
 //#define ENABLE_PLANNER_SOLVER
 
-//#define ENABLE_PIBT
+#define ENABLE_PIBT
 
-#define ENABLE_PIBT_SOLVER
+//#define ENABLE_PIBT_SOLVER
 
 //#define ENABLE_PLANNER_MACHINE
 
