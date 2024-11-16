@@ -43,7 +43,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.assign(env->num_of_agents, Action::W);
     get_env().build_robots();
 
-    get_env().build_robot_dists(std::min(std::chrono::steady_clock::now() + std::chrono::milliseconds(400), end_time));
+    get_env().build_robot_dists(std::min(std::chrono::steady_clock::now() + std::chrono::milliseconds(UPDATE_DYNAMICS_DIST_MATRIX_TIME), end_time));
 
 #ifdef ENABLE_PIBT_SOLVER
     PIBTSolver pibt_solver;

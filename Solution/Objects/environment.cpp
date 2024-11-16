@@ -130,6 +130,7 @@ void Environment::build_robot_dist(uint32_t r) {
 }
 
 void Environment::build_robot_dists(std::chrono::steady_clock::time_point end_time) {
+#ifdef ENABLE_DYNAMICS_DIST_MATRIX
     //auto start = std::chrono::steady_clock::now();
     ASSERT(robots.size() == get_agents_size(), "invalid sizes");
     robot_dists.resize(robots.size());
@@ -138,7 +139,7 @@ void Environment::build_robot_dists(std::chrono::steady_clock::time_point end_ti
         for (uint32_t i = 0; i < (robots.size() + THREADS - 1) / THREADS && std::chrono::steady_clock::now() < end_time; i++) {
             ASSERT(last_finished_robot_dist.size() == THREADS, "invalid size");
             auto &r = last_finished_robot_dist[thr];
-            if(r >= robots.size()){
+            if (r >= robots.size()) {
                 break;
             }
             ASSERT(0 <= r && r < robots.size(), "invalid r");
@@ -161,6 +162,7 @@ void Environment::build_robot_dists(std::chrono::steady_clock::time_point end_ti
     }
 
     //std::cout << "build_dists time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << std::endl;
+#endif
 }
 
 void Environment::init(SharedEnvironment *env) {
@@ -269,17 +271,23 @@ int64_t Environment::get_dist(Position source, int target) const {
 }
 
 int64_t Environment::get_dist(uint32_t r, Position source) const {
-    ASSERT(r < robot_dists.size() && r < robots.size(), "invalid r");
+    ASSERT(r < robots.size(), "invalid r");
+    ASSERT(source.is_valid(), "invalid source");
+    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir");
+
+#ifdef ENABLE_DYNAMICS_DIST_MATRIX
     if (robots[r].target == -1) {
         return 0;
     }
-    ASSERT(source.is_valid(), "invalid source");
-    ASSERT(0 <= source.dir && source.dir < 4, "invalid dir");
+    ASSERT(r < robot_dists.size(), "invalid robot dists");
     if (robot_dists[r].empty()) {
-        return get_dist(robots[r].p, robots[r].target);
+        return get_dist(source, robots[r].target);
     }
     ASSERT(source.pos < robot_dists[r].size(), "invalid pos");
     return robot_dists[r][source.pos][source.dir];
+#else
+    return get_dist(source, robots[r].target);
+#endif
 }
 
 std::vector<std::vector<int>> Environment::split_robots(SharedEnvironment *env) {

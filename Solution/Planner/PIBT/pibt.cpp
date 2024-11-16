@@ -202,7 +202,7 @@ double PIBT::get_score() const {
             }
         }
 
-        res += (actions.size() - k) * 1.0 * ((int64_t)robots.size() * robots.size() - (int64_t)i * i) * 1.0 / robots.size();
+        res += (actions.size() - k) * 1.0 * ((int64_t) robots.size() * robots.size() - (int64_t) i * i) * 1.0 / robots.size();
     }
     return res;
 }

@@ -68,7 +68,7 @@ public:
     // p -> target
     [[nodiscard]] int64_t get_dist(Position source, int target) const;
 
-    // (r, source)
+    // (robot, source)
     [[nodiscard]] int64_t get_dist(uint32_t r, Position source) const;
 
     // and build map_major for get_major()
