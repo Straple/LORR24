@@ -21,10 +21,12 @@ public:
     }
 
     const T &top() const {
+        ASSERT(top_id < data.size(), "invalid top");
         return data[top_id];
     }
 
     void pop() {
+        ASSERT(top_id < data.size(), "invalid pop");
         ++top_id;
     }
 };
