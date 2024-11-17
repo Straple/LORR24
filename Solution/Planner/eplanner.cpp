@@ -37,7 +37,7 @@ void EPlanner::initialize(int preprocess_time_limit) {
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
-    //TimePoint start = std::chrono::steady_clock::now();
+    // static TimePoint start = std::chrono::steady_clock::now();
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
     plan.assign(env->num_of_agents, Action::W);
@@ -158,4 +158,5 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     //static std::ofstream output("planner_log.txt");
     //output << "planner time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << '\n';
+    //std::cout << "time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << '\n';
 }

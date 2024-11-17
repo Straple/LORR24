@@ -5,6 +5,7 @@
 #include "assert.hpp"
 #include "dsu.hpp"
 #include "guidance_graph.hpp"
+#include "linear_heap.hpp"
 
 #include <thread>
 
@@ -85,18 +86,18 @@ void Environment::build_robot_dist(uint32_t r) {
         }
     }
 
-    std::multiset<std::pair<int64_t, Position>> S;
+    LinearHeap<std::pair<int64_t, Position>> S;
     std::vector<std::array<bool, 4>> visited(map.size());
 
     for (int dir = 0; dir < 4; dir++) {
         Position source(robots[r].target, dir);
-        S.insert({0, source});
+        S.push({0, source});
     }
 
     while (!S.empty()) {
         ASSERT(!S.empty(), "is empty");
-        auto [dist, p] = *S.begin();
-        S.erase(S.begin());
+        auto [dist, p] = S.top();
+        S.pop();
 
         ASSERT(p.is_valid(), "p is invalid");
         if (visited[p.pos][p.dir]) {
@@ -117,8 +118,9 @@ void Environment::build_robot_dist(uint32_t r) {
                 }
 
                 if (d < robot_dists[r][to.pos][(to.dir + 2) % 4]) {
-                    S.erase({robot_dists[r][to.pos][(to.dir + 2) % 4], to});
-                    S.insert({d, to});
+                    //S.erase({robot_dists[r][to.pos][(to.dir + 2) % 4], to});
+                    robot_dists[r][to.pos][(to.dir + 2) % 4] = d;
+                    S.push({d, to});
                 }
             }
         };
