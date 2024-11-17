@@ -1,10 +1,10 @@
 # Prepare Your Entry
-To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
+To run the program, please refer to [README.md](README.md) to download the start-kit and compile. 
 
 
 ## System Overview
 
-<img src="./image/lorr2024_system_overview.jpg" style="margin:auto;display: block;max-width:800px"/>
+<img src="../image/lorr2024_system_overview.jpg" style="margin:auto;display: block;max-width:800px"/>
 
 The image shows the system overview of the start-kit.
 At each timestep:
@@ -16,7 +16,7 @@ At each timestep:
 ### Important concepts
 
 Before you start, get familiar with the following concepts in the code base:
-- Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
+- Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](../image/coordination_system.pdf)
 - Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
 - `State` (defined in `inc/States.h`): a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
 - `Task` (defined in `inc/Tasks.h`): A task contains a list of multiple errands, which is stored in `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
@@ -140,7 +140,7 @@ You are allowed to modify the values of these parameters to reduce/increase the 
 ### Unmodifiable files
 
 Except for the related implementation files for each track and some modifiable files stated in the following sections, most of the starter kit files are unmodifiable, and you must ensure that their functionalities are not interfered with. 
-Please refer to [Evaluation_Environment.md](./Evaluation_Environment.md) for more details.
+Please refer to [Evaluation_Environment.md](Evaluation_Environment.md) for more details.
 
 
 ## Build
@@ -234,12 +234,12 @@ numpy
 Once your planner is implemented and compiled, you are ready for local testing and evaluation.
 The evaluation system uses official pytorch image [pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel](https://hub.docker.com/layers/pytorch/pytorch/2.4.1-cuda11.8-cudnn9-devel/images/sha256-ebefd256e8247f1cea8f8cadd77f1944f6c3e65585c4e39a8d4135d29de4a0cb?context=explore) as docker base image to build the evaluation environment, which have GPU driver, cuda, cudnn, and other essential GPU softwares ready. We officially support and tested `Pytorch` in this setup, other frameworks may or may not work in the evaluation environment.
 
-Please refer to [Evaluation_Environment.md](./Evaluation_Environment.md) for more details.
+Please refer to [Evaluation_Environment.md](Evaluation_Environment.md) for more details.
 
 ### Local Testing
 A variety of test problems are provided in the `example_problems` folder. Use any JSON input file there for testing.
 Results of the evaluation are placed in a file at `--output_file_location` that you specified as a command line parameter.
-For details about the format of input problems and output results refer to the documentation in [Input_Output_Format.md](./Input_Output_Format.md).
+For details about the format of input problems and output results refer to the documentation in [Input_Output_Format.md](Input_Output_Format.md).
 
 ### Test in Docker
 The evaluation system builds and execuates your implementation in a docker container which acts as a sandbox.
@@ -280,4 +280,4 @@ If the docker container is started in the background, you can run commands from 
 Prior to the start of each evaluation, we allow your entry having 30 minutes of preprocessing time per map to load supporting files and initialise supporting data structures. 
 The `preprocess_time_limit` is specified as a parameter to your entry's `initialize()` function, which on default calls the `intialize()` function of MAPFPlanner and TaskScheduler. If your entry's preprocessing operations take longer than `preprocess_time_limit`, your planner fails and the simulation terminates with **exit code 124**. 
 
-Please refer to the documentation in [Working_with_Preprocessed_Data.md](./Working_with_Preprocessed_Data.md) for more details.
+Please refer to the documentation in [Working_with_Preprocessed_Data.md](Working_with_Preprocessed_Data.md) for more details.

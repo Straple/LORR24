@@ -2,7 +2,7 @@
 
 
 The output file provides some related information to help you design and debug your planner. 
-Begin by familiarizing yourself with the structure of the output JSON file. Please refer to the [Input_Output_Format.md](./Input_Output_Format.md).
+Begin by familiarizing yourself with the structure of the output JSON file. Please refer to the [Input_Output_Format.md](Input_Output_Format.md).
 
 ## Debug your planner using Output File
 To debug your planners, there are some properties that can help you learn how your planner coordinates the robots. Here are some suggestions that you might find useful:
