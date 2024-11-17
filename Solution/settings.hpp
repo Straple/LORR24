@@ -10,7 +10,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 10000 | 14132   |        16582            |     16833
 */
 
-// python3 PlanViz/script/run.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
+// python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 10000
 

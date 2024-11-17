@@ -5,12 +5,12 @@
 import argparse
 import tkinter as tk
 import numpy as np
-from plan_config import PlanConfig
-from plan_viz import PlanViz
+from plan_config2 import PlanConfig2
+from plan_viz2 import PlanViz2
 
 
 def main() -> None:
-    """The main function of the visualizer.
+    """ The main function of the visualizer.
     """
     parser = argparse.ArgumentParser(description="Plan visualizer for a MAPF instance")
     parser.add_argument("--map", type=str, help="Path to the map file")
@@ -42,11 +42,10 @@ def main() -> None:
                         help="Show the low-level heuristics")
     args = parser.parse_args()
 
-    plan_config = PlanConfig(args.map, args.plan, args.team_size, args.start, args.end,
-                             args.ppm, args.moves, args.delay, args.heat_maps, args.hwy_file,
-                             args.search_tree_files, args.heu_file)
-    PlanViz(plan_config, args.show_grid, args.show_ag_idx, args.show_task_idx,
-            args.show_static, args.show_conf_ag)
+    plan_config = PlanConfig2(args.map, args.plan, args.team_size, args.start, args.end,
+                              args.ppm, args.moves, args.delay)
+    PlanViz2(plan_config, args.show_grid, args.show_ag_idx, args.show_task_idx,
+             args.show_static, args.show_conf_ag)
     tk.mainloop()
 
 

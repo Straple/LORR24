@@ -136,13 +136,13 @@ def state_transition(cur_state:Tuple[int,int,int], motion:str) -> Tuple[int,int,
 
 
 def state_transition_mapf(cur_state:Tuple[int,int,int], motion:str) -> Tuple[int,int,int]:
-    if motion == "U":  # south (down)
+    if motion == "D":  # south (down)
         return (cur_state[0]+1, cur_state[1], cur_state[2])
     if motion == "L": #west (left)
         return (cur_state[0], cur_state[1]-1, cur_state[2])
     if motion == "R": #east (right)
         return (cur_state[0], cur_state[1]+1, cur_state[2])
-    if motion == "D": #north (up)
+    if motion == "U": #north (up)
         return (cur_state[0]-1, cur_state[1], cur_state[2])
     if motion in ["W", "T"]:
         return cur_state
