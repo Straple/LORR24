@@ -24,11 +24,15 @@ class PIBTStar {
         int64_t priority = 0;
 
         bool is_phantom = true;
+
+        bool is_done = false;
     };
 
     std::vector<Robot> robots;
 
     std::array<std::vector<int>, PLANNER_DEPTH> map, map_gor, map_ver;
+
+    void check_for_no_exists(uint32_t r) const;
 
     void add_path(uint32_t r);
 

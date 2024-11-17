@@ -22,7 +22,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 10000
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 //#define ENABLE_THEIR_HEURISTIC
 
@@ -35,15 +35,15 @@ static constexpr uint32_t UPDATE_DYNAMICS_DIST_MATRIX_TIME = 400;
 
 //#define ENABLE_PLANNER_SOLVER
 
-#define ENABLE_PIBT
+//#define ENABLE_PIBT
 
-//#define ENABLE_PIBT_STAR
+#define ENABLE_PIBT_STAR
 
 //#define ENABLE_PIBT_SOLVER
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 

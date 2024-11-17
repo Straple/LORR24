@@ -4,6 +4,7 @@
 #include "../Objects/environment.hpp"
 #include "PIBT/pibt.hpp"
 #include "PIBT/pibt_solver.hpp"
+#include "PIBT/pibt_star.hpp"
 #include "Solver/global_dp.hpp"
 #include "Solver/planner_solver.hpp"
 
@@ -59,6 +60,17 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     PIBT pibt;
     plan = pibt.solve(order);
+#endif
+
+#ifdef ENABLE_PIBT_STAR
+    std::vector<uint32_t> order(get_env().get_agents_size());
+    iota(order.begin(), order.end(), 0);
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return get_env().get_robot(lhs).predicted_dist < get_env().get_robot(rhs).predicted_dist;
+    });
+
+    PIBTStar pibt_star;
+    plan = pibt_star.solve(order);
 #endif
 
 #ifdef ENABLE_PLANNER_MACHINE
