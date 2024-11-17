@@ -74,6 +74,8 @@ void PIBTStar::remove_path(uint32_t r) {
 }
 
 bool PIBTStar::build(uint32_t r) {
+    // TODO
+    return false;
 }
 
 PIBTStar::PIBTStar() {

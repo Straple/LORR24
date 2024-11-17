@@ -2,9 +2,6 @@
 
 #include "../../Objects/position.hpp"
 
-// 1000: 1604 -> 1623 -> 1635 -> 1776
-// 10'000: 12131 -> 14132 -> 14204 -> 14762 -> 15741 -> 16282 -> 16486 -> 16582
-
 // Priority Inheritance with BackTracking
 class PIBT {
     struct Robot {
@@ -21,7 +18,7 @@ class PIBT {
 
         // приоритет робота
         // чем ниже, тем он важнее
-        int priority = 0;
+        int64_t priority = 0;
     };
 
     std::vector<Robot> robots;

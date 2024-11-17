@@ -10,11 +10,19 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 10000 | 14132   |        16582            |     16833
 */
 
+// PIBT
+// 16017
+// 893
+// PIBT*
+//
+//
+
+
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 10000
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 //#define ENABLE_THEIR_HEURISTIC
 
@@ -29,11 +37,13 @@ static constexpr uint32_t UPDATE_DYNAMICS_DIST_MATRIX_TIME = 400;
 
 #define ENABLE_PIBT
 
+//#define ENABLE_PIBT_STAR
+
 //#define ENABLE_PIBT_SOLVER
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 4;
+static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
