@@ -17,7 +17,7 @@ class Environment {
     std::vector<bool> map;
 
     // dist_dp[target][source][dir] = dist from (source, dir) -> target
-    std::vector<std::vector<std::array<uint32_t, 4>>> dist_dp;
+    std::vector<std::vector<std::array<uint16_t, 4>>> dist_dp;
 
     void build_dists(uint32_t target);
 

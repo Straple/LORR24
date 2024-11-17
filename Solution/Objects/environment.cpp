@@ -17,18 +17,18 @@ void Environment::build_dists(uint32_t target) {
 
     dist_dp[target].resize(map.size());
 
-    std::multiset<std::pair<int64_t, Position>> S;
+    LinearHeap<std::pair<int64_t, Position>> S;
     std::vector<std::array<bool, 4>> visited(map.size());
 
     for (int dir = 0; dir < 4; dir++) {
         source.dir = dir;
-        S.insert({0, source});
+        S.push({0, source});
     }
 
     while (!S.empty()) {
         ASSERT(!S.empty(), "is empty");
-        auto [dist, p] = *S.begin();
-        S.erase(S.begin());
+        auto [dist, p] = S.top();
+        S.pop();
 
         ASSERT(p.is_valid(), "p is invalid");
         if (visited[p.pos][p.dir]) {
@@ -36,7 +36,7 @@ void Environment::build_dists(uint32_t target) {
         }
         visited[p.pos][p.dir] = true;
 
-        ASSERT(static_cast<uint32_t>(dist) == dist, "overflow");
+        ASSERT(static_cast<uint16_t>(dist) == dist, "overflow");
         dist_dp[target][p.pos][(p.dir + 2) % 4] = dist;
 
         auto step = [&](Action action) {
@@ -44,7 +44,7 @@ void Environment::build_dists(uint32_t target) {
             if (to.is_valid() && !visited[to.pos][to.dir]) {
                 int64_t d = dist;
                 d += get_gg().get(p.pos, p.dir, action);
-                S.insert({d, to});
+                S.push({d, to});
             }
         };
 
@@ -179,7 +179,7 @@ void Environment::init(SharedEnvironment *env) {
         for (uint32_t pos = 0; pos < get_size(); pos++) {
             for (uint32_t dir = 0; dir < 4; dir++) {
                 for (uint32_t action = 0; action < 4; action++) {
-                    get_gg().graph[pos][dir][action] = 10000;
+                    get_gg().graph[pos][dir][action] = 1;
                 }
             }
         }

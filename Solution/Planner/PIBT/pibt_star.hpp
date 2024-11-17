@@ -32,7 +32,22 @@ class PIBTStar {
 
     std::array<std::vector<int>, PLANNER_DEPTH> map, map_gor, map_ver;
 
+    struct Operation {
+        uint32_t r = 0;
+        Actions actions = get_w_actions();
+        bool is_add = true;
+    };
+    std::vector<Operation> stack;
+
+    void rollback();
+
+    void rollback(uint32_t to_size);
+
     void check_for_no_exists(uint32_t r) const;
+
+    void add_path_IMPL(uint32_t r);
+
+    void remove_path_IMPL(uint32_t r);
 
     void add_path(uint32_t r);
 

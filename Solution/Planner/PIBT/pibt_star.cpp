@@ -14,7 +14,7 @@ void PIBTStar::check_for_no_exists(uint32_t r) const {
     }
 }
 
-void PIBTStar::add_path(uint32_t r) {
+void PIBTStar::add_path_IMPL(uint32_t r) {
     ASSERT(r < robots.size(), "invalid r");
     check_for_no_exists(r);
     auto &robot = robots[r];
@@ -26,9 +26,6 @@ void PIBTStar::add_path(uint32_t r) {
         p = p.simulate_action(robot.actions[k]);
         ASSERT(p.is_valid(), "p is invalid");
         ASSERT(0 <= p.pos && p.pos < map[k].size(), "invalid pos: " + std::to_string(p.pos));
-        if (map[k][p.pos] != -1) {
-            std::cout << "HELLO" << std::endl;// (1, 186)
-        }
         ASSERT(map[k][p.pos] == -1, "invalid map: " + std::to_string(map[k][p.pos]));
         map[k][p.pos] = r;
 
@@ -53,7 +50,7 @@ void PIBTStar::add_path(uint32_t r) {
     robot.is_phantom = false;
 }
 
-void PIBTStar::remove_path(uint32_t r) {
+void PIBTStar::remove_path_IMPL(uint32_t r) {
     ASSERT(r < robots.size(), "invalid r");
     auto &robot = robots[r];
     ASSERT(!robot.is_phantom, "is phantom");
@@ -87,6 +84,31 @@ void PIBTStar::remove_path(uint32_t r) {
     }
     robot.is_phantom = true;
     check_for_no_exists(r);
+}
+
+void PIBTStar::add_path(uint32_t r) {
+    stack.push_back({r, robots[r].actions, true});
+    add_path_IMPL(r);
+}
+
+void PIBTStar::remove_path(uint32_t r) {
+    stack.push_back({r, robots[r].actions, false});
+    remove_path_IMPL(r);
+}
+
+void PIBTStar::rollback() {
+    auto [r, actions, is_add] = stack.back();
+    stack.pop_back();
+    if (is_add) {
+        //remove_path();
+    } else {
+    }
+}
+
+void PIBTStar::rollback(uint32_t to_size) {
+    while (stack.size() > to_size) {
+        rollback();
+    }
 }
 
 bool PIBTStar::build(uint32_t r) {
@@ -188,10 +210,6 @@ bool PIBTStar::build(uint32_t r) {
                 return;
             }
             auto set = set_robots;
-
-            if (r == 92 && t == 1 && to.pos == 186) {
-                std::cout << "here: " << map[t][to.pos] << std::endl;
-            }
 
             auto add = [&](int r) {
                 if (r != -1) {
