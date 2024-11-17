@@ -1,7 +1,4 @@
-project(LORR24)
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+project(lifelong)
 
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
@@ -66,10 +63,10 @@ IF(PYTHON)
     include_directories("python/tmp")
 
     pybind11_add_module(MAPF "./src/Grid.cpp"   "./src/States.cpp" "./python/tmp/MAPFbinding.cpp")
-    target_link_libraries(MAPF PRIVATE )
+    target_link_libraries(MAPF PRIVATE)
 
     file(GLOB PY_SOURCES "python/tmp/*.cpp")
-    list(FILTER PY_SOURCES EXCLUDE REGEX ".*python/MAPFbinding\.cpp")
+    list(FILTER PY_SOURCES EXCLUDE REGEX ".*python/MAPFbinding/.cpp")
 
     add_executable(lifelong  ${PY_SOURCES} ${SOURCES})
     target_link_libraries(lifelong PRIVATE pybind11::embed ${Boost_LIBRARIES})
@@ -84,13 +81,13 @@ ELSE()
     message(STATUS "Python support is disabled")
 
 
-    add_executable(lifelong src/Evaluation/main.cpp ${SOURCES})
+    add_executable(lifelong ${SOURCES})
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
 
-    add_executable(guidance_graph_builder Solution/Objects/GuidanceGraph/main.cpp ${SOURCES})
-    target_link_libraries(guidance_graph_builder ${Boost_LIBRARIES})
-    target_compile_definitions(guidance_graph_builder PRIVATE PYTHON=${PYTHON_FLAG})
+    #add_executable(guidance_graph_builder Solution/Objects/GuidanceGraph/main.cpp ${SOURCES})
+    #target_link_libraries(guidance_graph_builder ${Boost_LIBRARIES})
+    #target_compile_definitions(guidance_graph_builder PRIVATE PYTHON=${PYTHON_FLAG})
 ENDIF()
 
 

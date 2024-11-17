@@ -56,7 +56,7 @@ void PlannerMachine::update_targets() {
         robot.target = -1;
     }
 
-    for (auto &task: get_env().get_shared_env().task_pool) {
+    for (auto &[task_id, task]: get_env().get_shared_env().task_pool) {
         if (task.agent_assigned != -1) {
             ASSERT(0 <= task.agent_assigned && task.agent_assigned < robots.size(), "invalid task agent assigned");
             robots[task.agent_assigned].target = task.get_next_loc();

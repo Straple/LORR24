@@ -13,6 +13,9 @@ public:
     vector<list<pair<int, int>>> planner_schedule;
     list<std::tuple<std::string, int, int, int, int>> schedule_errors;
 
+    vector<int> new_freeagents;
+    vector<int> new_tasks;
+
     list<int> check_finished_tasks(vector<State> states, int timestep);
 
     int curr_timestep;
@@ -29,6 +32,8 @@ public:
 
     bool validate_task_assgnment(vector<int> assignment);// validate the task assignment
     bool set_task_assignment(vector<int> assignment);    // set the task assignment; return true if task is valid
+
+    int get_number_errors() const { return schedule_errors.size(); }
 
 
     TaskManager(std::vector<list<int>> &tasks, int num_of_agents) : tasks(tasks), num_of_agents(num_of_agents) {
@@ -55,7 +60,7 @@ public:
 private:
     Logger *logger = nullptr;
 
-    unordered_map<int, Task *> ongoing_tasks;
+    std::unordered_map<int, Task *> ongoing_tasks;
     vector<int> current_assignment;
 
     int num_tasks_reveal = 1;

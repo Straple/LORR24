@@ -49,6 +49,8 @@ public:
 
     nlohmann::ordered_json action_errors_to_json() const;
 
+    int get_number_errors() const { return model->errors.size(); }
+
 private:
     Grid map;
 
