@@ -82,7 +82,7 @@ void Environment::build_robot_dist(uint32_t r) {
     robot_dists[r].resize(map.size());
     for (uint32_t pos = 0; pos < map.size(); pos++) {
         for (uint32_t dir = 0; dir < 4; dir++) {
-            robot_dists[r][pos][dir] = static_cast<uint32_t>(1e18);
+            robot_dists[r][pos][dir] = static_cast<uint32_t>(1e9);
         }
     }
 
@@ -213,8 +213,6 @@ void Environment::build_robots() {
         robots[r].predicted_dist = 1e17;
         ASSERT(pos_to_robot[robots[r].p.pos] == -1, "already used");
         pos_to_robot[robots[r].p.pos] = r;
-
-        //robot_dists[r].resize(map.size());
     }
 
     for (uint32_t t = 0; t < env_ptr->task_pool.size(); t++) {

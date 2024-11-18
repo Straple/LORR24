@@ -23,28 +23,19 @@ bool PIBT::build(uint32_t r, int banned_direction) {
         if (to.is_valid()) {
             // если там никого нет или он еще не посчитан
             if (!pos_to_robot.count(to.pos) || robots[pos_to_robot[to.pos]].dir == -1) {
-                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(r, to), dir);
+                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) +
+                                             get_env().get_dist(to, robots[r].target)
+                                     //get_env().get_dist(r, to)
+                                     ,
+                                     dir);
             }
         }
-    }
-    {
-        //Position to = robots[r].p;
-        // если там никого нет или он еще не посчитан
-        //if (!pos_to_robot.count(to.pos)) {
-        //actions.emplace_back(30000 + get_env().get_dist(r, to), 4);
-        //}
     }
 
     std::sort(actions.begin(), actions.end());
 
     for (auto [_, dir]: actions) {
         Position to = robots[r].p;
-        if (dir == 4) {
-            // отлично! там никого нет
-            pos_to_robot[to.pos] = r;
-            robots[r].dir = 4;
-            return true;
-        }
         to.dir = dir;
         to = to.move_forward();
 

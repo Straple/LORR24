@@ -57,11 +57,15 @@ bool TaskManager::set_task_assignment(vector<int> assignment) {
     }
 
     for (int a = 0; a < assignment.size(); a++) {
-        if (assignment[a] < 0 && current_assignment[a] < 0) {
+        if (current_assignment[a] >= 0) {
+            ongoing_tasks[current_assignment[a]]->agent_assigned = -1;
+        }
+    }
+
+    for (int a = 0; a < assignment.size(); a++) {
+        if (assignment[a] < 0) {
             continue;
         }
-        if (current_assignment[a] >= 0)
-            ongoing_tasks[current_assignment[a]]->agent_assigned = -1;
         int t_id = assignment[a];
         current_assignment[a] = t_id;
         ongoing_tasks[t_id]->agent_assigned = a;
