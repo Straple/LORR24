@@ -113,8 +113,8 @@ void Environment::build_robot_dist(uint32_t r) {
             if (to.is_valid() && !visited[to.pos][to.dir]) {
                 int64_t d = dist;
                 d += get_gg().get(p.pos, p.dir, action);
-                if (pos_to_robot[to.pos] != -1) {
-                    d += 8000;
+                if (action == Action::FW && pos_to_robot[to.pos] != -1) {
+                    d += 7;
                 }
 
                 if (d < robot_dists[r][to.pos][(to.dir + 2) % 4]) {
@@ -179,7 +179,7 @@ void Environment::init(SharedEnvironment *env) {
         for (uint32_t pos = 0; pos < get_size(); pos++) {
             for (uint32_t dir = 0; dir < 4; dir++) {
                 for (uint32_t action = 0; action < 4; action++) {
-                    get_gg().graph[pos][dir][action] = 1;
+                    get_gg().graph[pos][dir][action] = 10;
                 }
             }
         }

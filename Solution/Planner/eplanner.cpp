@@ -59,7 +59,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     });
 
     PIBT pibt;
-    plan = pibt.solve(order);
+    plan = pibt.solve(order, end_time);
 #endif
 
 #ifdef ENABLE_PIBT_STAR
