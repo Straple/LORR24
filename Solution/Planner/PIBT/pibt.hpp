@@ -30,7 +30,7 @@ class PIBT {
 public:
     PIBT();
 
-    std::vector<Action> solve(const std::vector<uint32_t> &order);
+    std::vector<Action> solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time);
 
     [[nodiscard]] double get_score() const;
 };

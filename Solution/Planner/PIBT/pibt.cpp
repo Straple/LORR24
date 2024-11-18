@@ -28,18 +28,18 @@ bool PIBT::build(uint32_t r, int banned_direction) {
         }
     }
     {
-        Position to = robots[r].p;
+        //Position to = robots[r].p;
         // если там никого нет или он еще не посчитан
-        if (!pos_to_robot.count(to.pos)) {
-            //actions.emplace_back(30000 + get_env().get_dist(r, to), 4);
-        }
+        //if (!pos_to_robot.count(to.pos)) {
+        //actions.emplace_back(30000 + get_env().get_dist(r, to), 4);
+        //}
     }
 
     std::sort(actions.begin(), actions.end());
 
     for (auto [_, dir]: actions) {
         Position to = robots[r].p;
-        if(dir == 4){
+        if (dir == 4) {
             // отлично! там никого нет
             pos_to_robot[to.pos] = r;
             robots[r].dir = 4;
@@ -85,8 +85,11 @@ PIBT::PIBT() {
     }
 }
 
-std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order) {
+std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
     for (uint32_t r: order) {
+        if (std::chrono::steady_clock::now() > end_time) {
+            break;
+        }
         if (robots[r].dir == -1) {
             build(r);
         }
