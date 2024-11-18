@@ -16,7 +16,8 @@ std::vector<Action> PIBTSolver::solve(std::chrono::steady_clock::time_point end_
     double best_score = 0;
     {
         PIBT pibt;
-        FAILED_ASSERT("TODO"), pibt.solve(order, end_time);
+        FAILED_ASSERT("TODO");
+        pibt.solve(order, end_time);
         best_score = pibt.get_score();
         std::cout << best_score;
     }
@@ -29,7 +30,8 @@ std::vector<Action> PIBTSolver::solve(std::chrono::steady_clock::time_point end_
         std::swap(order[a], order[b]);
 
         PIBT pibt;
-        FAILED_ASSERT("TODO"),pibt.solve(order, end_time);
+        FAILED_ASSERT("TODO");
+        pibt.solve(order, end_time);
         double new_score = pibt.get_score();
         if (new_score >= best_score) {
             if (new_score > best_score) {
@@ -42,5 +44,6 @@ std::vector<Action> PIBTSolver::solve(std::chrono::steady_clock::time_point end_
     }
     std::cout << std::endl;
     std::cout << "STEPS: " << step << std::endl;
-    return FAILED_ASSERT("TODO"),PIBT().solve(order, end_time);
+    FAILED_ASSERT("TODO");
+    return PIBT().solve(order, end_time);
 }
