@@ -29,7 +29,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // if disabled then use manhattan heuristic (very bad), without build dist matrix
 #define ENABLE_DIST_MATRIX
 
-#define ENABLE_DYNAMICS_DIST_MATRIX
+//#define ENABLE_DYNAMICS_DIST_MATRIX
 
 static constexpr uint32_t UPDATE_DYNAMICS_DIST_MATRIX_TIME = 500;
 
