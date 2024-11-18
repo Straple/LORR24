@@ -1,5 +1,7 @@
 #include "scheduler.h"
 
+#include "../Solution/Objects/environment.hpp"
+
 namespace DefaultPlanner {
 
     std::mt19937 mt;
@@ -23,7 +25,8 @@ namespace DefaultPlanner {
         free_agents.insert(env->new_freeagents.begin(), env->new_freeagents.end());
         free_tasks.insert(env->new_tasks.begin(), env->new_tasks.end());
 
-        int min_task_i, min_task_makespan, dist, c_loc, count;
+        int min_task_i, c_loc, count;
+        int64_t min_task_makespan;
         clock_t start = clock();
 
         // iterate over the free agents to decide which task to assign to each of them
@@ -47,13 +50,13 @@ namespace DefaultPlanner {
                 if (count % 10 == 0 && std::chrono::steady_clock::now() > endtime) {
                     break;
                 }
-                dist = 0;
+                int64_t dist = 0;
                 c_loc = env->curr_states.at(i).location;
 
                 // iterate over the locations (errands) of the task to compute the makespan to finish the task
                 // makespan: the time for the agent to complete all the errands of the task t_id in order
                 for (int loc: env->task_pool[t_id].locations) {
-                    dist += DefaultPlanner::get_h(env, c_loc, loc);
+                    dist += get_env().get_dist(Position(c_loc, 0), loc);//DefaultPlanner::get_h(env, c_loc, loc);
                     c_loc = loc;
                 }
 

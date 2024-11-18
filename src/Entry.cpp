@@ -22,7 +22,7 @@ void Entry::initialize(int preprocess_time_limit) {
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
     //call the task scheduler to assign tasks to agents
-    scheduler->plan(time_limit, proposed_schedule);
+    scheduler->plan(time_limit * 0.2 + 10, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
@@ -46,5 +46,4 @@ void Entry::update_goal_locations(std::vector<int> &proposed_schedule) {
         int i_loc = env->task_pool[t_id].idx_next_loc;
         env->goal_locations[i].push_back({env->task_pool[t_id].locations.at(i_loc), env->task_pool[t_id].t_revealed});
     }
-    return;
 }

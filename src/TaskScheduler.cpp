@@ -31,8 +31,5 @@ void TaskScheduler::initialize(int preprocess_time_limit) {
  */
 
 void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    //give at most half of the entry time_limit to scheduler;
-    //-SCHEDULER_TIMELIMIT_TOLERANCE for timing error tolerance
-    int limit = time_limit / 2 - DefaultPlanner::SCHEDULER_TIMELIMIT_TOLERANCE;
-    DefaultPlanner::schedule_plan(limit, proposed_schedule, env);
+    DefaultPlanner::schedule_plan(time_limit, proposed_schedule, env);
 }
