@@ -3,20 +3,10 @@
 #include "../../Objects/assert.hpp"
 #include "../../Objects/environment.hpp"
 #include "../../Objects/guidance_graph.hpp"
-
-void PIBTStar::check_for_no_exists(uint32_t r) const {
-    for (uint32_t k = 0; k < PLANNER_DEPTH; k++) {
-        for (uint32_t pos = 0; pos < get_env().get_size(); pos++) {
-            ASSERT(map[k][pos] != r, "pizdec");
-            ASSERT(map_gor[k][pos] != r, "pizdec");
-            ASSERT(map_ver[k][pos] != r, "pizdec");
-        }
-    }
-}
+#include "../../Objects/randomizer.hpp"
 
 void PIBTStar::add_path_IMPL(uint32_t r) {
     ASSERT(r < robots.size(), "invalid r");
-    check_for_no_exists(r);
     auto &robot = robots[r];
     ASSERT(robot.is_phantom, "is no phantom");
     Position p = robot.p;
@@ -83,25 +73,37 @@ void PIBTStar::remove_path_IMPL(uint32_t r) {
         }
     }
     robot.is_phantom = true;
-    check_for_no_exists(r);
+}
+
+void PIBTStar::set_path(uint32_t r, Actions actions) {
+    stack.push_back({r, robots[r].actions, Operation::Type::SET});
+    robots[r].actions = actions;
 }
 
 void PIBTStar::add_path(uint32_t r) {
-    stack.push_back({r, robots[r].actions, true});
+    stack.push_back({r, robots[r].actions, Operation::Type::ADD});
     add_path_IMPL(r);
 }
 
 void PIBTStar::remove_path(uint32_t r) {
-    stack.push_back({r, robots[r].actions, false});
+    stack.push_back({r, robots[r].actions, Operation::Type::REMOVE});
     remove_path_IMPL(r);
 }
 
 void PIBTStar::rollback() {
-    auto [r, actions, is_add] = stack.back();
+    auto [r, actions, type] = stack.back();
     stack.pop_back();
-    if (is_add) {
-        //remove_path();
+    if (type == Operation::Type::ADD) {
+        ASSERT(robots[r].actions == actions, "no equal");
+        remove_path_IMPL(r);
+        robots[r].is_done = false;
+    } else if (type == Operation::Type::REMOVE) {
+        ASSERT(robots[r].actions == actions, "no equal");
+        add_path_IMPL(r);
+    } else if (type == Operation::Type::SET) {
+        robots[r].actions = actions;
     } else {
+        FAILED_ASSERT("unexpected type");
     }
 }
 
@@ -115,14 +117,15 @@ bool PIBTStar::build(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     auto &robot = robots[r];
 
+    uint32_t stack_top = stack.size();
+
     bool old_is_phantom = robot.is_phantom;
     if (!old_is_phantom) {
         remove_path(r);
     }
 
-    check_for_no_exists(r);
-
     // A*
+
     struct Item {
 
         double score = 0;
@@ -149,35 +152,30 @@ bool PIBTStar::build(uint32_t r) {
     std::multiset<Item, comparator> S;
     S.insert({1.0 * get_env().get_dist(r, robots[r].p), 0, robots[r].p, get_w_actions(), {}});
 
-    std::set<std::pair<uint32_t, Position>> visited;
+    std::set<std::pair<uint32_t, Actions>> visited;
 
     while (!S.empty()) {
         auto [score, t, p, actions, set_robots] = *S.begin();
         S.erase(S.begin());
 
-        if (visited.count({t, p})) {
+        if (visited.count({t, actions})) {
             continue;
         }
-        visited.insert({t, p});
+        visited.insert({t, actions});
 
         if (t == PLANNER_DEPTH) {
             // finished
 
-            check_for_no_exists(r);
-
-            auto old_robots = robots;
-            auto old_map = map;
-            auto old_map_gor = map_gor;
-            auto old_map_ver = map_ver;
+            uint32_t stack_top = stack.size();
 
             for (uint32_t other_r: set_robots) {
                 ASSERT(r != other_r, "invalid r");
                 remove_path(other_r);
             }
 
-            robots[r].actions = actions;
-            robots[r].is_done = true;
+            set_path(r, actions);
             add_path(r);
+            robots[r].is_done = true;
 
             bool ok = true;
             for (uint32_t other_r: set_robots) {
@@ -191,13 +189,29 @@ bool PIBTStar::build(uint32_t r) {
                 return true;
             }
 
+            rollback(stack_top);
+
+            //ASSERT(robots == old_robots, "invalid robots rollback");
+            /*for (uint32_t r = 0; r < robots.size(); r++) {
+                ASSERT(robots[r].p == old_robots[r].p, "invalid p");
+                ASSERT(robots[r].target == old_robots[r].target, "invalid target");
+                ASSERT(robots[r].priority == old_robots[r].priority, "invalid priority");
+                ASSERT(robots[r].is_phantom == old_robots[r].is_phantom, "invalid is_phantom");
+                ASSERT(robots[r].is_done == old_robots[r].is_done, "invalid is_done");
+                if (robots[r].actions != old_robots[r].actions) {
+                    std::cout << "hello" << std::endl;
+                }
+                ASSERT(robots[r].actions == old_robots[r].actions, "invalid actions");
+            }
+            ASSERT(map == old_map, "invalid map rollback");
+            ASSERT(map_gor == old_map_gor, "invalid map_gor rollback");
+            ASSERT(map_ver == old_map_ver, "invalid map_ver rollback");*/
             // TODO: вернуть все как было
-            robots = old_robots;
+            /*robots = old_robots;
             map = old_map;
             map_gor = old_map_gor;
-            map_ver = old_map_ver;
+            map_ver = old_map_ver;*/
 
-            check_for_no_exists(r);
             continue;
         }
 
@@ -206,7 +220,8 @@ bool PIBTStar::build(uint32_t r) {
             if (!to.is_valid()) {
                 return;
             }
-            if (visited.count({t + 1, to})) {
+            actions[t] = action;
+            if (visited.count({t + 1, actions})) {
                 return;
             }
             auto set = set_robots;
@@ -223,6 +238,7 @@ bool PIBTStar::build(uint32_t r) {
                 return true;
             };
 
+            int old_size = set.size();
             // там есть кто-то и он еще не построен
             if (!add(map[t][to.pos])) {
                 return;
@@ -245,10 +261,42 @@ bool PIBTStar::build(uint32_t r) {
                 }
             }
 
-            double to_score = score - get_env().get_dist(r, p) + get_env().get_dist(r, to);
-            // TODO: add set size in score
+            ASSERT(set.size() == old_size || set.size() == old_size + 1, "invalid size");
 
-            actions[t] = action;
+            if(set.size() > 2){
+                return;
+            }
+
+            /*if (set.size() == old_size + 1) {
+                uint32_t stack_top = stack.size();
+
+                for (uint32_t other_r: set_robots) {
+                    ASSERT(r != other_r, "invalid r");
+                    remove_path(other_r);
+                }
+
+                set_path(r, actions);
+                add_path(r);
+                robots[r].is_done = true;
+
+                bool ok = true;
+                for (uint32_t other_r: set) {
+                    if (!build(other_r)) {
+                        ok = false;
+                        break;
+                    }
+                }
+
+                rollback(stack_top);
+
+                if (!ok) {
+                    return;
+                }
+            }*/
+
+            double to_score = score - get_env().get_dist(r, p) + get_env().get_dist(r, to) + 1;
+            // TODO: add set size in score
+            //to_score += set.size() * 0.01;
 
             S.insert({to_score, t + 1, to, actions, set});
         };
@@ -259,11 +307,26 @@ bool PIBTStar::build(uint32_t r) {
         step(Action::W);
     }
 
-    check_for_no_exists(r);
-
     if (!old_is_phantom) {
-        add_path(r);
+        rollback();
     }
+    ASSERT(stack_top == stack.size(), "invalid stack size");
+
+    /*for (uint32_t r = 0; r < robots.size(); r++) {
+        ASSERT(robots[r].p == old_robots[r].p, "invalid p");
+        ASSERT(robots[r].target == old_robots[r].target, "invalid target");
+        ASSERT(robots[r].priority == old_robots[r].priority, "invalid priority");
+        ASSERT(robots[r].is_phantom == old_robots[r].is_phantom, "invalid is_phantom");
+        ASSERT(robots[r].is_done == old_robots[r].is_done, "invalid is_done");
+        if (robots[r].actions != old_robots[r].actions) {
+            std::cout << "hello" << std::endl;
+        }
+        ASSERT(robots[r].actions == old_robots[r].actions, "invalid actions");
+    }
+    ASSERT(map == old_map, "invalid map rollback");
+    ASSERT(map_gor == old_map_gor, "invalid map_gor rollback");
+    ASSERT(map_ver == old_map_ver, "invalid map_ver rollback");*/
+
     return false;
 }
 
@@ -283,16 +346,23 @@ PIBTStar::PIBTStar() {
 }
 
 std::vector<Action> PIBTStar::solve(const std::vector<uint32_t> &order) {
+    if (get_env().get_shared_env().curr_timestep == 500) {
+        std::cout << "HELLO" << std::endl;
+    }
     for (uint32_t r: order) {
         if (!robots[r].is_done) {
             build(r);
+            stack.clear();
         }
     }
 
     std::vector<Action> actions(robots.size());
+    int cnt_no_done = 0;
     for (uint32_t i = 0; i < robots.size(); i++) {
+        cnt_no_done += !robots[i].is_done;
         ASSERT(!robots[i].is_phantom, "is phantom");
         actions[i] = robots[i].actions[0];
     }
+    std::cout << "NO DONE: " << cnt_no_done << std::endl;
     return actions;
 }

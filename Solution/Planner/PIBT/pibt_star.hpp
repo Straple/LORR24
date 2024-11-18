@@ -35,7 +35,11 @@ class PIBTStar {
     struct Operation {
         uint32_t r = 0;
         Actions actions = get_w_actions();
-        bool is_add = true;
+        enum Type {
+            ADD,
+            REMOVE,
+            SET,
+        } type = ADD;
     };
     std::vector<Operation> stack;
 
@@ -43,11 +47,11 @@ class PIBTStar {
 
     void rollback(uint32_t to_size);
 
-    void check_for_no_exists(uint32_t r) const;
-
     void add_path_IMPL(uint32_t r);
 
     void remove_path_IMPL(uint32_t r);
+
+    void set_path(uint32_t r, Actions actions);
 
     void add_path(uint32_t r);
 
