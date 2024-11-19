@@ -1,12 +1,17 @@
 #pragma once
 
 #include <SharedEnv.h>
+#include <Tasks.h>
+#include <heuristics.h>
 
 #include <Objects/Basic/randomizer.hpp>
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
 
+// их 1763
 // 1817
+
+// их расстояния, мой солвер 1856
 
 class SchedulerSolver {
 
@@ -38,6 +43,8 @@ class SchedulerSolver {
 
     uint64_t total_score = 0;
 
+    SharedEnvironment *env_ptr = nullptr;
+
     bool compare(uint64_t old, uint64_t cur, Randomizer &rnd);
 
     template<typename rollback_t>
@@ -60,8 +67,10 @@ class SchedulerSolver {
 
     bool try_change(Randomizer &rnd);
 
+    [[nodiscard]] uint64_t get_h(uint32_t source, uint32_t dest) const;
+
 public:
     SchedulerSolver() = default;
 
-    void solve(SharedEnvironment &env, const TimePoint end_time, std::vector<int>& proposed_schedule);
+    void solve(SharedEnvironment &env, const TimePoint end_time, std::vector<int> &proposed_schedule);
 };

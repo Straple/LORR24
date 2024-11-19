@@ -15,7 +15,8 @@ uint64_t SchedulerSolver::get_score(uint32_t r, uint32_t t) const {
         for (uint32_t dir = 0; dir < 4; dir++) {
             Position p(loc, dir);
             uint32_t target = get_graph().get_node(p);
-            data[dir] = get_hm().get(robots[r].node, target);
+            data[dir] =//get_h(get_graph().get_pos(robots[r].node).get_pos(), loc);
+                    get_hm().get(robots[r].node, target);
         }
     }
     for (uint32_t i = 0; i + 1 < tasks[t].path.size(); i++) {
@@ -27,7 +28,10 @@ uint64_t SchedulerSolver::get_score(uint32_t r, uint32_t t) const {
 
                 Position target_pos(tasks[t].path[i + 1], dst_dir);
                 uint32_t target_node = get_graph().get_node(target_pos);
-                new_data[dst_dir] = std::min(new_data[dst_dir], data[src_dir] + get_hm().get(source_node, target_node));
+
+                uint64_t dist =//get_h(source_pos.get_pos(), target_pos.get_pos());
+                        get_hm().get(source_node, target_node);
+                new_data[dst_dir] = std::min(new_data[dst_dir], data[src_dir] + dist);
             }
         }
         data = new_data;
@@ -109,18 +113,37 @@ bool SchedulerSolver::try_change(Randomizer &rnd) {
     });
 }
 
+uint64_t SchedulerSolver::get_h(uint32_t source, uint32_t dest) const {
+    return DefaultPlanner::get_h(env_ptr, source, dest);
+}
+
 void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, std::vector<int> &proposed_schedule) {
-    for (uint32_t r: env.new_freeagents) {
+    env_ptr = &env;
+
+    std::unordered_set<uint32_t> free_agents(env.new_freeagents.begin(), env.new_freeagents.end());
+    for (uint32_t r = 0; r < env.num_of_agents; r++) {
+        if (env.curr_task_schedule[r] == -1) {
+            free_agents.insert(r);
+        }
+    }
+
+    for (uint32_t r: free_agents) {
         robots.push_back({r, get_graph().get_node(Position(env.curr_states[r].location, env.curr_states[r].orientation))});
         total_score += robots.back().score;
     }
 
-    std::unordered_set<int> free_tasks(env.new_tasks.begin(), env.new_tasks.end());
+    std::unordered_set<uint32_t> free_tasks(env.new_tasks.begin(), env.new_tasks.end());
     for (auto [id, task]: env.task_pool) {
         ASSERT(id == task.task_id, "invalid id");
         if (task.agent_assigned == -1) {
             free_tasks.insert(id);
         }
+    }
+
+    //std::cout << "kek: " << free_agents.size() << ' ' << free_tasks.size() << ' ' << env.task_pool.size() << std::endl;
+
+    if (free_agents.empty() || free_tasks.empty()) {
+        return;
     }
 
     for (uint32_t t: free_tasks) {
@@ -132,6 +155,8 @@ void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, st
     }
 
     Randomizer rnd;
+
+    //std::cout << "score: " << total_score;
     for (uint32_t step = 0;; step++) {
 
         if (step % 10 == 0) {
@@ -141,6 +166,7 @@ void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, st
         }
         try_change(rnd);
     }
+    //std::cout << "->" << total_score << std::endl;
 
     for (auto &robot: robots) {
         if (robot.task_id != -1) {

@@ -17,8 +17,8 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     // cout<<"schedule plan limit" << time_limit <<endl;
 
     // the default scheduler keep track of all the free agents and unassigned (=free) tasks across timesteps
-    std::unordered_set<int> free_agents(env->new_freeagents.begin(), env->new_freeagents.end());
-    std::unordered_set<int> free_tasks(env->new_tasks.begin(), env->new_tasks.end());
+    //std::unordered_set<int> free_agents(env->new_freeagents.begin(), env->new_freeagents.end());
+    //std::unordered_set<int> free_tasks(env->new_tasks.begin(), env->new_tasks.end());
 
     /*for (int r = 0; r > env->num_of_agents; r++) {
         int t = env->curr_task_schedule[r];
@@ -32,7 +32,7 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
         }
     }*/
 
-    for (auto [id, task]: env->task_pool) {
+    /*for (auto [id, task]: env->task_pool) {
         ASSERT(id == task.task_id, "invalid id");
         if (task.agent_assigned == -1) {
             free_tasks.insert(id);
@@ -45,7 +45,10 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
 
     if (free_agents.empty() || free_tasks.empty()) {
         return;
-    }
+    }*/
+
+    //5000000000000
+    //4970000013258
 
     // CALL SOLVER HERE
 

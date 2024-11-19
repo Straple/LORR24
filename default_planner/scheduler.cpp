@@ -23,6 +23,15 @@ namespace DefaultPlanner {
         free_agents.insert(env->new_freeagents.begin(), env->new_freeagents.end());
         free_tasks.insert(env->new_tasks.begin(), env->new_tasks.end());
 
+        for (auto [id, task]: env->task_pool) {
+            //ASSERT(id == task.task_id, "invalid id");
+            if (task.agent_assigned == -1) {
+                free_tasks.insert(id);
+            }
+        }
+
+        std::cout << "kek: " << free_agents.size() << ' ' << free_tasks.size() << ' ' << env->task_pool.size() << std::endl;
+
         int min_task_i, min_task_makespan, dist, c_loc, count;
         clock_t start = clock();
 
