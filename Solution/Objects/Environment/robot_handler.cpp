@@ -4,7 +4,7 @@
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
 
-RobotsHandler::RobotsHandler(const SharedEnvironment &env) {
+RobotsHandler::RobotsHandler(SharedEnvironment &env) {
     robots.resize(env.num_of_agents);
     for (uint32_t r = 0; r < robots.size(); r++) {
         int task_id = env.curr_task_schedule[r];

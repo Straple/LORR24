@@ -15,7 +15,7 @@ private:
 
 public:
     RobotsHandler() = default;
-    explicit RobotsHandler(const SharedEnvironment &env);
+    explicit RobotsHandler(SharedEnvironment &env);
 
     [[nodiscard]] const Robot &get_robot(uint32_t r) const;
 };
