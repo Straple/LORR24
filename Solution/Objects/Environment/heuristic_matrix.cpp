@@ -3,6 +3,10 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Containers/linear_heap.hpp>
 
+#include <settings.hpp>
+
+#include <thread>
+
 void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
     dp[source].resize(graph.get_nodes_size());
 
@@ -34,11 +38,24 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 }
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
+#ifdef ENABLE_HEURISTIC_MATRIX
     dp.resize(graph.get_nodes_size());
-    // TODO: multithread
-    for (uint32_t node = 1; node < dp.size(); node++) {
-        build(node, graph);
+
+    auto do_work = [&](uint32_t thr) {
+        for (uint32_t node = thr + 1; node < dp.size(); node += THREADS) {
+            build(node, graph);
+        }
+    };
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr);
     }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+
+#endif
 }
 
 uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
