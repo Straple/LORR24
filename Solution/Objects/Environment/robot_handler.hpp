@@ -1,0 +1,23 @@
+#pragma once
+
+#include <SharedEnv.h>
+
+class RobotsHandler {
+public:
+    struct Robot {
+        uint32_t node = 0;
+        uint32_t target = 0;
+        uint32_t priority = 0;
+    };
+
+private:
+    std::vector<Robot> robots;
+
+public:
+    RobotsHandler() = default;
+    RobotsHandler(const SharedEnvironment &env);
+
+    [[nodiscard]] const Robot &get_robot(uint32_t r) const;
+};
+
+RobotsHandler &get_robots_handler();

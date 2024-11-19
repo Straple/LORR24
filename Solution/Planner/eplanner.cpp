@@ -2,6 +2,7 @@
 
 #include "Objects/Basic/assert.hpp"
 #include "Objects/Environment/environment.hpp"
+#include "Objects/Environment/robot_handler.hpp"
 #include "PIBT/pibt.hpp"
 #include "PIBT/pibt_solver.hpp"
 #include "PIBT/pibt_star.hpp"
@@ -11,30 +12,11 @@
 #include <algorithm>
 #include <thread>
 
-int EPlanner::get_target(int r) const {
-    int task_id = env->curr_task_schedule[r];
-    if (task_id == -1) {
-        return -1;
-    }
-    int t = 0;
-    for (; t < env->task_pool.size() && task_id != env->task_pool[t].task_id; t++) {}
-    ASSERT(t < env->task_pool.size() && env->task_pool[t].task_id == task_id, "invalid t");
-
-    auto task = env->task_pool[t];
-    int target = task.get_next_loc();
-    ASSERT(0 <= target && target < env->cols * env->rows, "invalid target: " + std::to_string(target));
-
-    return target;
-}
-
 EPlanner::EPlanner(SharedEnvironment *env) : env(env) {}
 
-EPlanner::EPlanner() {
-    env = new SharedEnvironment();
-}
+EPlanner::EPlanner() { env = new SharedEnvironment(); }
 
-void EPlanner::initialize(int preprocess_time_limit) {
-}
+void EPlanner::initialize(int preprocess_time_limit) {}
 
 // return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
@@ -42,9 +24,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 30);
 
     plan.assign(env->num_of_agents, Action::W);
-    get_env().build_robots();
 
-    get_env().build_robot_dists(std::min(std::chrono::steady_clock::now() + std::chrono::milliseconds(UPDATE_DYNAMICS_DIST_MATRIX_TIME), end_time));
+    get_robots_handler() = RobotsHandler(*env);
 
 #ifdef ENABLE_PIBT_SOLVER
     PIBTSolver pibt_solver;
@@ -52,16 +33,28 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif
 
 #ifdef ENABLE_PIBT
-    std::vector<uint32_t> order(get_env().get_agents_size());
+    std::vector<uint32_t> order(env->num_of_agents);
     iota(order.begin(), order.end(), 0);
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        return get_env().get_robot(lhs).predicted_dist < get_env().get_robot(rhs).predicted_dist;
+        return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
+        /*uint32_t lhs_source =
+                get_graph().get_node(Position(env->curr_states[lhs].location, env->curr_states[lhs].orientation));
+        uint32_t lhs_dest = get_graph().get_node(
+                Position(env->task_pool[env->curr_task_schedule[lhs]].get_next_loc(), env->curr_states[lhs].orientation));
+
+        uint32_t rhs_source =
+                get_graph().get_node(Position(env->curr_states[rhs].location, env->curr_states[rhs].orientation));
+        uint32_t rhs_dest = get_graph().get_node(
+                Position(env->task_pool[env->curr_task_schedule[rhs]].get_next_loc(), env->curr_states[rhs].orientation));
+
+        return get_hm().get(lhs_source, lhs_dest) < get_hm().get(rhs_source, rhs_dest);*/
     });
 
     PIBT pibt;
     plan = pibt.solve(order, end_time);
 #endif
 
+    /*
 #ifdef ENABLE_PIBT_STAR
     std::vector<uint32_t> order(get_env().get_agents_size());
     iota(order.begin(), order.end(), 0);
@@ -167,8 +160,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 #endif
+    */
 
-    //static std::ofstream output("planner_log.txt");
-    //output << "planner time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << '\n';
-    std::cout << "time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count() << "ms" << '\n';
+    std::cout << "time: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count()
+              << "ms" << '\n';
 }
