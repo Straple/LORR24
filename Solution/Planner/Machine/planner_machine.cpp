@@ -1,3 +1,5 @@
+#ifdef MY_UNUSED
+
 #include "planner_machine.hpp"
 
 #include "Objects/Environment/environment.hpp"
@@ -541,3 +543,5 @@ void PlannerMachine::set_plan(std::vector<Action> &plan) const {
         plan[r] = robots[r].actions[0];
     }
 }
+
+#endif

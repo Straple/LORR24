@@ -1,3 +1,5 @@
+#ifdef MY_UNUSED
+
 #include "pibt_solver.hpp"
 
 #include "Objects/Basic/randomizer.hpp"
@@ -47,3 +49,5 @@ std::vector<Action> PIBTSolver::solve(std::chrono::steady_clock::time_point end_
     FAILED_ASSERT("TODO");
     return PIBT().solve(order, end_time);
 }
+
+#endif

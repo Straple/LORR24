@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef MY_UNUSED
 #include "../../settings.hpp"
 #include "../Solver/solution_info.hpp"
 #include "Objects/Basic/position.hpp"
@@ -99,3 +100,5 @@ public:
     // обновляет map
     void simulate_world();
 };
+
+#endif

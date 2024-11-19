@@ -1,4 +1,6 @@
-/*#include "pibt.hpp"
+#ifdef MY_UNUSED
+
+#include "pibt.hpp"
 
 #include "../../Objects/assert.hpp"
 #include "../../Objects/environment.hpp"
@@ -230,4 +232,5 @@ std::vector<Action> PIBT::solve() {
     }
 
     return actions;
-}*/
+}
+#endif

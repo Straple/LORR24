@@ -1,3 +1,5 @@
+#ifdef MY_UNUSED
+
 #include "planner_solver.hpp"
 
 #include "Objects/Environment/environment.hpp"
@@ -487,3 +489,5 @@ std::pair<SolutionInfo, std::vector<Action>> PlannerSolver::get() const {
 
     return {get_solution_info(), actions};*/
 }
+
+#endif

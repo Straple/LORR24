@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef MY_UNUSED
 #include "pibt.hpp"
 
 class PIBTSolver {
@@ -10,3 +10,4 @@ public:
 
     std::vector<Action> solve(std::chrono::steady_clock::time_point end_time);
 };
+#endif

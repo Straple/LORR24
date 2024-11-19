@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef MY_UNUSED
+
 #include "../../settings.hpp"
 
 #include <array>
@@ -29,3 +31,5 @@ bool operator!=(const SolutionInfo &lhs, const SolutionInfo &rhs);
 SolutionInfo operator+(SolutionInfo lhs, const SolutionInfo &rhs);
 
 std::ostream &operator<<(std::ostream &output, const SolutionInfo &info);
+
+#endif

@@ -1,3 +1,5 @@
+#ifdef MY_UNUSED
+
 #include "pibt_star.hpp"
 
 #include "Objects/Basic/assert.hpp"
@@ -366,3 +368,5 @@ std::vector<Action> PIBTStar::solve(const std::vector<uint32_t> &order) {
     std::cout << "NO DONE: " << cnt_no_done << std::endl;
     return actions;
 }
+
+#endif

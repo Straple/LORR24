@@ -1,3 +1,5 @@
+#ifdef MY_UNUSED
+
 #include "solution_info.hpp"
 
 #include "Objects/Basic/assert.hpp"
@@ -25,3 +27,5 @@ std::ostream &operator<<(std::ostream &output, const SolutionInfo &info) {
     FAILED_ASSERT("outdated");
     return output;
 }
+
+#endif

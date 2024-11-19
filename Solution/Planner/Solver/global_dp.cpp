@@ -1,3 +1,5 @@
+#ifdef MY_UNUSED
+
 #include "global_dp.hpp"
 
 #include "Objects/Environment/environment.hpp"
@@ -52,3 +54,5 @@ void GlobalDP::init(SharedEnvironment *env) {
         pos_to_robot[pos] = r;
     }
 }
+
+#endif

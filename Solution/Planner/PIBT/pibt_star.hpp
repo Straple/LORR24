@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef MY_UNUSED
+
 #include "../../settings.hpp"
 #include "Objects/Basic/position.hpp"
 
@@ -64,3 +66,5 @@ public:
 
     std::vector<Action> solve(const std::vector<uint32_t> &order);
 };
+
+#endif

@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef MY_UNUSED
+
 #include "../../settings.hpp"
 #include "Objects/Basic/position.hpp"
 #include "Objects/Basic/randomizer.hpp"
@@ -92,3 +94,5 @@ public:
 
     [[nodiscard]] double get_x(const SolutionInfo& info) const;
 };
+
+#endif

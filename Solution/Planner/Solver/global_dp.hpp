@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef MY_UNUSED
+
 #include "SharedEnv.h"
 #include "solution_info.hpp"
 
@@ -27,3 +29,5 @@ public:
 };
 
 GlobalDP &get_global_dp();
+
+#endif
