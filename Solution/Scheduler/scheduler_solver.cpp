@@ -154,7 +154,7 @@ void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, st
         tasks.push_back({t, path});
     }
 
-    Randomizer rnd;
+    Randomizer rnd(clock());
 
     //std::cout << "score: " << total_score;
     for (uint32_t step = 0;; step++) {
