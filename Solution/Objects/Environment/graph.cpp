@@ -16,6 +16,31 @@ Graph::Graph(const Map &map) {
             node_to_pos.push_back(p);
         }
     }
+
+    to_node.resize(node_to_pos.size());
+    to_edge.resize(node_to_pos.size());
+
+    std::map<std::pair<Position, Position>, uint32_t> edges;
+    for (uint32_t node = 0; node < node_to_pos.size(); node++) {
+        for (uint32_t action = 0; action < 4; action++) {
+            Position p = node_to_pos[node];
+            Position to = p.simulate_action(static_cast<Action>(action));
+            if (!to.is_valid()) {
+                continue;
+            }
+
+            to_node[node][action] = get_node(to);
+
+            if (to < p) {
+                std::swap(to, p);
+            }
+            if (!edges.count({p, to})) {
+                edges[{p, to}] = edges.size() + 1;
+            }
+
+            to_edge[node][action] = edges[{p, to}];
+        }
+    }
 }
 
 Position Graph::get_pos(uint32_t node) const {
@@ -28,4 +53,16 @@ uint32_t Graph::get_node(const Position &pos) const {
     ASSERT(0 <= pos.get_pos() && pos.get_pos() < pos_to_node.size(), "invalid pos");
     ASSERT(0 <= pos.get_dir() && pos.get_dir() < 4, "invalid dir");
     return pos_to_node[pos.get_pos()][pos.get_dir()];
+}
+
+uint32_t Graph::get_to_node(uint32_t node, uint32_t action) const {
+    ASSERT(0 < node && node < to_node.size(), "invalid node");
+    ASSERT(action < 4, "invalid action");
+    return to_node[node][action];
+}
+
+uint32_t Graph::get_to_edge(uint32_t node, uint32_t action) const {
+    ASSERT(0 < node && node < to_edge.size(), "invalid node");
+    ASSERT(action < 4, "invalid action");
+    return to_edge[node][action];
 }
