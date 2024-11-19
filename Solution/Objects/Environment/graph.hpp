@@ -42,3 +42,5 @@ public:
 
     [[nodiscard]] uint32_t get_to_edge(uint32_t node, uint32_t action) const;
 };
+
+Graph& get_graph();

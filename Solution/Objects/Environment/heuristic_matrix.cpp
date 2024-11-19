@@ -22,9 +22,11 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
         }
         visited[node] = true;
 
+        dp[source][node] = dist;
+
         for (uint32_t action = 0; action < 3 /*WITHOUT WAIT = 3*/; action++) {
             uint32_t to = graph.get_to_node(node, action);
-            if (to != 0 && !visited[to]) {
+            if (to && !visited[to]) {
                 heap.push({dist + 1, to});
             }
         }
@@ -43,4 +45,9 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
     ASSERT(0 < source && source < dp.size(), "invalid source");
     ASSERT(0 < dest && dest < dp.size(), "invalid dest");
     return dp[source][dest];
+}
+
+HeuristicMatrix &get_hm() {
+    static HeuristicMatrix hm;
+    return hm;
 }

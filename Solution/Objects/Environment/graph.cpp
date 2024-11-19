@@ -75,3 +75,8 @@ uint32_t Graph::get_to_edge(uint32_t node, uint32_t action) const {
     ASSERT(action < 4, "invalid action");
     return to_edge[node][action];
 }
+
+Graph &get_graph() {
+    static Graph graph;
+    return graph;
+}
