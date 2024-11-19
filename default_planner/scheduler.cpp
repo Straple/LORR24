@@ -56,7 +56,8 @@ namespace DefaultPlanner {
                 // iterate over the locations (errands) of the task to compute the makespan to finish the task
                 // makespan: the time for the agent to complete all the errands of the task t_id in order
                 for (int loc: env->task_pool[t_id].locations) {
-                    dist += get_env().get_dist(Position(c_loc, 0), loc);//DefaultPlanner::get_h(env, c_loc, loc);
+                    dist +=//get_env().get_dist(Position(c_loc, 0), loc);
+                            DefaultPlanner::get_h(env, c_loc, loc);
                     c_loc = loc;
                 }
 
