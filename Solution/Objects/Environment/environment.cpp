@@ -26,7 +26,6 @@ void Environment::build_dists(uint32_t target) {
     }
 
     while (!S.empty()) {
-        ASSERT(!S.empty(), "is empty");
         auto [dist, p] = S.top();
         S.pop();
 

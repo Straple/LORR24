@@ -25,8 +25,14 @@ class Graph {
     // to_edge[node][action] = to edge
     std::vector<std::array<uint32_t, 4>> to_edge;
 
+    uint32_t edges_size = 0;
+
 public:
     explicit Graph(const Map &map);
+
+    [[nodiscard]] uint32_t get_nodes_size() const;
+
+    [[nodiscard]] uint32_t get_edges_size() const;
 
     [[nodiscard]] Position get_pos(uint32_t node) const;
 

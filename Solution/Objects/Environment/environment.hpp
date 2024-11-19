@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Objects/Basic/position.hpp"
-#include "SharedEnv.h"
+#include <Objects/Basic/position.hpp>
+#include <SharedEnv.h>
 
 #include <array>
 #include <cstdint>
@@ -9,12 +9,6 @@
 
 class Environment {
     SharedEnvironment *env_ptr = nullptr;
-
-    int rows = 0, cols = 0;
-
-    // map[pos] = true if this pos is free
-    // otherwise: false
-    std::vector<bool> map;
 
     // dist_dp[target][source][dir] = dist from (source, dir) -> target
     std::vector<std::vector<std::array<uint16_t, 4>>> dist_dp;

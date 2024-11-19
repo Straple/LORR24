@@ -41,6 +41,15 @@ Graph::Graph(const Map &map) {
             to_edge[node][action] = edges[{p, to}];
         }
     }
+    edges_size = edges.size() + 1;
+}
+
+uint32_t Graph::get_nodes_size() const {
+    return node_to_pos.size();
+}
+
+uint32_t Graph::get_edges_size() const {
+    return edges_size;
 }
 
 Position Graph::get_pos(uint32_t node) const {
