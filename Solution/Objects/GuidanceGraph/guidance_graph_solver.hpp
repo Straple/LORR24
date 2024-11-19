@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../guidance_graph.hpp"
-#include "../randomizer.hpp"
+#include "Objects/Basic/randomizer.hpp"
+#include "guidance_graph.hpp"
 
 constexpr uint32_t COLS = 32;
 constexpr uint32_t ROWS = 32;

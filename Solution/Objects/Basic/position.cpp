@@ -1,7 +1,7 @@
 #include "position.hpp"
 
+#include "Objects/Environment/map.hpp"
 #include "assert.hpp"
-#include "map.hpp"
 
 Position::Position(uint32_t pos, uint32_t dir)
     : x(pos / get_map().get_cols()),

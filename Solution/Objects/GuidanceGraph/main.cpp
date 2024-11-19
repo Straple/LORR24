@@ -1,6 +1,6 @@
 #include <fstream>
 
-#include "../guidance_graph.hpp"
+#include "guidance_graph.hpp"
 #include "guidance_graph_solver.hpp"
 
 int main(int argc, char **argv) {

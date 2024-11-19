@@ -1,6 +1,6 @@
 #include "solution_info.hpp"
 
-#include "../../Objects/assert.hpp"
+#include "Objects/Basic/assert.hpp"
 
 bool operator==(const SolutionInfo &lhs, const SolutionInfo &rhs) {
     return lhs.collision_count == rhs.collision_count &&

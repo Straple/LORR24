@@ -1,6 +1,6 @@
 #include "guidance_graph.hpp"
 
-#include "assert.hpp"
+#include "Objects/Basic/assert.hpp"
 
 uint16_t GuidanceGraph::get(uint32_t pos, uint32_t dir, uint32_t action) const {
     ASSERT(pos < graph.size(), "invalid pos");

@@ -41,7 +41,7 @@ static constexpr uint32_t UPDATE_DYNAMICS_DIST_MATRIX_TIME = 500;
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
@@ -54,3 +54,14 @@ using PLANNER = EPlanner;
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = TaskScheduler;
+
+
+// PIBT
+// steps: 10000
+// time: 10496ms
+// score: 12768
+
+// PIBT + dynamic dists
+// steps: 10000
+// time: 131351ms
+// score: 16127

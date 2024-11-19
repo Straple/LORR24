@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../Objects/position.hpp"
-#include "../../Objects/randomizer.hpp"
 #include "../../settings.hpp"
 #include "../Solver/solution_info.hpp"
+#include "Objects/Basic/position.hpp"
+#include "Objects/Basic/randomizer.hpp"
 #include "SharedEnv.h"
 
 // their: 359

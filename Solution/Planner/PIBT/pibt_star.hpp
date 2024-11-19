@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Objects/position.hpp"
 #include "../../settings.hpp"
+#include "Objects/Basic/position.hpp"
 
 class PIBTStar {
     using Actions = std::array<Action, PLANNER_DEPTH>;

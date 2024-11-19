@@ -1,7 +1,7 @@
 #include "pibt_solver.hpp"
 
-#include "../../Objects/environment.hpp"
-#include "../../Objects/randomizer.hpp"
+#include "Objects/Basic/randomizer.hpp"
+#include "Objects/Environment/environment.hpp"
 
 PIBTSolver::PIBTSolver() {
     order.resize(get_env().get_agents_size(), 0);

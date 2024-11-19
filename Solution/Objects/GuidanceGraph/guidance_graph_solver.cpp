@@ -1,6 +1,6 @@
 #include "guidance_graph_solver.hpp"
 
-#include "../assert.hpp"
+#include "Objects/Basic/assert.hpp"
 #include "nlohmann/json.hpp"
 
 #include <fstream>

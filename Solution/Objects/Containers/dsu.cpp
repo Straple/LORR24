@@ -1,6 +1,6 @@
 #include "dsu.hpp"
 
-#include "assert.hpp"
+#include "Objects/Basic/assert.hpp"
 
 #include <numeric>
 

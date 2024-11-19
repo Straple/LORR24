@@ -1,7 +1,7 @@
 #include "scheduler.hpp"
 
-#include "../Objects/assert.hpp"
-#include "../Objects/environment.hpp"
+#include "Objects/Basic/assert.hpp"
+#include "Objects/Environment/environment.hpp"
 
 void MyScheduler::initialize(int preprocess_time_limit) {
 }

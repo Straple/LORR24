@@ -1,6 +1,6 @@
 #include "scheduler.h"
 
-#include "../Solution/Objects/environment.hpp"
+#include "Objects/Environment/environment.hpp"
 
 namespace DefaultPlanner {
 

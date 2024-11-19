@@ -1,5 +1,5 @@
-#include <Objects/assert.hpp>
-#include <Objects/map.hpp>
+#include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/map.hpp>
 
 Map::Map(const SharedEnvironment &env) : rows(env.rows), cols(env.cols) {
     ASSERT(get_size() == env.map.size(), "size mismatch");

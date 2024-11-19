@@ -8,7 +8,7 @@ class DSU {
     std::vector<uint32_t> sz;
 
 public:
-    DSU(uint32_t size);
+    explicit DSU(uint32_t size);
 
     uint32_t get(uint32_t x);
 

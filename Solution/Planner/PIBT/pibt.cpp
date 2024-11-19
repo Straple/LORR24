@@ -1,8 +1,8 @@
 #include "pibt.hpp"
 
-#include "../../Objects/assert.hpp"
-#include "../../Objects/environment.hpp"
-#include "../../Objects/guidance_graph.hpp"
+#include "Objects/Basic/assert.hpp"
+#include "Objects/Environment/environment.hpp"
+#include "Objects/GuidanceGraph/guidance_graph.hpp"
 
 #include <unordered_set>
 

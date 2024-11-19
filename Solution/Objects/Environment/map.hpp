@@ -1,12 +1,9 @@
 #pragma once
 
-#include "SharedEnv.h"
-
+#include <SharedEnv.h>
 #include <vector>
 
-/**
- * Contains information about map: rows, cols, is_free
- */
+// Contains information about map: rows, cols, is_free
 class Map {
     uint32_t rows = 0;
     uint32_t cols = 0;
@@ -26,4 +23,4 @@ public:
     [[nodiscard]] bool is_free(uint32_t pos) const;
 };
 
-Map& get_map();
+Map &get_map();

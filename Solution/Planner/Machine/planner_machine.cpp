@@ -1,6 +1,6 @@
 #include "planner_machine.hpp"
 
-#include "../../Objects/environment.hpp"
+#include "Objects/Environment/environment.hpp"
 
 bool PlannerMachine::is_allowed(uint32_t k, Position p, Action action) const {
     auto to = p.simulate_action(action);

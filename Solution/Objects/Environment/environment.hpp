@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Objects/Basic/position.hpp"
 #include "SharedEnv.h"
-#include "position.hpp"
 
 #include <array>
 #include <cstdint>

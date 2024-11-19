@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assert.hpp"
+#include <Objects/Basic/assert.hpp>
 #include <random>
 
 struct Randomizer {

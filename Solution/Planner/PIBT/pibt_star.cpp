@@ -1,9 +1,9 @@
 #include "pibt_star.hpp"
 
-#include "../../Objects/assert.hpp"
-#include "../../Objects/environment.hpp"
-#include "../../Objects/guidance_graph.hpp"
-#include "../../Objects/randomizer.hpp"
+#include "Objects/Basic/assert.hpp"
+#include "Objects/Basic/randomizer.hpp"
+#include "Objects/Environment/environment.hpp"
+#include "Objects/GuidanceGraph/guidance_graph.hpp"
 
 void PIBTStar::add_path_IMPL(uint32_t r) {
     ASSERT(r < robots.size(), "invalid r");

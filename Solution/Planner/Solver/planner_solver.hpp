@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../Objects/position.hpp"
-#include "../../Objects/randomizer.hpp"
 #include "../../settings.hpp"
+#include "Objects/Basic/position.hpp"
+#include "Objects/Basic/randomizer.hpp"
 #include "solution_info.hpp"
 
 // планирует следующие PLANNER_DEPTH шагов

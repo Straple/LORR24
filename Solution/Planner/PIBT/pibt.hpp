@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Objects/position.hpp"
+#include "Objects/Basic/position.hpp"
 
 // Priority Inheritance with BackTracking
 class PIBT {

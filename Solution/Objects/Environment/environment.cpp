@@ -1,11 +1,11 @@
 #include "environment.hpp"
 
-#include "../Planner/Solver/planner_solver.hpp"
-#include "../settings.hpp"
-#include "assert.hpp"
-#include "dsu.hpp"
-#include "guidance_graph.hpp"
-#include "linear_heap.hpp"
+#include "Objects/Basic/assert.hpp"
+#include "Objects/Containers/dsu.hpp"
+#include "Objects/Containers/linear_heap.hpp"
+#include "Objects/GuidanceGraph/guidance_graph.hpp"
+#include "Planner/Solver/planner_solver.hpp"
+#include "settings.hpp"
 
 #include <thread>
 
