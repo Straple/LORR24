@@ -28,14 +28,20 @@ include_directories("inc")
 # default planner
 include_directories("default_planner")
 
+include_directories("Solution")
+
 file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
         # team solution
         "Solution/Objects/*.cpp"
+        "Solution/Objects/Basic/*.cpp"
+        "Solution/Objects/Containers/*.cpp"
+        "Solution/Objects/Environment/*.cpp"
+
         "Solution/Planner/*.cpp"
         "Solution/Planner/Solver/*.cpp"
         "Solution/Planner/Machine/*.cpp"
         "Solution/Planner/PIBT/*.cpp"
-        "Solution/Objects/GuidanceGraph/guidance_graph_solver.cpp"
+
         "Solution/Scheduler/*.cpp"
         )
 
