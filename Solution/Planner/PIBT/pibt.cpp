@@ -24,8 +24,8 @@ bool PIBT::build(uint32_t r, int banned_direction) {
             // если там никого нет или он еще не посчитан
             if (!pos_to_robot.count(to.pos) || robots[pos_to_robot[to.pos]].dir == -1) {
                 actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) +
-                                             get_env().get_dist(to, robots[r].target)
-                                     //get_env().get_dist(r, to)
+                                             //get_env().get_dist(to, robots[r].target)
+                                     get_env().get_dist(r, to)
                                      ,
                                      dir);
             }

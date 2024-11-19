@@ -24,12 +24,10 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 //#define ENABLE_ASSERT
 
-//#define ENABLE_THEIR_HEURISTIC
-
 // if disabled then use manhattan heuristic (very bad), without build dist matrix
-//#define ENABLE_DIST_MATRIX
+#define ENABLE_DIST_MATRIX
 
-//#define ENABLE_DYNAMICS_DIST_MATRIX
+#define ENABLE_DYNAMICS_DIST_MATRIX
 
 static constexpr uint32_t UPDATE_DYNAMICS_DIST_MATRIX_TIME = 500;
 
@@ -51,7 +49,7 @@ static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
-using PLANNER = MAPFPlanner;
+using PLANNER = EPlanner;
 
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
