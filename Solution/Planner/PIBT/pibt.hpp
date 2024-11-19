@@ -1,4 +1,4 @@
-#pragma once
+/*#pragma once
 
 #include <Objects/Basic/position.hpp>
 
@@ -20,10 +20,11 @@ class PIBT {
 
     std::unordered_map<uint32_t, uint32_t> pos_to_robot;
 
-    bool build(uint32_t r, int banned_direction = -1);
+    bool build(uint32_t r, int banned_desired = -1);
 
 public:
     PIBT();
 
     std::vector<Action> solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time);
 };
+*/

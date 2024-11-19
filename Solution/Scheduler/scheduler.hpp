@@ -1,15 +1,13 @@
 #pragma once
 
-#include "SharedEnv.h"
-#include "Tasks.h"
-
-// 362 ->
+#include <SharedEnv.h>
+#include <Tasks.h>
 
 class MyScheduler {
 public:
     SharedEnvironment *env;
 
-    MyScheduler(SharedEnvironment *env) : env(env) {};
+    MyScheduler(SharedEnvironment *env) : env(env){};
 
     MyScheduler() { env = new SharedEnvironment(); };
 

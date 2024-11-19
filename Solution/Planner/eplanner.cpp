@@ -50,8 +50,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         return get_hm().get(lhs_source, lhs_dest) < get_hm().get(rhs_source, rhs_dest);*/
     });
 
-    PIBT pibt;
-    plan = pibt.solve(order, end_time);
+    //PIBT pibt;
+    //plan = pibt.solve(order, end_time);
 #endif
 
     /*

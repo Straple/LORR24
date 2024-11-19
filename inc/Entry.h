@@ -1,14 +1,14 @@
 #pragma once
 
-#include "ActionModel.h"
-#include "MAPFPlanner.h"
-#include "SharedEnv.h"
-#include "TaskScheduler.h"
+#include <ActionModel.h>
+#include <MAPFPlanner.h>
+#include <SharedEnv.h>
+#include <TaskScheduler.h>
 #include <ctime>
 
-#include "../Solution/Planner/eplanner.hpp"
-#include "../Solution/Scheduler/scheduler.hpp"
-#include "../Solution/settings.hpp"
+#include <Planner/eplanner.hpp>
+#include <Scheduler/scheduler.hpp>
+#include <settings.hpp>
 
 class Entry {
 public:

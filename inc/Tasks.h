@@ -3,8 +3,8 @@
 
 struct Task {
     int task_id;
-    int t_completed = -1;
-    int t_revealed = -1;
+    int t_completed = -1; // время выполнения задачи
+    int t_revealed = -1; // время создания
     int agent_assigned = -1;
 
     vector<int> locations;

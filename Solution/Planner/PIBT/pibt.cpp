@@ -1,24 +1,29 @@
-#include "pibt.hpp"
+/*#include <Planner/PIBT/pibt.hpp>
 
-#include "Objects/Basic/assert.hpp"
-#include "Objects/Environment/environment.hpp"
-#include "Objects/GuidanceGraph/guidance_graph.hpp"
+#include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/environment.hpp>
+#include <Objects/GuidanceGraph/guidance_graph.hpp>
 
 #include <unordered_set>
 
-bool PIBT::build(uint32_t r, int banned_direction) {
-    if (pos_to_robot[robots[r].p.pos] == r) { pos_to_robot.erase(robots[r].p.pos); }
+bool PIBT::build(uint32_t r, int banned_desired) {
+    if (pos_to_robot[robots[r].node] == r) {
+        pos_to_robot.erase(robots[r].node);
+    }
 
     // (priority, dir)
     std::vector<std::pair<int64_t, int>> actions;
     for (int dir = 0; dir < 4; dir++) {
-        if (dir == banned_direction) { continue; }
-        Position to = robots[r].p;
-        to.dir = dir;
+        if (dir == banned_desired) {
+            continue;
+        }
+        Position to = get_graph().get_pos(robots[r].node);
+        to = Position(to.get_pos(), dir);
         to = to.move_forward();
         if (to.is_valid()) {
             // если там никого нет или он еще не посчитан
-            if (!pos_to_robot.count(to.pos) || robots[pos_to_robot[to.pos]].dir == -1) {
+            if (!pos_to_robot.count(get_graph().get_node(to)) ||
+                robots[pos_to_robot[to.pos]].dir == -1) {
                 actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) +
                                              //get_env().get_dist(to, robots[r].target)
                                              get_env().get_dist(r, to),
@@ -161,3 +166,4 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
 
     return actions;
 }
+*/
