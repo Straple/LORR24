@@ -133,12 +133,10 @@ void BaseSystem::simulate(int simulation_time) {
 
         for (int i = 0; i < timeout_timesteps; i++) {
             simulator.move(all_wait_actions);
-            for (int k = 0; k < num_of_agents; k++)
-
-                for (int a = 0; a < num_of_agents; a++) {
-                    if (!env->goal_locations[a].empty())
-                        solution_costs[a]++;
-                }
+            for (int a = 0; a < num_of_agents; a++) {
+                if (!env->goal_locations[a].empty())
+                    solution_costs[a]++;
+            }
         }
 
         total_timetous += timeout_timesteps;

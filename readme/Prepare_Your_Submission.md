@@ -1,10 +1,10 @@
 # Prepare Your Entry
-To run the program, please refer to [README.md](README.md) to download the start-kit and compile. 
+To run the program, please refer to [README.md](./README.md) to download the start-kit and compile. 
 
 
 ## System Overview
 
-<img src="../image/lorr2024_system_overview.jpg" style="margin:auto;display: block;max-width:800px"/>
+<img src="./image/lorr2024_system_overview.jpg" style="margin:auto;display: block;max-width:800px"/>
 
 The image shows the system overview of the start-kit.
 At each timestep:
@@ -16,7 +16,7 @@ At each timestep:
 ### Important concepts
 
 Before you start, get familiar with the following concepts in the code base:
-- Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](../image/coordination_system.pdf)
+- Coordination system: the location of a robot on the map is a tuple (x,y), where x refers to the row the robot is located in, and y refers to the corresponding column. For the first row (the topmost row), x = 0, and for the first column (the leftmost column), y = 0. You can find a visualization [here](./image/coordination_system.pdf)
 - Map: the map is a vector of `int`, the index is calculated by linearise the (row, column) of a location to (row * total number of columns of the map) + column, the value is either 1: non-traversable or 0: traversable.
 - `State` (defined in `inc/States.h`): a state containing the current location (map location index), current timestep and current facing orientation (0:east, 1:south, 2:west, 3:north).
 - `Task` (defined in `inc/Tasks.h`): A task contains a list of multiple errands, which is stored in `locations`, the id `task_id`, the id of assigned robot `agent_assigned` and the index of the next unfinished errand `idx_next_loc`. Each errand is a single location on the map and should be visited one by one in order.
@@ -60,9 +60,13 @@ In `src/TaskScheduler.cpp`, you can find the default task scheduler, which calls
 #### The default planner
 In `src/MAPFPlanner.cpp`, you can find the default planner implementation, which calls the functions that are further defined in `default_planner/planner.cpp`. The default planner shares the same heuristic distance tables with the default scheduler. Its `initialize()` function prepares necessary data structures and a global heuristic table (if not initialized by the scheduler). Its `plan()` function computes collision-free actions for the current timestep.
 
-The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) following the optimised traffic flow. A more detailed technical report will be provided soon.
+The MAPF planner implemented in the default planner is a variant of Traffic Flow Optimised Guided PIBT, [Chen, Z., Harabor, D., Li, J., & Stuckey, P. J. (2024, March). Traffic flow optimisation for lifelong multi-agent path finding. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 38, No. 18, pp. 20674-20682)](https://ojs.aaai.org/index.php/AAAI/article/view/30054/31856). The planner first optimises traffic flow assignments for each robot, then computes collision-free actions using [Priority Inheritance with Backtracking](https://www.sciencedirect.com/science/article/pii/S0004370222000923) (PIBT) following the optimised traffic flow. A more detailed technical report will be provided soon.
 
-
+> ⚠️ **NOTE** ⚠️, the default planner is an anytime algorithm, meaning the time it has to compute a solution directly impacts the quality of that solution. 
+When a small amount of time is allocated, the default planner behaves like vanilla PIBT. When more time is allocated, the default planner updates traffic cost and incrementally recomputes guide paths for agents to improve their arrival time.
+If you are a Scheduling Track participant, remember that the sooner your `schedule_plan()` function returns, the more time is avaliable to the default planner.
+Better plans and better schedules can both substantially influence the performance of your submission on the leaderboard. 
+How to allocate time between these two components is an important part of a successful strategy.
 
 ## What to implement for each track
 
@@ -122,8 +126,7 @@ If you compete in the combined track, you are allowed to modify the `Entry::comp
 
 ### Timing parameters for default planner and scheduler
 
-
-At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
+At every timestep, we will ask your planner to compute the next valid action for each robot subject to a given `time_limit` in ms. The `time_limit` is given as an input parameter to the `compute()` function of `Entry.cpp`, which is then passed to `TaskScheduler::plan()` and `MAPFPlanner::plan()`. Note that, for `TaskScheduler::plan()` and `MAPFPlanner::plan()` the start time of the current timestep begins at `env->plan_start_time`, indicating the scheduler and the planner should return actions before `env->plan_start_time` plus `time_limit` ms. This is a soft limit, which means if you do not return actions before the `time_limit` elapses, the simulator will continue, and all robots will wait in place until the next planning episode.
 
 The default scheduler and default planner run in a sequential manner. The default scheduler uses `time_limit/2` as the timelimit to compute schedules.
 The default planner uses the remaining time, after the scheduler returns, to compute collision-free actions.
@@ -140,7 +143,7 @@ You are allowed to modify the values of these parameters to reduce/increase the 
 ### Unmodifiable files
 
 Except for the related implementation files for each track and some modifiable files stated in the following sections, most of the starter kit files are unmodifiable, and you must ensure that their functionalities are not interfered with. 
-Please refer to [Evaluation_Environment.md](Evaluation_Environment.md) for more details.
+Please refer to [Evaluation_Environment.md](./Evaluation_Environment.md) for more details.
 
 
 ## Build
@@ -234,12 +237,12 @@ numpy
 Once your planner is implemented and compiled, you are ready for local testing and evaluation.
 The evaluation system uses official pytorch image [pytorch/pytorch:2.4.1-cuda11.8-cudnn9-devel](https://hub.docker.com/layers/pytorch/pytorch/2.4.1-cuda11.8-cudnn9-devel/images/sha256-ebefd256e8247f1cea8f8cadd77f1944f6c3e65585c4e39a8d4135d29de4a0cb?context=explore) as docker base image to build the evaluation environment, which have GPU driver, cuda, cudnn, and other essential GPU softwares ready. We officially support and tested `Pytorch` in this setup, other frameworks may or may not work in the evaluation environment.
 
-Please refer to [Evaluation_Environment.md](Evaluation_Environment.md) for more details.
+Please refer to [Evaluation_Environment.md](./Evaluation_Environment.md) for more details.
 
 ### Local Testing
 A variety of test problems are provided in the `example_problems` folder. Use any JSON input file there for testing.
 Results of the evaluation are placed in a file at `--output_file_location` that you specified as a command line parameter.
-For details about the format of input problems and output results refer to the documentation in [Input_Output_Format.md](Input_Output_Format.md).
+For details about the format of input problems and output results refer to the documentation in [Input_Output_Format.md](./Input_Output_Format.md).
 
 ### Test in Docker
 The evaluation system builds and execuates your implementation in a docker container which acts as a sandbox.
@@ -280,4 +283,4 @@ If the docker container is started in the background, you can run commands from 
 Prior to the start of each evaluation, we allow your entry having 30 minutes of preprocessing time per map to load supporting files and initialise supporting data structures. 
 The `preprocess_time_limit` is specified as a parameter to your entry's `initialize()` function, which on default calls the `intialize()` function of MAPFPlanner and TaskScheduler. If your entry's preprocessing operations take longer than `preprocess_time_limit`, your planner fails and the simulation terminates with **exit code 124**. 
 
-Please refer to the documentation in [Working_with_Preprocessed_Data.md](Working_with_Preprocessed_Data.md) for more details.
+Please refer to the documentation in [Working_with_Preprocessed_Data.md](./Working_with_Preprocessed_Data.md) for more details.

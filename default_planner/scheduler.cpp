@@ -9,9 +9,7 @@ namespace DefaultPlanner {
     std::unordered_set<int> free_tasks;
 
     void schedule_initialize(int preprocess_time_limit, SharedEnvironment *env) {
-#ifdef ENABLE_THEIR_HEURISTIC
         DefaultPlanner::init_heuristics(env);
-#endif
         mt.seed(0);
     }
 
@@ -25,8 +23,7 @@ namespace DefaultPlanner {
         free_agents.insert(env->new_freeagents.begin(), env->new_freeagents.end());
         free_tasks.insert(env->new_tasks.begin(), env->new_tasks.end());
 
-        int min_task_i, c_loc, count;
-        int64_t min_task_makespan;
+        int min_task_i, min_task_makespan, dist, c_loc, count;
         clock_t start = clock();
 
         // iterate over the free agents to decide which task to assign to each of them
@@ -50,14 +47,13 @@ namespace DefaultPlanner {
                 if (count % 10 == 0 && std::chrono::steady_clock::now() > endtime) {
                     break;
                 }
-                int64_t dist = 0;
+                dist = 0;
                 c_loc = env->curr_states.at(i).location;
 
                 // iterate over the locations (errands) of the task to compute the makespan to finish the task
                 // makespan: the time for the agent to complete all the errands of the task t_id in order
                 for (int loc: env->task_pool[t_id].locations) {
-                    dist +=//get_env().get_dist(Position(c_loc, 0), loc);
-                            DefaultPlanner::get_h(env, c_loc, loc);
+                    dist += DefaultPlanner::get_h(env, c_loc, loc);
                     c_loc = loc;
                 }
 

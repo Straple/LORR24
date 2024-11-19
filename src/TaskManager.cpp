@@ -5,9 +5,16 @@
 
 using json = nlohmann::ordered_json;
 
-
-bool TaskManager::validate_task_assgnment(vector<int> assignment) {
+/**
+ * This function validates the proposed schedule (assignment) from participants
+ * 
+ * @param assignment a vector of task_ids, one for each agent. The length of the vector should be equal to the number of agents.
+ *
+ */
+bool TaskManager::validate_task_assignment(vector<int> &assignment) {
     if (assignment.size() != num_of_agents) {
+        schedule_errors.push_back(make_tuple("Invalid schedule size", -1, -1, -1, curr_timestep + 1));
+        logger->log_warning("Scheduler Error: assignment size does not match number of agents", curr_timestep + 1);
         return false;
     }
 
@@ -46,22 +53,33 @@ bool TaskManager::validate_task_assgnment(vector<int> assignment) {
     return true;
 }
 
-bool TaskManager::set_task_assignment(vector<int> assignment) {
+
+/**
+ * This function updates the current task assignments of agents.
+ * It first checks if the proposed assignment is valid, 
+ * then updates the current assignment and updates the corresponding agent_assigned of each affected task.
+ * 
+ * @param assignment a vector of task_ids, one for each agent. The length of the vector should be equal to the number of agents.
+ *
+ */
+bool TaskManager::set_task_assignment(vector<int> &assignment) {
     for (int a = 0; a < assignment.size(); a++) {
         if (planner_schedule[a].empty() || assignment[a] != planner_schedule[a].back().second) {
             planner_schedule[a].push_back(make_pair(curr_timestep, assignment[a]));
         }
     }
-    if (!validate_task_assgnment(assignment)) {
+    if (!validate_task_assignment(assignment)) {
         return false;
     }
 
+    //reset all the agent_assigned to -1, so that any droped task->agent_assignment will be -1
     for (int a = 0; a < assignment.size(); a++) {
         if (current_assignment[a] >= 0) {
             ongoing_tasks[current_assignment[a]]->agent_assigned = -1;
         }
     }
 
+    // then set the updated agent_assigned according to new assignments.
     for (int a = 0; a < assignment.size(); a++) {
         if (assignment[a] < 0) {
             continue;
@@ -80,7 +98,14 @@ bool TaskManager::set_task_assignment(vector<int> assignment) {
     return true;
 }
 
-list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep) {
+/**
+ * This function checks if any task is finished at the current timestep.
+ * If a task is finished, it updates the task's completion time and the agent's current assignment.
+ * 
+ * @param states a vector of states of all agents, including the current location of each agent on the map.
+ * @param timestep the current timestep.
+ */
+list<int> TaskManager::check_finished_tasks(vector<State> &states, int timestep) {
     list<int> finished_tasks_this_timestep;// <agent_id, task_id, timestep>
     new_freeagents.clear();                //prepare to push all new free agents to the shared environment
     for (int k = 0; k < num_of_agents; k++) {
@@ -106,7 +131,12 @@ list<int> TaskManager::check_finished_tasks(vector<State> states, int timestep) 
     return finished_tasks_this_timestep;
 }
 
-
+/**
+ * This function synchronises the shared environment with the current task manager.
+ * It copies the current task pool, current task schedule, new free agents, and new tasks to the shared environment.
+ * 
+ * @param env a pointer to the shared environment.
+ */
 void TaskManager::sync_shared_env(SharedEnvironment *env) {
     env->task_pool.clear();
     for (auto &task: ongoing_tasks) {
@@ -117,6 +147,13 @@ void TaskManager::sync_shared_env(SharedEnvironment *env) {
     env->new_tasks = new_tasks;
 }
 
+/**
+ * This function reveals new tasks at the current timestep.
+ * It reveals a fixed number of tasks at each timestep, 
+ * and adds them to the ongoing tasks, new_tasks, and all_tasks.
+ * 
+ * @param timestep the current timestep.
+ */
 void TaskManager::reveal_tasks(int timestep) {
     new_tasks.clear();//prepare to push all new revealed tasks to the shared environment
     while (ongoing_tasks.size() < num_tasks_reveal) {
@@ -131,14 +168,28 @@ void TaskManager::reveal_tasks(int timestep) {
     }
 }
 
-void TaskManager::update_tasks(vector<State> states, vector<int> assignment, int timestep) {
+/**
+ * This function is reponsible for the task management process:
+ * 1. It updates the current assignments of agents with proposed schedule from participants.
+ * 2. It checks if any task is finished at the current timestep.
+ * 3. It reveals new tasks at the current timestep.
+ * 
+ * @param states a vector of states of all agents, including the current location of each agent on the map.
+ * @param assignment a vector of task_ids, one for each agent. The length of the vector should be equal to the number of agents.
+ * @param timestep the current timestep.
+ */
+void TaskManager::update_tasks(vector<State> &states, vector<int> &assignment, int timestep) {
     curr_timestep = timestep;
     set_task_assignment(assignment);
     check_finished_tasks(states, timestep);
     reveal_tasks(timestep);
 }
 
-
+/**
+ * This function converts all tasks to a JSON object.
+ * 
+ * @param map_cols the number of columns in the map.
+ */
 json TaskManager::to_json(int map_cols) const {
 
     json tasks = json::array();
