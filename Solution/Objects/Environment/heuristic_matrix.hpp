@@ -13,6 +13,7 @@ public:
 
     explicit HeuristicMatrix(const Graph &graph);
 
+    // heuristic: source -> dist
     [[nodiscard]] uint32_t get(uint32_t source, uint32_t dest) const;
 };
 

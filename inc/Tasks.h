@@ -11,7 +11,7 @@ struct Task {
     int idx_next_loc = 0;
 
 
-    int get_next_loc() {
+    int get_next_loc() const {
         if (idx_next_loc < locations.size()) {
             return locations.at(idx_next_loc);
         } else {

@@ -1,24 +1,19 @@
 #pragma once
 
-#include "Objects/Basic/position.hpp"
+#include <Objects/Basic/position.hpp>
 
 // Priority Inheritance with BackTracking
 class PIBT {
     struct Robot {
-        Position p;
+        uint32_t node = 0;
 
         // куда мы хотим
         // -1 -- не определено
         // иначе это направление для forward
-        // TODO: desired
-        int dir = -1;
+        int desired = -1;
 
         // то куда мы хотим попасть
-        int target = -1;
-
-        // приоритет робота
-        // чем ниже, тем он важнее
-        int64_t priority = 0;
+        uint32_t target = 0;
     };
 
     std::vector<Robot> robots;
@@ -31,6 +26,4 @@ public:
     PIBT();
 
     std::vector<Action> solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time);
-
-    [[nodiscard]] double get_score() const;
 };

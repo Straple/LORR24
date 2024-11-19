@@ -7,16 +7,12 @@
 #include <unordered_set>
 
 bool PIBT::build(uint32_t r, int banned_direction) {
-    if (pos_to_robot[robots[r].p.pos] == r) {
-        pos_to_robot.erase(robots[r].p.pos);
-    }
+    if (pos_to_robot[robots[r].p.pos] == r) { pos_to_robot.erase(robots[r].p.pos); }
 
     // (priority, dir)
     std::vector<std::pair<int64_t, int>> actions;
     for (int dir = 0; dir < 4; dir++) {
-        if (dir == banned_direction) {
-            continue;
-        }
+        if (dir == banned_direction) { continue; }
         Position to = robots[r].p;
         to.dir = dir;
         to = to.move_forward();
@@ -25,8 +21,7 @@ bool PIBT::build(uint32_t r, int banned_direction) {
             if (!pos_to_robot.count(to.pos) || robots[pos_to_robot[to.pos]].dir == -1) {
                 actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) +
                                              //get_env().get_dist(to, robots[r].target)
-                                     get_env().get_dist(r, to)
-                                     ,
+                                             get_env().get_dist(r, to),
                                      dir);
             }
         }
@@ -78,12 +73,8 @@ PIBT::PIBT() {
 
 std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
     for (uint32_t r: order) {
-        if (std::chrono::steady_clock::now() > end_time) {
-            break;
-        }
-        if (robots[r].dir == -1) {
-            build(r);
-        }
+        if (std::chrono::steady_clock::now() > end_time) { break; }
+        if (robots[r].dir == -1) { build(r); }
     }
 
     std::vector<Action> actions(robots.size(), Action::NA);
@@ -152,12 +143,8 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
                 }
             }
         }
-        if (ids.empty()) {
-            break;
-        }
-        for (uint32_t r: ids) {
-            forwards[robots[r].p.pos].push_back(r);
-        }
+        if (ids.empty()) { break; }
+        for (uint32_t r: ids) { forwards[robots[r].p.pos].push_back(r); }
     }
 
     for (auto &[pos, set]: forwards) {
@@ -170,47 +157,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
         }
     }
 
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        ASSERT(actions[r] != Action::NA, "NA action");
-    }
+    for (uint32_t r = 0; r < robots.size(); r++) { ASSERT(actions[r] != Action::NA, "NA action"); }
 
     return actions;
-}
-
-double PIBT::get_score() const {
-    double res = 0;
-    std::vector<uint32_t> order(robots.size());
-    iota(order.begin(), order.end(), 0);
-    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        return robots[lhs].priority < robots[rhs].priority;
-    });
-    for (uint32_t i = 0; i < robots.size(); i++) {
-        uint32_t r = order[i];
-        if (robots[r].dir == -1) {
-            continue;
-        }
-
-        // (priority, dir)
-        std::vector<std::pair<int64_t, int>> actions;
-        for (int dir = 0; dir < 4; dir++) {
-            Position to = robots[r].p;
-            to.dir = dir;
-            to = to.move_forward();
-            if (to.is_valid()) {
-                actions.emplace_back(get_env().get_dist(robots[r].p, to.pos) + get_env().get_dist(r, to), dir);
-            }
-        }
-
-        std::sort(actions.begin(), actions.end());
-        int k = 0;
-        for (uint32_t i = 0; i < actions.size(); i++) {
-            if (actions[i].second == robots[r].dir) {
-                k = i;
-                break;
-            }
-        }
-
-        res += (actions.size() - k) * 1.0 * ((int64_t) robots.size() * robots.size() - (int64_t) i * i) * 1.0 / robots.size();
-    }
-    return res;
 }

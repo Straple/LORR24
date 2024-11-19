@@ -3,14 +3,21 @@
 #include "heuristics.h"
 #include "utils.h"
 
-#include "Objects/Environment/environment.hpp"
+#include <Objects/Environment/environment.hpp>
+#include <Objects/Environment/graph.hpp>
+#include <Objects/Environment/heuristic_matrix.hpp>
+#include <Objects/Environment/map.hpp>
 
 // The initialize function will be called by competition system at the preprocessing stage.
 // Implement the initialize functions of the planner and scheduler to load or compute auxiliary data.
 // Note that, this function runs untill preprocess_time_limit (in milliseconds) is reached.
 // This is an offline step, after it completes then evaluation begins.
 void Entry::initialize(int preprocess_time_limit) {
-    get_env().init(env);
+    //get_env().init(env);
+    get_map() = Map(*env);
+    get_graph() = Graph(get_map());
+    get_hm() = HeuristicMatrix(get_graph());
+
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
 }

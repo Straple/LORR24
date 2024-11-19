@@ -1,14 +1,9 @@
 #pragma once
 
-#include "ActionModel.h"
-#include "Machine/planner_machine.hpp"
-#include "SharedEnv.h"
+#include <ActionModel.h>
+#include <SharedEnv.h>
 
 class EPlanner {
-    PlannerMachine* planner_machine = nullptr;
-
-    [[nodiscard]] int get_target(int r) const;
-
 public:
     SharedEnvironment *env;
 
