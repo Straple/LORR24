@@ -87,7 +87,7 @@ namespace DefaultPlanner {
         int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents / 100;
         //traffic flow assignment end time, leave PIBT_RUNTIME_PER_100_AGENTS ms per 100 agent and TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE ms for computing pibt actions;
         //TimePoint end_time = start_time + std::chrono::milliseconds(time_limit - pibt_time - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
-        TimePoint end_time = env->plan_start_time + milliseconds(time_limit - 15 - pibt_time);
+        TimePoint end_time = env->plan_start_time + milliseconds(time_limit - 80 - pibt_time);
 
         // recrod the initial location of each agent as dummy goals in case no goal is assigned to the agent.
         if (env->curr_timestep == 0) {
