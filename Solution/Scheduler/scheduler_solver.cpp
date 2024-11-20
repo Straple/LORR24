@@ -5,7 +5,7 @@
 #include <unordered_set>
 
 bool SchedulerSolver::compare(uint64_t old, uint64_t cur, Randomizer &rnd) {
-    return old >= cur;
+    return old >= cur || rnd.get_d() < exp(((int64_t) old - (int64_t) cur) / temp);
 }
 
 uint64_t SchedulerSolver::get_score(uint32_t r, uint32_t t) const {
@@ -117,7 +117,7 @@ uint64_t SchedulerSolver::get_h(uint32_t source, uint32_t dest) const {
     return DefaultPlanner::get_h(env_ptr, source, dest);
 }
 
-void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, std::vector<int> &proposed_schedule) {
+void SchedulerSolver::solve(SharedEnvironment &env, uint64_t seed, const TimePoint end_time) {
     env_ptr = &env;
 
     std::unordered_set<uint32_t> free_agents(env.new_freeagents.begin(), env.new_freeagents.end());
@@ -154,11 +154,10 @@ void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, st
         tasks.push_back({t, path});
     }
 
-    Randomizer rnd(clock());
+    Randomizer rnd(seed);
 
-    //std::cout << "score: " << total_score;
     for (uint32_t step = 0;; step++) {
-
+        temp *= 0.999;
         if (step % 10 == 0) {
             if (std::chrono::steady_clock::now() >= end_time) {
                 break;
@@ -166,11 +165,16 @@ void SchedulerSolver::solve(SharedEnvironment &env, const TimePoint end_time, st
         }
         try_change(rnd);
     }
-    //std::cout << "->" << total_score << std::endl;
+}
 
+void SchedulerSolver::set_schedule(std::vector<int> &proposed_schedule) const {
     for (auto &robot: robots) {
         if (robot.task_id != -1) {
             proposed_schedule[robot.id] = tasks[robot.task_id].id;
         }
     }
+}
+
+uint64_t SchedulerSolver::get_score() const {
+    return total_score;
 }

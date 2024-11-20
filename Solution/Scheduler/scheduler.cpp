@@ -5,6 +5,7 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
+#include <thread>
 #include <unordered_set>
 
 void MyScheduler::initialize(int preprocess_time_limit) {
@@ -13,7 +14,7 @@ void MyScheduler::initialize(int preprocess_time_limit) {
 void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     //use at most half of time_limit to compute schedule, -10 for timing error tolerance
     //so that the remainning time are left for path planner
-    TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(time_limit);
+    TimePoint endtime = env->plan_start_time + std::chrono::milliseconds(time_limit);
     // cout<<"schedule plan limit" << time_limit <<endl;
 
     // the default scheduler keep track of all the free agents and unassigned (=free) tasks across timesteps
@@ -52,8 +53,35 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
 
     // CALL SOLVER HERE
 
-    SchedulerSolver ss;
-    ss.solve(*env, endtime, proposed_schedule);
+    std::vector<SchedulerSolver> ss(THREADS);
+
+    auto do_work = [&](uint32_t thr, uint64_t seed) {
+        ss[thr].solve(*env, seed, endtime);
+    };
+
+    static Randomizer rnd;
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr, rnd.get());
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+
+    uint32_t best_thr = 0;
+    uint64_t best_score = -1;
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        //std::cout << ss[thr].get_score() << ' ';
+        if (best_score > ss[thr].get_score()) {
+            best_score = ss[thr].get_score();
+            best_thr = thr;
+        }
+    }
+    //std::cout << std::endl;
+
+    ss[best_thr].set_schedule(proposed_schedule);
+
 
     // iterate over the free agents to decide which task to assign to each of them
     /*auto it = free_agents.begin();

@@ -45,6 +45,8 @@ class SchedulerSolver {
 
     SharedEnvironment *env_ptr = nullptr;
 
+    double temp = 1;
+
     bool compare(uint64_t old, uint64_t cur, Randomizer &rnd);
 
     template<typename rollback_t>
@@ -72,5 +74,9 @@ class SchedulerSolver {
 public:
     SchedulerSolver() = default;
 
-    void solve(SharedEnvironment &env, const TimePoint end_time, std::vector<int> &proposed_schedule);
+    void solve(SharedEnvironment &env, uint64_t seed, const TimePoint end_time);
+
+    void set_schedule(std::vector<int> &proposed_schedule) const;
+
+    uint64_t get_score() const;
 };
