@@ -79,11 +79,11 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
 
     // for each task calculate best robot
     while (!free_robots.empty()) {
-        uint32_t r = free_robots.back();
-
         if (std::chrono::steady_clock::now() >= end_time) {
             break;
         }
+
+        uint32_t r = free_robots.back();
 
         std::vector<std::pair<uint64_t, uint32_t>> answers(THREADS, {-1, -1});
 
@@ -91,6 +91,9 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
             uint32_t best_id = -1;
             uint64_t best_dist = -1;
             for (uint32_t j = thr; j < free_tasks.size(); j += THREADS) {
+                if (std::chrono::steady_clock::now() >= end_time) {
+                    break;
+                }
                 uint32_t t = free_tasks[j];
                 uint64_t dist = get_dist(r, t);
                 if (dist < best_dist) {
