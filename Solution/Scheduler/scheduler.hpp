@@ -7,13 +7,13 @@ class MyScheduler {
 public:
     SharedEnvironment *env;
 
-    MyScheduler(SharedEnvironment *env) : env(env){};
+    MyScheduler(SharedEnvironment *env) : env(env) {};
 
     MyScheduler() { env = new SharedEnvironment(); };
 
-    virtual ~MyScheduler() { delete env; };
+    ~MyScheduler() { delete env; };
 
-    virtual void initialize(int preprocess_time_limit);
+    void initialize(int preprocess_time_limit);
 
-    virtual void plan(int time_limit, std::vector<int> &proposed_schedule);
+    std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
 };
