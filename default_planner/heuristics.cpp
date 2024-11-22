@@ -2,6 +2,9 @@
 #include "heuristics.h"
 #include <queue>
 
+#include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/heuristic_matrix.hpp>
+
 namespace DefaultPlanner {
 
     std::vector<HeuristicTable> global_heuristictable;
@@ -49,8 +52,12 @@ namespace DefaultPlanner {
         ht.open.push_back(root);// add root to open
     }
 
-
     int get_heuristic(HeuristicTable &ht, SharedEnvironment *env, int source, Neighbors *ns) {
+        ASSERT(ht.open.size() == 1, "invalid size");
+
+        uint32_t target = ht.open.back().location;
+        return get_hm().get(get_graph().get_node(Position(source, 0)), get_graph().get_node(Position(target, 0)));
+
         if (ht.htable[source] < MAX_TIMESTEP) return ht.htable[source];
 
         std::vector<int> neighbors;
@@ -86,7 +93,12 @@ namespace DefaultPlanner {
     }
 
     int get_h(SharedEnvironment *env, int source, int target) {
-        if (global_heuristictable.empty()) {
+        ASSERT(0 <= source && source < env->map.size(), "invalid source");
+        ASSERT(0 <= target && target < env->map.size(), "invalid target");
+
+        return get_hm().get(get_graph().get_node(Position(source, 0)), get_graph().get_node(Position(target, 0)));
+
+        /*if (global_heuristictable.empty()) {
             init_heuristics(env);
         }
 
@@ -94,7 +106,7 @@ namespace DefaultPlanner {
             init_heuristic(global_heuristictable.at(target), env, target);
         }
 
-        return get_heuristic(global_heuristictable.at(target), env, source, &global_neighbors);
+        return get_heuristic(global_heuristictable.at(target), env, source, &global_neighbors);*/
     }
 
 

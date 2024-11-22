@@ -133,11 +133,11 @@ namespace DefaultPlanner {
                         }
                     } else {
 
-                        if (re(temp_node, *existing)) {
-                            std::cout << "error in astar: re-expansion" << std::endl;
-                            assert(false);
-                            exit(1);
-                        }
+                        //if (re(temp_node, *existing)) {
+                        //    std::cout << "error in astar: re-expansion" << std::endl;
+                        //    assert(false);
+                        //    exit(1);
+                        //}
                     }
                 }
             }

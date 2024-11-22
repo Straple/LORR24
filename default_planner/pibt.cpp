@@ -93,7 +93,6 @@ namespace DefaultPlanner {
         }
 
         next_states.at(curr_id) = State(prev_loc, -1, -1);
-        ;
         decision.at(prev_loc) = curr_id;
 
 #ifndef NDEBUG
