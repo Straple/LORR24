@@ -2,6 +2,7 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Containers/linear_heap.hpp>
+//#include <Objects/Basic/time.hpp>
 
 #include <settings.hpp>
 
@@ -41,7 +42,7 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #ifdef ENABLE_HEURISTIC_MATRIX
-    Timer timer;
+    //Timer timer;
 
     dp.resize(graph.get_nodes_size());
 
