@@ -8,7 +8,8 @@
 #include <thread>
 
 void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
-    dp[source].resize(graph.get_nodes_size());
+    auto &dists = dp[source];
+    dists.assign(graph.get_nodes_size(), -1);
 
     // (dist, node)
     LinearHeap<std::pair<uint32_t, uint32_t>> heap;
@@ -26,11 +27,12 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
         }
         visited[node] = true;
 
-        dp[source][node] = dist;
+        dists[node] = dist;
 
         for (uint32_t action = 0; action < 3 /*WITHOUT WAIT = 3*/; action++) {
             uint32_t to = graph.get_to_node(node, action);
-            if (to && !visited[to]) {
+            if (to && !visited[to] && dists[to] > dist + 1) {
+                dists[to] = dist + 1;
                 heap.push({dist + 1, to});
             }
         }
@@ -39,6 +41,8 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #ifdef ENABLE_HEURISTIC_MATRIX
+    Timer timer;
+
     dp.resize(graph.get_nodes_size());
 
     auto do_work = [&](uint32_t thr) {
@@ -55,6 +59,7 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
         threads[thr].join();
     }
 
+    //std::cout << dp.size() << ' ' << timer << std::endl;
 #endif
 }
 

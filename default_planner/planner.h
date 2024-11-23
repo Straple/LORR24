@@ -1,5 +1,4 @@
-#ifndef PLANNER
-#define PLANNER
+#pragma once
 
 #include "TrajLNS.h"
 #include "Types.h"
@@ -11,4 +10,3 @@ namespace DefaultPlanner {
 
     void plan(int time_limit, vector<Action> &actions, SharedEnvironment *env);
 }// namespace DefaultPlanner
-#endif

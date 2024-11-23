@@ -42,7 +42,8 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
     // для свободного робота будем поддерживать расстояния от него до всех задач
     // и будем постепенно обновлять это множество
 
-    // 2114 -> 6241
+    // 2114 -> 6241 -> 7322 -> 11576
+    // 11706 их
     //./build/lifelong -i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 1800000
 
     constexpr static uint64_t MAX_SCORE = 1e15;
@@ -65,6 +66,8 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
+        return get_dist_to_start(r, t);
+
         std::array<uint64_t, 4> data{};
         {
             uint32_t source = get_graph().get_node(
@@ -80,8 +83,8 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
                         get_hm().get(source, target);
             }
         }
-        /*for (uint32_t i = 0; i + 1 < env->task_pool[t].locations.size(); i++) {
-            std::array<uint64_t, 4> new_data{MAX_SCORE, MAX_SCORE, MAX_SCORE, MAX_SCORE};
+        for (uint32_t i = 0; i + 1 < env->task_pool[t].locations.size(); i++) {
+            //std::array<uint64_t, 4> new_data{MAX_SCORE, MAX_SCORE, MAX_SCORE, MAX_SCORE};
             for (uint32_t dir = 0; dir < 4; dir++) {
                 Position source_pos(env->task_pool[t].locations[i], dir);
                 uint32_t source_node = get_graph().get_node(source_pos);
@@ -91,12 +94,10 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
 
                 uint64_t dist =//DefaultPlanner::get_h(env, source_pos.get_pos(), target_pos.get_pos());
                         get_hm().get(source_node, target_node);
-                new_data[dir] = std::min(new_data[dir], data[dir] + dist);
+                data[dir] += dist;
             }
-
-            data = new_data;
-        }*/
-        for (uint32_t i = 0; i + 1 < env->task_pool[t].locations.size(); i++) {
+        }
+        /*for (uint32_t i = 0; i + 1 < env->task_pool[t].locations.size(); i++) {
             std::array<uint64_t, 4> new_data{MAX_SCORE, MAX_SCORE, MAX_SCORE, MAX_SCORE};
             for (uint32_t src_dir = 0; src_dir < 4; src_dir++) {
                 for (uint32_t dst_dir = 0; dst_dir < 4; dst_dir++) {
@@ -112,7 +113,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
                 }
             }
             data = new_data;
-        }
+        }*/
 
         return *std::min_element(data.begin(), data.end());
     };
@@ -130,23 +131,18 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         timestep_updated[r] = env->curr_timestep;
     };
 
+    std::vector<uint32_t> order = free_robots;
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return timestep_updated[lhs] < timestep_updated[rhs];
+    });
+
     {
-        /*for (uint32_t r: free_robots) {
-            rebuild(r);
-        }*/
-
-        std::vector<std::pair<int, uint32_t>> data;
-        for (uint32_t r: free_robots) {
-            data.emplace_back(timestep_updated[r], r);
-        }
-        std::sort(data.begin(), data.end());
-
         auto do_work = [&](uint32_t thr) {
-            for (uint32_t i = thr; i < data.size(); i += THREADS) {
+            for (uint32_t i = thr; i < order.size(); i += THREADS) {
                 if (std::chrono::steady_clock::now() >= end_time) {
                     break;
                 }
-                rebuild(data[i].second);
+                rebuild(order[i]);
             }
         };
 
@@ -163,7 +159,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
 
     std::unordered_set<uint32_t> used_tasks;
     //uint32_t cnt = 0;
-    for (uint32_t r: free_robots) {
+    for (uint32_t r: order) {
         for (auto [dist, task_id]: dp[r]) {
             if (!env->task_pool.count(task_id)) {
                 continue;
@@ -185,90 +181,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         }
     }
 
-    //std::cout << "init: " << cnt << std::endl;
-
-    /*std::atomic<bool> running = true;
-
-    std::vector<std::tuple<uint64_t, uint64_t, uint32_t>> answers(THREADS);
-
-    std::vector<std::atomic<uint32_t>> rs(THREADS);
-
-    auto do_work = [&](uint32_t thr) {
-        while (running) {
-            uint32_t r = rs[thr];
-            if (r == -1) {
-                continue;
-            }
-
-            answers[thr] = {-1, -1, -1};
-
-            uint32_t best_id = -1;
-            uint64_t best_dist = -1;
-            uint64_t best_start_dist = -1;
-            for (uint32_t j = thr; j < free_tasks.size(); j += THREADS) {
-                //if (std::chrono::steady_clock::now() >= end_time) {
-                //break;
-                //}
-                uint32_t t = free_tasks[j];
-                auto [start_dist, dist] = get_dist(r, t);
-                if (dist < best_dist) {
-                    best_start_dist = start_dist;
-                    best_dist = dist;
-                    best_id = j;
-                }
-            }
-            answers[thr] = {best_dist, best_start_dist, best_id};
-            rs[thr] = -1;
-        }
-    };
-
-    std::vector<std::thread> threads(THREADS);
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        threads[thr] = std::thread(do_work, thr);
-    }
-
-    auto calc = [&](uint32_t r) {
-        for (uint32_t thr = 0; thr < THREADS; thr++) {
-            rs[thr] = r;
-        }
-
-        for (uint32_t thr = 0; thr < THREADS; thr++) {
-            while (rs[thr] != -1) {}
-        }
-
-        return *std::min_element(answers.begin(), answers.end());
-    };
-
-    while (!free_robots.empty()) {
-        if (std::chrono::steady_clock::now() >= end_time) {
-            break;
-        }
-
-        uint32_t r = free_robots.back();
-
-        auto [best_dist, best_start_dist, best_id] = calc(r);
-        if (best_id == -1) {
-            break;
-        }
-
-        uint32_t t = free_tasks[best_id];
-        proposed_schedule[r] = t;
-
-        //if (env->curr_states[r].location == env->task_pool[t].locations[0]) {
-        if (best_start_dist <= 3) {
-            done_proposed_schedule[r] = t;
-        }
-
-        free_robots.pop_back();
-
-        std::swap(free_tasks[best_id], free_tasks.back());
-        free_tasks.pop_back();
-    }
-
-    running = false;
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        threads[thr].join();
-    }*/
+    // std::cout << "init: " << cnt << std::endl;
 
     return done_proposed_schedule;
 }

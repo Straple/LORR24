@@ -5,9 +5,8 @@
 #include "nlohmann/json.hpp"
 #include <unordered_map>
 
+#include <Objects/Basic/time.hpp>
 
-typedef std::chrono::steady_clock::time_point TimePoint;
-typedef std::chrono::milliseconds milliseconds;
 typedef std::unordered_map<int, Task> TaskPool;
 
 class SharedEnvironment {
