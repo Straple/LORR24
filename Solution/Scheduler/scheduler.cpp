@@ -36,7 +36,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         return proposed_schedule;
     }
 
-    // dp[r] = отсортированный вектор (dist, dist to start, task_id)
+    // dp[r] = отсортированный вектор (dist, task_id)
     static std::vector<std::vector<std::pair<uint64_t, uint32_t>>> dp(env->num_of_agents);
 
     // для свободного робота будем поддерживать расстояния от него до всех задач
@@ -158,7 +158,10 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
     auto done_proposed_schedule = proposed_schedule;
 
     std::unordered_set<uint32_t> used_tasks;
-    //uint32_t cnt = 0;
+    
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return timestep_updated[lhs] > timestep_updated[rhs];
+    });
     for (uint32_t r: order) {
         for (auto [dist, task_id]: dp[r]) {
             if (!env->task_pool.count(task_id)) {
@@ -173,9 +176,9 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
 
             used_tasks.insert(task_id);
             proposed_schedule[r] = task_id;
-            if (get_dist_to_start(r, task_id) <= 30) {
+            //if (get_dist_to_start(r, task_id) <= 50) {
                 done_proposed_schedule[r] = task_id;
-            }
+            //}
             //cnt++;
             break;
         }
