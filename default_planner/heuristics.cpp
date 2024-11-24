@@ -53,10 +53,10 @@ namespace DefaultPlanner {
     }
 
     int get_heuristic(HeuristicTable &ht, SharedEnvironment *env, int source, Neighbors *ns) {
-        ASSERT(ht.open.size() == 1, "invalid size");
+        /*ASSERT(ht.open.size() == 1, "invalid size");
 
         uint32_t target = ht.open.back().location;
-        return get_hm().get(get_graph().get_node(Position(source, 0)), get_graph().get_node(Position(target, 0)));
+        return get_hm().get(get_graph().get_node(Position(source, 0)), get_graph().get_node(Position(target, 0)));*/
 
         if (ht.htable[source] < MAX_TIMESTEP) return ht.htable[source];
 
@@ -93,12 +93,12 @@ namespace DefaultPlanner {
     }
 
     int get_h(SharedEnvironment *env, int source, int target) {
-        ASSERT(0 <= source && source < env->map.size(), "invalid source");
+        /*ASSERT(0 <= source && source < env->map.size(), "invalid source");
         ASSERT(0 <= target && target < env->map.size(), "invalid target");
 
-        return get_hm().get(get_graph().get_node(Position(source, 0)), get_graph().get_node(Position(target, 0)));
+        return get_hm().get(get_graph().get_node(Position(source, 0)), get_graph().get_node(Position(target, 0)));*/
 
-        /*if (global_heuristictable.empty()) {
+        if (global_heuristictable.empty()) {
             init_heuristics(env);
         }
 
@@ -106,7 +106,7 @@ namespace DefaultPlanner {
             init_heuristic(global_heuristictable.at(target), env, target);
         }
 
-        return get_heuristic(global_heuristictable.at(target), env, source, &global_neighbors);*/
+        return get_heuristic(global_heuristictable.at(target), env, source, &global_neighbors);
     }
 
 

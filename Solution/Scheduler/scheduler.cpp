@@ -173,7 +173,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
 
             used_tasks.insert(task_id);
             proposed_schedule[r] = task_id;
-            if (get_dist_to_start(r, task_id) <= 3) {
+            if (get_dist_to_start(r, task_id) <= 30) {
                 done_proposed_schedule[r] = task_id;
             }
             //cnt++;
