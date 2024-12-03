@@ -215,6 +215,9 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
             }
 
             uint32_t index = *std::min_element(answer.begin(), answer.end());
+            if (index == -1) {
+                break;
+            }
             ASSERT(index < dp[r].size(), "invalid index");
             auto [dist, task_id] = dp[r][index];
 
