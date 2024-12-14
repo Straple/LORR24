@@ -39,7 +39,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 31;
+static constexpr uint32_t THREADS = 1;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 

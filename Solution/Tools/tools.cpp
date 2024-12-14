@@ -22,7 +22,7 @@ void build_meta_info(const std::string &filename) {
     }
 
     // [pos][dir][action]
-    std::vector<std::array<std::array<uint32_t, 3>, 4>> dp(get_map().get_size());
+    std::vector<std::array<std::array<uint32_t, 5>, 5>> dp(get_map().get_size());
 
     std::vector<Position> starts;
 
@@ -42,14 +42,17 @@ void build_meta_info(const std::string &filename) {
             Action act = c == 'F' ? Action::FW : (c == 'R' ? Action::CR : (c == 'C' ? Action::CCR : (c == 'W' ? Action::W : (ASSERT(false, "invalid action"), Action::NA))));
 
             dp[pos.get_pos()][pos.get_dir()][static_cast<uint32_t>(act)]++;
+            dp[pos.get_pos()][4][static_cast<uint32_t>(act)]++;
+            dp[pos.get_pos()][pos.get_dir()][4]++;
+            dp[pos.get_pos()][4][4]++;
 
             pos = pos.simulate_action(act);
         }
         id++;
     }
 
-    for (uint32_t dir = 0; dir < 4; dir++) {
-        for (uint32_t act = 0; act < 4; act++) {
+    for (uint32_t dir = 0; dir < 5; dir++) {
+        for (uint32_t act = 0; act < 5; act++) {
             for (uint32_t pos = 0; pos < get_map().get_size(); pos++) {
                 if (pos != 0) {
                     output << ' ';
