@@ -48,10 +48,13 @@ void build_meta_info(const std::string &filename) {
         id++;
     }
 
-    for (uint32_t pos = 0; pos < get_map().get_size(); pos++) {
-        for (uint32_t dir = 0; dir < 4; dir++) {
-            for (uint32_t act = 0; act < 4; act++) {
-                output << dp[pos][dir][act] << ' ';
+    for (uint32_t dir = 0; dir < 4; dir++) {
+        for (uint32_t act = 0; act < 4; act++) {
+            for (uint32_t pos = 0; pos < get_map().get_size(); pos++) {
+                if (pos != 0) {
+                    output << ' ';
+                }
+                output << dp[pos][dir][act];
             }
             output << '\n';
         }

@@ -1,16 +1,48 @@
-# This is a sample Python script.
-
-# Press F5 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import matplotlib.pyplot as plt
+import numpy as np
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def read(filename):
+    with open(filename) as f:
+        lines = [line.rstrip('\n') for line in f]
+        rows, cols = lines[0].split(' ')
+        rows = int(rows)
+        cols = int(cols)
+        print(rows, cols)
+        result = []
+        for dir in range(0, 4):
+            result.append([])
+            for act in range(0, 4):
+                map = [int(x) for x in lines[1 + dir * 5 + act].split(' ')]
+
+                data = []
+                for x in range(0, rows):
+                    data.append([])
+                    for y in range(0, cols):
+                        pos = x * cols + y
+                        data[-1].append(map[pos])
+
+                result[-1].append(data)
+        return result
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    data = read('../../output.txt')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    dirs = ["East", "South", "West", "North"]
+
+    acts = ["Forward", "Rotate", "Counter rotate", "Wait"]
+
+    print(len(data))
+    fig, axes = plt.subplots(4, 4, figsize=(10, 10))
+    images = []
+    for i in range(16):
+        dir = i // 4
+        act = i % 4
+        map = data[dir][act]
+        ax = axes[dir][act]
+        images.append(ax.imshow(map, cmap='viridis'))
+        ax.set_title(dirs[dir] + " & " + acts[act])
+        ax.axis('off')
+    plt.tight_layout()
+    plt.show()
