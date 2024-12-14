@@ -1,16 +1,25 @@
-#include "position.hpp"
+#include <Objects/Basic/position.hpp>
 
-#include "Objects/Environment/map.hpp"
-#include "assert.hpp"
+#include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/map.hpp>
 
 Position::Position(uint32_t pos, uint32_t dir)
     : x(pos / get_map().get_cols()),
       y(pos % get_map().get_cols()),
       dir(dir) {
-    ASSERT(0 <= dir && dir < 4, "invalid dir");
     ASSERT(0 <= pos < get_map().get_size(), "invalid pos");
     ASSERT(0 <= x && x < get_map().get_cols(), "invalid x");
     ASSERT(0 <= y && y < get_map().get_cols(), "invalid y");
+    ASSERT(0 <= dir && dir < 4, "invalid dir");
+}
+
+Position::Position(uint32_t x, uint32_t y, uint32_t dir)
+    : x(x),
+      y(y),
+      dir(dir) {
+    ASSERT(0 <= x && x < get_map().get_cols(), "invalid x");
+    ASSERT(0 <= y && y < get_map().get_cols(), "invalid y");
+    ASSERT(0 <= dir && dir < 4, "invalid dir");
 }
 
 uint32_t Position::get_pos() const {

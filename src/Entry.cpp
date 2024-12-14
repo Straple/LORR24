@@ -8,6 +8,8 @@
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/map.hpp>
 
+#include <Tools/tools.hpp>
+
 // The initialize function will be called by competition system at the preprocessing stage.
 // Implement the initialize functions of the planner and scheduler to load or compute auxiliary data.
 // Note that, this function runs untill preprocess_time_limit (in milliseconds) is reached.
@@ -20,6 +22,10 @@ void Entry::initialize(int preprocess_time_limit) {
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
+
+    build_meta_info("test.json");
+
+    std::exit(0);
 }
 
 //The compute function will be called by competition system on each timestep.

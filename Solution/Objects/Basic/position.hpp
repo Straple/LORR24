@@ -11,6 +11,8 @@ public:
 
     Position(uint32_t pos, uint32_t dir);
 
+    Position(uint32_t x, uint32_t y, uint32_t dir);
+
     [[nodiscard]] uint32_t get_pos() const;
 
     [[nodiscard]] uint32_t get_x() const;

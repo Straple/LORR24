@@ -30,19 +30,36 @@ include_directories("default_planner")
 
 include_directories("Solution")
 
-file(GLOB SOURCES "src/*.cpp" "default_planner/*.cpp"
+file(GLOB SOURCES
+        src/ActionModel.cpp
+        src/common.cpp
+        src/CompetitionSystem.cpp
+        src/Entry.cpp
+        src/Evaluation.cpp
+        src/Grid.cpp
+        src/Logger.cpp
+        src/MAPFPlanner.cpp
+        src/Simulator.cpp
+        src/States.cpp
+        src/TaskManager.cpp
+        src/TaskScheduler.cpp
+
+        default_planner/*.cpp
+
         # team solution
-        "Solution/Objects/*.cpp"
-        "Solution/Objects/Basic/*.cpp"
-        "Solution/Objects/Containers/*.cpp"
-        "Solution/Objects/Environment/*.cpp"
+        Solution/Objects/*.cpp
+        Solution/Objects/Basic/*.cpp
+        Solution/Objects/Containers/*.cpp
+        Solution/Objects/Environment/*.cpp
 
-        "Solution/Planner/*.cpp"
-        "Solution/Planner/Solver/*.cpp"
-        "Solution/Planner/Machine/*.cpp"
-        "Solution/Planner/PIBT/*.cpp"
+        Solution/Tools/tools.cpp
 
-        "Solution/Scheduler/*.cpp"
+        Solution/Planner/*.cpp
+        Solution/Planner/Solver/*.cpp
+        Solution/Planner/Machine/*.cpp
+        Solution/Planner/PIBT/*.cpp
+
+        Solution/Scheduler/*.cpp
         )
 
 
@@ -86,8 +103,11 @@ ELSE ()
     message(STATUS "Python support is disabled")
 
 
-    add_executable(lifelong ${SOURCES})
+    add_executable(lifelong src/driver.cpp ${SOURCES})
+    #add_executable(build_main Solution/Tools/build_main.cpp ${SOURCES})
+
     target_link_libraries(lifelong ${Boost_LIBRARIES})
+    #target_link_libraries(build_main ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
 ENDIF ()
 
