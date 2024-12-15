@@ -4,7 +4,7 @@
 
 std::vector<Action> lacam_solve() {
     struct Comparator {
-        bool operator()(const PNode lhs, const PNode rhs) const {
+        bool operator()(PNode lhs, PNode rhs) const {
             return lhs->score > rhs->score;
         }
     };
@@ -18,6 +18,7 @@ std::vector<Action> lacam_solve() {
         }
         for (uint32_t r = 0; r < get_robots_handler().size(); r++) {
             start->robots.push_back(get_robots_handler().get_robot(r).node);
+            //std::cout << r << ' ' << get_graph().get_pos(get_robots_handler().get_robot(r).node) << '\n';
         }
         S.insert(start);
     }
@@ -32,7 +33,7 @@ std::vector<Action> lacam_solve() {
         S.erase(S.begin());
         //gc.push_back(node);
 
-        std::cout << S.size() << ' ' << node->depth << ' ' << node->index << std::endl;
+        //std::cout << S.size() << ' ' << node->depth << ' ' << node->index << std::endl;
 
         ASSERT(node->depth <= PLANNER_DEPTH, "invalid depth");
         ASSERT(node->index < get_robots_handler().size(), "invalid index");
@@ -63,7 +64,8 @@ std::vector<Action> lacam_solve() {
             to->used_poses.insert(to_pos);
             to->actions[node->depth][node->index] = static_cast<Action>(action);
 
-            to->score++;// += to->index == get_robots_handler().size();
+            to->score -= get_hm().get(to_node, get_robots_handler().get_robot(node->index).target);
+            // += to->index == get_robots_handler().size();
 
             if (to->index == get_robots_handler().size()) {
                 // flush

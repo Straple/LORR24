@@ -20,7 +20,7 @@ Graph::Graph(const Map &map) {
     to_node.resize(node_to_pos.size());
     to_edge.resize(node_to_pos.size());
 
-    std::map<std::pair<Position, Position>, uint32_t> edges;
+    std::map<std::pair<uint32_t, uint32_t>, uint32_t> edges;
     for (uint32_t node = 0; node < node_to_pos.size(); node++) {
         for (uint32_t action = 0; action < 4; action++) {
             Position p = node_to_pos[node];
@@ -31,14 +31,17 @@ Graph::Graph(const Map &map) {
 
             to_node[node][action] = get_node(to);
 
-            if (to < p) {
-                std::swap(to, p);
+            uint32_t a = p.get_pos();
+            uint32_t b = to.get_pos();
+
+            if (a > b) {
+                std::swap(a, b);
             }
-            if (!edges.count({p, to})) {
-                edges[{p, to}] = edges.size() + 1;
+            if (!edges.count({a, b})) {
+                edges[{a, b}] = edges.size() + 1;
             }
 
-            to_edge[node][action] = edges[{p, to}];
+            to_edge[node][action] = edges[{a, b}];
         }
     }
     edges_size = edges.size() + 1;

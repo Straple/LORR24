@@ -41,4 +41,6 @@ public:
     friend bool operator!=(const Position &lhs, const Position &rhs);
 
     friend bool operator<(const Position &lhs, const Position &rhs);
+
+    friend std::ostream &operator<<(std::ostream &output, const Position &pos);
 };

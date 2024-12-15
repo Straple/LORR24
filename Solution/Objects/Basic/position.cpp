@@ -106,3 +106,7 @@ bool operator<(const Position &lhs, const Position &rhs) {
     }
     return lhs.dir < rhs.dir;
 }
+
+std::ostream &operator<<(std::ostream &output, const Position &pos) {
+    return output << "(" << pos.get_x() << ", " << pos.get_y() << ", " << pos.get_dir() << ")";
+}

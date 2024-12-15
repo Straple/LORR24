@@ -44,7 +44,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 static constexpr uint32_t THREADS = 8;
 
-static constexpr uint32_t PLANNER_DEPTH = 1;
+static constexpr uint32_t PLANNER_DEPTH = 3;
 
 static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 

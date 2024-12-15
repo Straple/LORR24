@@ -22,7 +22,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     get_robots_handler() = RobotsHandler(*env);
 
-    plan = lacam_solve();
+    //plan = lacam_solve();
 
 #ifdef ENABLE_PIBT_SOLVER
     PIBTSolver pibt_solver;
