@@ -30,6 +30,6 @@ void TaskScheduler::initialize(int preprocess_time_limit) {
  * @param proposed_schedule A reference to a vector that will be populated with the proposed schedule (next task id for each agent).
  */
 
-void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    DefaultPlanner::schedule_plan(time_limit, proposed_schedule, env);
+std::vector<int> TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
+    return DefaultPlanner::schedule_plan(time_limit, proposed_schedule, env);
 }

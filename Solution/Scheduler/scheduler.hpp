@@ -7,7 +7,7 @@ class MyScheduler {
 public:
     SharedEnvironment *env;
 
-    MyScheduler(SharedEnvironment *env) : env(env) {};
+    explicit MyScheduler(SharedEnvironment *env) : env(env) {};
 
     MyScheduler() { env = new SharedEnvironment(); };
 

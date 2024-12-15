@@ -10,6 +10,8 @@
 
 #include <Tools/tools.hpp>
 
+#include <settings.hpp>
+
 // The initialize function will be called by competition system at the preprocessing stage.
 // Implement the initialize functions of the planner and scheduler to load or compute auxiliary data.
 // Note that, this function runs untill preprocess_time_limit (in milliseconds) is reached.
@@ -23,9 +25,8 @@ void Entry::initialize(int preprocess_time_limit) {
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
 
-    build_meta_info("test.json");
-
-    std::exit(0);
+    //build_meta_info("test.json");
+    //std::exit(0);
 }
 
 //The compute function will be called by competition system on each timestep.
@@ -43,8 +44,10 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     //call the planner to compute the actions
     planner->plan(time_limit, plan);
 
-    proposed_schedule = std::move(done_proposed_schedule);
-    update_goal_locations(proposed_schedule);
+    if constexpr (std::is_same_v<TASKSHEDULLER, MyScheduler>) {
+        proposed_schedule = std::move(done_proposed_schedule);
+        update_goal_locations(proposed_schedule);
+    }
 }
 
 // Set the next goal locations for each agent based on the proposed schedule

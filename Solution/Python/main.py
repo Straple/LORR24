@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     dirs = ["East", "South", "West", "North", "All"]
 
-    acts = ["Forward", "Rotate", "Counter rotate", "Wait", "All"]
+    acts = ["Forward", "Rotate", "C. rotate", "Wait", "All"]
 
     fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []

@@ -13,7 +13,7 @@ namespace DefaultPlanner {
         mt.seed(0);
     }
 
-    void schedule_plan(int time_limit, std::vector<int> &proposed_schedule, SharedEnvironment *env) {
+    std::vector<int> schedule_plan(int time_limit, std::vector<int> &proposed_schedule, SharedEnvironment *env) {
         //use at most half of time_limit to compute schedule, -10 for timing error tolerance
         //so that the remainning time are left for path planner
         TimePoint endtime = std::chrono::steady_clock::now() + std::chrono::milliseconds(time_limit);
@@ -30,7 +30,7 @@ namespace DefaultPlanner {
             }
         }
 
-        std::cout << "kek: " << free_agents.size() << ' ' << free_tasks.size() << ' ' << env->task_pool.size() << std::endl;
+        //std::cout << "kek: " << free_agents.size() << ' ' << free_tasks.size() << ' ' << env->task_pool.size() << std::endl;
 
         int min_task_i, min_task_makespan, dist, c_loc, count;
         clock_t start = clock();
@@ -91,5 +91,6 @@ namespace DefaultPlanner {
         //cout << "new free agents: " << env->new_freeagents.size() << " new tasks: " << env->new_tasks.size() << endl;
         //cout << "free agents: " << free_agents.size() << " free tasks: " << free_tasks.size() << endl;
 #endif
+        return proposed_schedule;
     }
 }// namespace DefaultPlanner
