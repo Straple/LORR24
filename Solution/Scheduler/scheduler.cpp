@@ -3,7 +3,6 @@
 #include <Scheduler/scheduler_solver.hpp>
 
 #include <Objects/Basic/assert.hpp>
-#include <Objects/Environment/environment.hpp>
 
 #include <atomic>
 #include <thread>

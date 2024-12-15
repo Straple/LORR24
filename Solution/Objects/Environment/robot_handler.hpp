@@ -18,6 +18,8 @@ public:
     explicit RobotsHandler(SharedEnvironment &env);
 
     [[nodiscard]] const Robot &get_robot(uint32_t r) const;
+
+    [[nodiscard]] uint32_t size() const;
 };
 
 RobotsHandler &get_robots_handler();

@@ -24,9 +24,6 @@ void Entry::initialize(int preprocess_time_limit) {
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
-
-    //build_meta_info("test.json");
-    //std::exit(0);
 }
 
 //The compute function will be called by competition system on each timestep.

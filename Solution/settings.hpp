@@ -39,15 +39,18 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 //#define ENABLE_PLANNER_MACHINE
 
-static constexpr uint32_t THREADS = 1;
+// при завершении программы вызывает tools::build_meta_info в driver.cpp
+#define BUILD_META_INFO
 
-static constexpr uint32_t PLANNER_DEPTH = 3;
+static constexpr uint32_t THREADS = 8;
+
+static constexpr uint32_t PLANNER_DEPTH = 1;
 
 static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
-using PLANNER = MAPFPlanner;
+using PLANNER = EPlanner;
 
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм

@@ -8,6 +8,9 @@
 #include <memory>
 #include <signal.h>
 
+#include <settings.hpp>
+#include <Tools/tools.hpp>
+
 
 #ifdef PYTHON
 #if PYTHON
@@ -145,5 +148,10 @@ int main(int argc, char **argv) {
 
     delete model;
     delete logger;
+
+#ifdef BUILD_META_INFO
+    build_meta_info("test.json");
+#endif
+
     _exit(0);
 }

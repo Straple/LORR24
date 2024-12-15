@@ -1,13 +1,8 @@
 #include "eplanner.hpp"
 
-#include "Objects/Basic/assert.hpp"
-#include "Objects/Environment/environment.hpp"
-#include "Objects/Environment/robot_handler.hpp"
-#include "PIBT/pibt.hpp"
-#include "PIBT/pibt_solver.hpp"
-#include "PIBT/pibt_star.hpp"
-#include "Solver/global_dp.hpp"
-#include "Solver/planner_solver.hpp"
+#include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/environment.hpp>
+#include <Planner/LaCAM/lacam.hpp>
 
 #include <algorithm>
 #include <thread>
@@ -26,6 +21,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.assign(env->num_of_agents, Action::W);
 
     get_robots_handler() = RobotsHandler(*env);
+
+    plan = lacam_solve();
 
 #ifdef ENABLE_PIBT_SOLVER
     PIBTSolver pibt_solver;

@@ -26,6 +26,10 @@ const RobotsHandler::Robot &RobotsHandler::get_robot(uint32_t r) const {
     return robots[r];
 }
 
+uint32_t RobotsHandler::size() const {
+    return robots.size();
+}
+
 RobotsHandler &get_robots_handler() {
     static RobotsHandler rh;
     return rh;
