@@ -14,8 +14,8 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         auto &task = env.task_pool.at(task_id);
 
         uint32_t node = get_graph().get_node(Position(env.curr_states[r].location, env.curr_states[r].orientation));
-        uint32_t target = get_graph().get_node(Position(task.get_next_loc(), env.curr_states[r].orientation));
-        uint32_t priority = get_hm().get(node, target);
+        uint32_t target = task.get_next_loc();//get_graph().get_node(Position(task.get_next_loc(), env.curr_states[r].orientation));
+        uint32_t priority = get_hm().get_to_pos(node, target);
 
         robots[r] = {node, target, priority};
     }

@@ -2,18 +2,25 @@
 
 #include <Objects/Basic/position.hpp>
 
+// my.domain
+// PIBT: 452 ->
+// their: 412
+
+// random.domain
+// 1k: 2014
+// 10k: 18010
+
 // Priority Inheritance with BackTracking
 class PIBT {
     struct Robot {
         uint32_t node = 0;
 
+        uint32_t pos = 0;
+
         // куда мы хотим
         // -1 -- не определено
         // иначе это направление для forward
         int desired = -1;
-
-        // то куда мы хотим попасть
-        uint32_t target = 0;
     };
 
     std::vector<Robot> robots;

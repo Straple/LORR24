@@ -31,7 +31,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 //#define ENABLE_PLANNER_SOLVER
 
-//#define ENABLE_PIBT
+#define ENABLE_PIBT
 
 //#define ENABLE_PIBT_STAR
 
@@ -42,7 +42,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 #define BUILD_META_INFO
 
-static constexpr uint32_t THREADS = 8;
+static constexpr uint32_t THREADS = 1;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 

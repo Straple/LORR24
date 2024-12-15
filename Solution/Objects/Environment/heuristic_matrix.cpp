@@ -70,6 +70,14 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
     return dp[source][dest];
 }
 
+uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t dest) const {
+    uint32_t e = get_graph().get_node(Position(dest, 0));
+    uint32_t s = get_graph().get_node(Position(dest, 1));
+    uint32_t w = get_graph().get_node(Position(dest, 2));
+    uint32_t n = get_graph().get_node(Position(dest, 3));
+    return std::min(std::min(get(source, e), get(source, s)), std::min(get(source, w), get(source, n)));
+}
+
 HeuristicMatrix &get_hm() {
     static HeuristicMatrix hm;
     return hm;

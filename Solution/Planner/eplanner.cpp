@@ -3,6 +3,7 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 #include <Planner/LaCAM/lacam.hpp>
+#include <Planner/PIBT/pibt.hpp>
 
 #include <algorithm>
 #include <thread>
@@ -34,21 +35,10 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     iota(order.begin(), order.end(), 0);
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
-        /*uint32_t lhs_source =
-                get_graph().get_node(Position(env->curr_states[lhs].location, env->curr_states[lhs].orientation));
-        uint32_t lhs_dest = get_graph().get_node(
-                Position(env->task_pool[env->curr_task_schedule[lhs]].get_next_loc(), env->curr_states[lhs].orientation));
-
-        uint32_t rhs_source =
-                get_graph().get_node(Position(env->curr_states[rhs].location, env->curr_states[rhs].orientation));
-        uint32_t rhs_dest = get_graph().get_node(
-                Position(env->task_pool[env->curr_task_schedule[rhs]].get_next_loc(), env->curr_states[rhs].orientation));
-
-        return get_hm().get(lhs_source, lhs_dest) < get_hm().get(rhs_source, rhs_dest);*/
     });
 
-    //PIBT pibt;
-    //plan = pibt.solve(order, end_time);
+    PIBT pibt;
+    plan = pibt.solve(order, end_time);
 #endif
 
     /*

@@ -1,8 +1,7 @@
 #include <Scheduler/scheduler.hpp>
 
-#include <Scheduler/scheduler_solver.hpp>
-
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/environment.hpp>
 
 #include <atomic>
 #include <thread>
@@ -15,6 +14,8 @@ void MyScheduler::initialize(int preprocess_time_limit) {
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     static uint32_t launch_num = 0;
     launch_num++;
+
+    Timer timer;
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
 
@@ -57,14 +58,16 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
 
         uint32_t loc = env->task_pool[t].locations[0];
-        uint32_t dist = MAX_SCORE;
+
+        return get_hm().get_to_pos(source, loc);
+        /*uint32_t dist = MAX_SCORE;
         for (uint32_t dir = 0; dir < 4; dir++) {
             Position p(loc, dir);
             uint32_t target = get_graph().get_node(p);
-            //DefaultPlanner::get_h(env, env->curr_states[r].location, loc);
             dist = std::min(dist, get_hm().get(source, target));
         }
-        return dist;
+        ASSERT(dist == get_hm().get_to_pos(source, loc), "invalid dist");
+        return dist;*/
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
@@ -240,5 +243,6 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         }
     }
 
+    std::cout << "Scheduler: " << timer << '\n';
     return done_proposed_schedule;
 }
