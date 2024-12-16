@@ -5,8 +5,8 @@ bool my_assert_failed(const std::string &message, const std::string &filename, c
     std::cerr << "message: \"" << message << "\"\n";
     std::cerr.flush();
     std::cout.flush();
-    throw std::runtime_error(message + ", failed at: " + filename + ":" + std::to_string(line));
+    //throw std::runtime_error(message + ", failed at: " + filename + ":" + std::to_string(line));
     //std::exit(100);
-    //while(true){}
+    while(true){}
     return true;
 }

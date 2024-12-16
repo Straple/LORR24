@@ -2,8 +2,9 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
-#include <Planner/LaCAM/lacam.hpp>
+//#include <Planner/LaCAM/lacam.hpp>
 #include <Planner/PIBT/pibt.hpp>
+#include <Planner/PIBT/pibt2.hpp>
 
 #include <algorithm>
 #include <thread>
@@ -37,7 +38,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
     });
 
-    PIBT pibt;
+    PIBT2 pibt;
     plan = pibt.solve(order, end_time);
 #endif
 
