@@ -2,7 +2,8 @@
 
 #include <Objects/Basic/position.hpp>
 
-// 845 -> 1277 -> 1809 -> 1989
+// 845 -> 1277 -> 1809 -> 1989 -> 2048 -> 2099 -> 2215
+// 20911 -> 21819
 class PIBT2 {
 
     static constexpr inline uint32_t DEPTH = 3;
@@ -13,19 +14,32 @@ class PIBT2 {
     // CCF
     // RFW
 
-    constexpr static inline std::array<std::array<Action, DEPTH>, 5> actions = {
+    constexpr static inline std::array<std::array<Action, DEPTH>, 11> actions = {
             {
                     {Action::W, Action::W, Action::W},
+
                     {Action::FW, Action::W, Action::W},
+                    {Action::FW, Action::FW, Action::W},
+                    {Action::FW, Action::FW, Action::FW},
+
+                    {Action::FW, Action::CR, Action::FW},
+                    {Action::FW, Action::CCR, Action::FW},
+
                     {Action::CR, Action::FW, Action::W},
+                    {Action::CR, Action::FW, Action::FW},
+
                     {Action::CR, Action::CR, Action::FW},
+
                     {Action::CCR, Action::FW, Action::W},
+                    //{Action::CCR, Action::FW, Action::CR},
+                    {Action::CCR, Action::FW, Action::FW},
             }};
 
-    constexpr static inline std::array<int32_t, 5> actions_weight = {
-            {3, 2, 1, 0, 1} // 1989
+    constexpr static inline std::array<int32_t, actions.size()> actions_weight = {
+            //{3, 2, 1, 0, 1} // 1989
             //{3, 2, 0, 0, 0} // 1984
             //{6, 4, 3, 2, 3} //
+            //{3, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
     // used_edge[depth][edge] = robot id
