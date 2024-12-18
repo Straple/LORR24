@@ -1,6 +1,7 @@
 #include <Planner/LaCAM/lacam.hpp>
 
 #include <Planner/LaCAM/node.hpp>
+#include <Objects/Basic/assert.hpp>
 
 std::vector<Action> lacam_solve() {
     struct Comparator {
