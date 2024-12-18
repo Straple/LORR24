@@ -3,6 +3,8 @@ project(lifelong)
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
 
+set(EXECUTABLE_OUTPUT_PATH ../)
+
 # Set the default value of PYTHON to false
 option(PYTHON "Enable Python" OFF)
 
@@ -103,6 +105,7 @@ IF (PYTHON)
 ELSE ()
     message(STATUS "Python support is disabled")
 
+    add_executable(pibt_main Solution/Planner/PIBT/main/pibt_main.cpp ${SOURCES})
 
     add_executable(lifelong src/driver.cpp ${SOURCES})
     #add_executable(build_main Solution/Tools/build_main.cpp ${SOURCES})
@@ -110,6 +113,9 @@ ELSE ()
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     #target_link_libraries(build_main ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+
+    target_link_libraries(pibt_main ${Boost_LIBRARIES})
+
 ENDIF ()
 
 

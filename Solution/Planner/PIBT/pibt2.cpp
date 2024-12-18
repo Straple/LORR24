@@ -3,8 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
-bool verify(const Operation &op) {
-    //return op[0] != Action::W;
+bool verify_lol(const Operation &op) {
+    return op[0] != Action::W;
 
     for (uint32_t i = 0; i + 1 < op.size(); i++) {
         if (op[i] == Action::W && op[i + 1] != Action::W) {
@@ -16,11 +16,12 @@ bool verify(const Operation &op) {
 
 void BuilderActions::generate(Operation &op, uint32_t i) {
     if (i == DEPTH) {
-        if (verify(op)) {
+        if (verify_lol(op)) {
             pool.push_back(op);
         }
     } else {
-        for (int32_t action = 0; action < 4; action++) {
+        //for (int32_t action = 0; action < 4; action++) {
+        for (int32_t action = 3; action >= 0; action--) {
             op[i] = static_cast<Action>(action);
             generate(op, i + 1);
         }
@@ -29,12 +30,59 @@ void BuilderActions::generate(Operation &op, uint32_t i) {
 
 std::vector<Operation> BuilderActions::get() {
     Operation op;
-    generate(op, 0);
-    pool.insert(pool.begin(), op);
+
+    // read pool
+    {
+        std::ifstream input("actions.txt");
+        uint32_t num;
+        input >> num;
+        std::cout << "num: " << num << std::endl;
+        for (uint32_t i = 0; i < num; i++) {
+            std::string line;
+            input >> line;
+            ASSERT(line.size() == op.size(), "does not match sizes");
+            for (uint32_t j = 0; j < op.size(); j++) {
+                if (line[j] == 'W') {
+                    op[j] = Action::W;
+                } else if (line[j] == 'F') {
+                    op[j] = Action::FW;
+                } else if (line[j] == 'R') {
+                    op[j] = Action::CR;
+                } else if (line[j] == 'C') {
+                    op[j] = Action::CCR;
+                } else {
+                    ASSERT(false, "failed");
+                }
+            }
+            pool.push_back(op);
+        }
+    }
+
+    /*generate(op, 0);
+
+    auto calc = [&](const Operation& op){
+        uint32_t cnt = 0;
+        for(uint32_t i = 0; i < op.size(); i++){
+            cnt += op[i] == Action::FW;
+        }
+        return cnt;
+    };
+
+    std::sort(pool.begin(), pool.end(), [&](const Operation& lhs, const Operation& rhs){
+        return calc(lhs) > calc(rhs);
+    });*/
+
+    // add WWW
+    {
+        for (uint32_t i = 0; i < op.size(); i++) {
+            op[i] = Action::W;
+        }
+        pool.insert(pool.begin(), op);
+    }
 
     std::vector<Operation> result;
 
-    std::set<std::pair<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
+    std::set<std::array<std::pair<uint32_t, uint32_t>, DEPTH>> visited;
     for (auto operation: pool) {
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
         Position p;
@@ -42,7 +90,7 @@ std::vector<Operation> BuilderActions::get() {
             p = p.simulate_action(operation[d]);
             positions[d] = {p.get_x(), p.get_y()};
         }
-        std::pair<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>> kek = {p.get_dir(), positions};
+        std::array<std::pair<uint32_t, uint32_t>, DEPTH> kek = positions;
         if (!visited.count(kek)) {
             visited.insert(kek);
             result.push_back(operation);
@@ -216,7 +264,7 @@ uint32_t PIBT2::get_used(uint32_t r) const {
         node = to_node;
     }
     // TODO: очень странно почему возможно встретить двух роботов
-    //ASSERT(answer.size() <= 1, "invalid answer size");
+    // ASSERT(answer.size() <= 1, "invalid answer size");
     if (answer.size() > 1) {
         return -2;
     }
@@ -351,6 +399,7 @@ PIBT2::PIBT2() {
 
 std::vector<Action>
 PIBT2::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
+    std::cout << "START PIBT2" << std::endl;
     Timer timer;
     // PIBT
     for (uint32_t r: order) {

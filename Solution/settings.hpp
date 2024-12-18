@@ -40,7 +40,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 //#define ENABLE_PLANNER_MACHINE
 
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
-#define BUILD_META_INFO
+//#define BUILD_META_INFO
 
 static constexpr uint32_t THREADS = 1;
 
