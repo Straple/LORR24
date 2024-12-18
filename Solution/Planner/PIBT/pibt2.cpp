@@ -3,6 +3,134 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
+bool verify(const Operation &op) {
+    //return op[0] != Action::W;
+
+    for (uint32_t i = 0; i + 1 < op.size(); i++) {
+        if (op[i] == Action::W && op[i + 1] != Action::W) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void BuilderActions::generate(Operation &op, uint32_t i) {
+    if (i == DEPTH) {
+        if (verify(op)) {
+            pool.push_back(op);
+        }
+    } else {
+        for (int32_t action = 0; action < 4; action++) {
+            op[i] = static_cast<Action>(action);
+            generate(op, i + 1);
+        }
+    }
+}
+
+std::vector<Operation> BuilderActions::get() {
+    Operation op;
+    generate(op, 0);
+    pool.insert(pool.begin(), op);
+
+    std::vector<Operation> result;
+
+    std::set<std::pair<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
+    for (auto operation: pool) {
+        std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
+        Position p;
+        for (uint32_t d = 0; d < DEPTH; d++) {
+            p = p.simulate_action(operation[d]);
+            positions[d] = {p.get_x(), p.get_y()};
+        }
+        std::pair<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>> kek = {p.get_dir(), positions};
+        if (!visited.count(kek)) {
+            visited.insert(kek);
+            result.push_back(operation);
+        }
+    }
+
+    /*result = {
+            {Action::W, Action::W, Action::W},
+
+            {Action::FW, Action::W, Action::W},
+            {Action::FW, Action::FW, Action::W},
+            {Action::FW, Action::FW, Action::FW},
+
+            {Action::FW, Action::CR, Action::FW},
+            {Action::FW, Action::CCR, Action::FW},
+
+            {Action::CR, Action::FW, Action::W},
+            {Action::CR, Action::FW, Action::FW},
+
+            {Action::CR, Action::CR, Action::FW},
+
+            {Action::CCR, Action::FW, Action::W},
+            //{Action::CCR, Action::FW, Action::CR},
+            {Action::CCR, Action::FW, Action::FW},
+    };*/
+
+    // 21819
+    /*result = {
+            {Action::W, Action::W, Action::W},
+
+            {Action::FW, Action::W, Action::W},
+            {Action::FW, Action::FW, Action::W},
+            {Action::FW, Action::FW, Action::FW},
+
+            {Action::FW, Action::CR, Action::FW},
+            {Action::FW, Action::CCR, Action::FW},
+
+            {Action::CR, Action::FW, Action::W},
+            {Action::CR, Action::FW, Action::FW},
+
+            {Action::CR, Action::CR, Action::FW},
+
+            {Action::CCR, Action::FW, Action::W},
+            //{Action::CCR, Action::FW, Action::CR},
+            {Action::CCR, Action::FW, Action::FW},
+    };*/
+
+    std::cout << "Operation: " << result.size() << std::endl;
+    for (auto operation: result) {
+        for (uint32_t d = 0; d < DEPTH; d++) {
+            char c = '#';
+            if (operation[d] == Action::FW) {
+                c = 'F';
+            } else if (operation[d] == Action::CR) {
+                c = 'R';
+            } else if (operation[d] == Action::CCR) {
+                c = 'C';
+            } else if (operation[d] == Action::W) {
+                c = 'W';
+            } else {
+                ASSERT(false, "failed");
+            }
+            std::cout << c;
+        }
+        std::cout << '\n';
+    }
+    return result;
+    /*return {
+            {Action::W, Action::W, Action::W},
+
+            {Action::FW, Action::W, Action::W},
+            {Action::FW, Action::FW, Action::W},
+            {Action::FW, Action::FW, Action::FW},
+
+            {Action::FW, Action::CR, Action::FW},
+            {Action::FW, Action::CCR, Action::FW},
+
+            {Action::CR, Action::FW, Action::W},
+            {Action::CR, Action::FW, Action::FW},
+
+            {Action::CR, Action::CR, Action::FW},
+
+            {Action::CCR, Action::FW, Action::W},
+            //{Action::CCR, Action::FW, Action::CR},
+            {Action::CCR, Action::FW, Action::FW},
+    };*/
+}
+
 bool PIBT2::validate_path(uint32_t r) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
@@ -53,7 +181,7 @@ bool PIBT2::check_path(uint32_t r) const {
     return true;
 }
 
-std::array<uint32_t, PIBT2::DEPTH> PIBT2::get_path(uint32_t r) const {
+std::array<uint32_t, DEPTH> PIBT2::get_path(uint32_t r) const {
     uint32_t node = robots[r].start_node;
     auto &path = actions[robots[r].desired];
     std::array<uint32_t, DEPTH> result{};
@@ -161,13 +289,22 @@ bool PIBT2::build(uint32_t r) {
         if (validate_path(r) && get_used(r) != -2) {
             auto path = get_path(r);
 
-            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
-            priority -= actions_weight[desired];
+            int64_t priority = -1;
+            priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+            //priority -= actions_weight[desired];
+
+            /*for (uint32_t i = 0; i < DEPTH; i++) {
+                int64_t d = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+                d += i;
+                priority = std::min(priority, d);
+            }*/
+
             steps.emplace_back(priority, desired);
         }
     }
 
-    std::sort(steps.begin(), steps.end());
+    std::stable_sort(steps.begin(), steps.end());
+    //std::reverse(steps.begin(), steps.end());
 
     for (auto [priority, desired]: steps) {
         robots[r].desired = desired;
@@ -212,7 +349,8 @@ PIBT2::PIBT2() {
     }
 }
 
-std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
+std::vector<Action>
+PIBT2::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
     Timer timer;
     // PIBT
     for (uint32_t r: order) {

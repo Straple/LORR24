@@ -2,11 +2,23 @@
 
 #include <Objects/Basic/position.hpp>
 
+static constexpr inline uint32_t DEPTH = 3;
+
+using Operation = std::array<Action, DEPTH>;
+
+class BuilderActions {
+
+    std::vector<Operation> pool;
+
+    void generate(Operation &op, uint32_t i);
+
+public:
+    std::vector<Operation> get();
+};
+
 // 845 -> 1277 -> 1809 -> 1989 -> 2048 -> 2099 -> 2215
 // 20911 -> 21819
 class PIBT2 {
-
-    static constexpr inline uint32_t DEPTH = 3;
 
     // WWW -- initial
     // FWW
@@ -14,7 +26,9 @@ class PIBT2 {
     // CCF
     // RFW
 
-    constexpr static inline std::array<std::array<Action, DEPTH>, 11> actions = {
+    static inline std::vector<Operation> actions = BuilderActions().get();
+
+    /*constexpr static inline std::array<std::array<Action, DEPTH>, 11> actions = {
             {
                     {Action::W, Action::W, Action::W},
 
@@ -33,14 +47,15 @@ class PIBT2 {
                     {Action::CCR, Action::FW, Action::W},
                     //{Action::CCR, Action::FW, Action::CR},
                     {Action::CCR, Action::FW, Action::FW},
-            }};
+            }};*/
 
-    constexpr static inline std::array<int32_t, actions.size()> actions_weight = {
-            //{3, 2, 1, 0, 1} // 1989
-            //{3, 2, 0, 0, 0} // 1984
-            //{6, 4, 3, 2, 3} //
-            //{3, 0, 0, 0, 0, 0, 0, 0, 0}
-    };
+    //static inline std::vector<int32_t> actions_weight = std::vector<int32_t>(actions.size());
+    //{
+    //{3, 2, 1, 0, 1} // 1989
+    //{3, 2, 0, 0, 0} // 1984
+    //{6, 4, 3, 2, 3} //
+    //{3, 0, 0, 0, 0, 0, 0, 0, 0}
+    //};
 
     // used_edge[depth][edge] = robot id
     std::array<std::vector<uint32_t>, DEPTH> used_edge;
