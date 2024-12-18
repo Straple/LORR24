@@ -207,6 +207,7 @@ void PIBT2::add_path(uint32_t r) {
     ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
 
     uint32_t node = robots[r].start_node;
+    ASSERT(node != 0, "invalid start node");
     auto &path = actions[robots[r].desired];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
