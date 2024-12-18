@@ -3,7 +3,7 @@ project(lifelong)
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 17)
 
-set(EXECUTABLE_OUTPUT_PATH ../)
+#set(EXECUTABLE_OUTPUT_PATH ../)
 
 # Set the default value of PYTHON to false
 option(PYTHON "Enable Python" OFF)
