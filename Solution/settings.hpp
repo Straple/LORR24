@@ -56,6 +56,7 @@ struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = MyScheduler;
 
+#define ENABLE_SCHEDULER_TRICK
 
 // PIBT
 // steps: 10000

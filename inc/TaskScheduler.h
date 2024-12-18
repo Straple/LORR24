@@ -11,5 +11,5 @@ public:
     TaskScheduler() { env = new SharedEnvironment(); };
     virtual ~TaskScheduler() { delete env; };
     virtual void initialize(int preprocess_time_limit);
-    virtual std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
+    virtual void plan(int time_limit, std::vector<int> &proposed_schedule);
 };
