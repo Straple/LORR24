@@ -47,6 +47,7 @@ void generate(Operation &op, uint32_t i, std::vector<Operation> &pool) {
 
 uint32_t call(const std::vector<Operation> &pool) {
     std::cout << "call: " << std::flush;
+    Timer timer;
 
     {
         std::ofstream output("actions.txt");
@@ -55,7 +56,7 @@ uint32_t call(const std::vector<Operation> &pool) {
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     std::system(
-            "./lifelong -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 5000 -p 100000000 > log.txt");
+            "./lifelong -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 20 -p 100000000 > log.txt");
 
     json data;
     std::ifstream input("test.json");
@@ -67,7 +68,7 @@ uint32_t call(const std::vector<Operation> &pool) {
     }
 
     uint32_t value = data["numTaskFinished"];
-    std::cout << value << std::endl;
+    std::cout << value << ", " << timer << std::endl;
     return value;
 }
 

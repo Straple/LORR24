@@ -163,7 +163,6 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
     auto done_proposed_schedule = proposed_schedule;
     {
         static std::vector<uint32_t> used_task_t(500'000);// max task available
-        //std::unordered_set<uint32_t> used_tasks;
 
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
             return timestep_updated[lhs] > timestep_updated[rhs];
@@ -243,6 +242,6 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         }
     }
 
-    std::cout << "Scheduler: " << timer << std::endl;
+    //std::cout << "Scheduler: " << timer << std::endl;
     return done_proposed_schedule;
 }

@@ -20,7 +20,6 @@ void BuilderActions::generate(Operation &op, uint32_t i) {
             pool.push_back(op);
         }
     } else {
-        //for (int32_t action = 0; action < 4; action++) {
         for (int32_t action = 3; action >= 0; action--) {
             op[i] = static_cast<Action>(action);
             generate(op, i + 1);
@@ -33,10 +32,12 @@ std::vector<Operation> BuilderActions::get() {
 
     // read pool
     {
-        std::ifstream input("actions.txt");
+        //std::ifstream input("actions.txt");
+        std::stringstream input(
+                "64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR");
+
         uint32_t num;
         input >> num;
-        std::cout << "num: " << num << std::endl;
         for (uint32_t i = 0; i < num; i++) {
             std::string line;
             input >> line;
@@ -58,25 +59,12 @@ std::vector<Operation> BuilderActions::get() {
         }
     }
 
-    /*generate(op, 0);
-
-    auto calc = [&](const Operation& op){
-        uint32_t cnt = 0;
-        for(uint32_t i = 0; i < op.size(); i++){
-            cnt += op[i] == Action::FW;
-        }
-        return cnt;
-    };
-
-    std::sort(pool.begin(), pool.end(), [&](const Operation& lhs, const Operation& rhs){
-        return calc(lhs) > calc(rhs);
-    });*/
-
     // add WWW
     {
         for (uint32_t i = 0; i < op.size(); i++) {
             op[i] = Action::W;
         }
+        pool.erase(std::find(pool.begin(), pool.end(), op));
         pool.insert(pool.begin(), op);
     }
 
@@ -97,48 +85,7 @@ std::vector<Operation> BuilderActions::get() {
         }
     }
 
-    /*result = {
-            {Action::W, Action::W, Action::W},
-
-            {Action::FW, Action::W, Action::W},
-            {Action::FW, Action::FW, Action::W},
-            {Action::FW, Action::FW, Action::FW},
-
-            {Action::FW, Action::CR, Action::FW},
-            {Action::FW, Action::CCR, Action::FW},
-
-            {Action::CR, Action::FW, Action::W},
-            {Action::CR, Action::FW, Action::FW},
-
-            {Action::CR, Action::CR, Action::FW},
-
-            {Action::CCR, Action::FW, Action::W},
-            //{Action::CCR, Action::FW, Action::CR},
-            {Action::CCR, Action::FW, Action::FW},
-    };*/
-
-    // 21819
-    /*result = {
-            {Action::W, Action::W, Action::W},
-
-            {Action::FW, Action::W, Action::W},
-            {Action::FW, Action::FW, Action::W},
-            {Action::FW, Action::FW, Action::FW},
-
-            {Action::FW, Action::CR, Action::FW},
-            {Action::FW, Action::CCR, Action::FW},
-
-            {Action::CR, Action::FW, Action::W},
-            {Action::CR, Action::FW, Action::FW},
-
-            {Action::CR, Action::CR, Action::FW},
-
-            {Action::CCR, Action::FW, Action::W},
-            //{Action::CCR, Action::FW, Action::CR},
-            {Action::CCR, Action::FW, Action::FW},
-    };*/
-
-    std::cout << "Operation: " << result.size() << std::endl;
+    /*std::cout << "Operation: " << result.size() << std::endl;
     for (auto operation: result) {
         for (uint32_t d = 0; d < DEPTH; d++) {
             char c = '#';
@@ -156,27 +103,8 @@ std::vector<Operation> BuilderActions::get() {
             std::cout << c;
         }
         std::cout << '\n';
-    }
+    }*/
     return result;
-    /*return {
-            {Action::W, Action::W, Action::W},
-
-            {Action::FW, Action::W, Action::W},
-            {Action::FW, Action::FW, Action::W},
-            {Action::FW, Action::FW, Action::FW},
-
-            {Action::FW, Action::CR, Action::FW},
-            {Action::FW, Action::CCR, Action::FW},
-
-            {Action::CR, Action::FW, Action::W},
-            {Action::CR, Action::FW, Action::FW},
-
-            {Action::CR, Action::CR, Action::FW},
-
-            {Action::CCR, Action::FW, Action::W},
-            //{Action::CCR, Action::FW, Action::CR},
-            {Action::CCR, Action::FW, Action::FW},
-    };*/
 }
 
 bool PIBT2::validate_path(uint32_t r) const {
@@ -327,6 +255,15 @@ void PIBT2::remove_path(uint32_t r) {
 }
 
 bool PIBT2::build(uint32_t r) {
+    if (finish_time) {
+        return false;
+    }
+
+    counter_call_build++;
+    if (counter_call_build % 16 == 0 && get_now() > end_time) {
+        finish_time = true;
+        return false;
+    }
 
     uint32_t old_desired = robots[r].desired;
 
@@ -337,15 +274,7 @@ bool PIBT2::build(uint32_t r) {
         if (validate_path(r) && get_used(r) != -2) {
             auto path = get_path(r);
 
-            int64_t priority = -1;
-            priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
-            //priority -= actions_weight[desired];
-
-            /*for (uint32_t i = 0; i < DEPTH; i++) {
-                int64_t d = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
-                d += i;
-                priority = std::min(priority, d);
-            }*/
+            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
 
             steps.emplace_back(priority, desired);
         }
@@ -398,12 +327,12 @@ PIBT2::PIBT2() {
 }
 
 std::vector<Action>
-PIBT2::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
-    std::cout << "START PIBT2" << std::endl;
+PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
+    this->end_time = end_time;
     Timer timer;
     // PIBT
     for (uint32_t r: order) {
-        if (std::chrono::steady_clock::now() > end_time) {
+        if (get_now() > end_time) {
             break;
         }
         if (robots[r].desired == 0) {
@@ -420,6 +349,6 @@ PIBT2::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock
         answer[r] = actions[robots[r].desired][0];
     }
 
-    std::cout << "PIBT2: " << timer << '\n';
+    //std::cout << "PIBT2: " << timer << '\n';
     return answer;
 }

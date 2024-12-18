@@ -150,7 +150,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif
     */
 
-    std::cout << "time: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count()
-              << "ms" << '\n';
+    //std::cout << "time: "
+    //          << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count()
+    //          << "ms" << '\n';
 }

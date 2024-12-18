@@ -2,6 +2,8 @@
 
 #include <Objects/Basic/position.hpp>
 
+#include <Objects/Basic/time.hpp>
+
 static constexpr inline uint32_t DEPTH = 3;
 
 using Operation = std::array<Action, DEPTH>;
@@ -72,6 +74,12 @@ class PIBT2 {
 
     std::vector<Robot> robots;
 
+    TimePoint end_time;
+
+    uint32_t counter_call_build = 0;
+
+    bool finish_time = false;
+
     [[nodiscard]] bool validate_path(uint32_t r) const;
 
     [[nodiscard]] bool check_path(uint32_t r) const;
@@ -89,5 +97,5 @@ class PIBT2 {
 public:
     PIBT2();
 
-    std::vector<Action> solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time);
+    std::vector<Action> solve(const std::vector<uint32_t> &order, const TimePoint end_time);
 };
