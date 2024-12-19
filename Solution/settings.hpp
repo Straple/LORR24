@@ -61,7 +61,7 @@ using PLANNER = EPlanner;
 
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
-using TASKSHEDULLER = TaskScheduler;
+using TASKSHEDULLER = MyScheduler;
 
 //#define ENABLE_SCHEDULER_TRICK
 
