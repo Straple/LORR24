@@ -7,7 +7,13 @@
 RobotsHandler::RobotsHandler(SharedEnvironment &env) {
     robots.resize(env.num_of_agents);
     for (uint32_t r = 0; r < robots.size(); r++) {
-        uint32_t node = get_graph().get_node(Position(env.curr_states[r].location, env.curr_states[r].orientation));
+        robots[r].priority = -1;
+        ASSERT(r < env.curr_states.size(), "invalid r");
+        Position pos(env.curr_states[r].location, env.curr_states[r].orientation);
+        ASSERT(pos.is_valid(),
+               "invalid position: " + std::to_string(pos.get_x()) + " " + std::to_string(pos.get_y()) + " " +
+               std::to_string(pos.get_dir()));
+        uint32_t node = get_graph().get_node(pos);
 
         robots[r].node = node;
 
@@ -18,6 +24,11 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
 
         auto &task = env.task_pool.at(task_id);
         uint32_t target = task.get_next_loc();
+        ASSERT(0 <= target && target < get_map().get_size(), "invalid target");
+        ASSERT(Position(target, 0).is_valid(), "invalid");
+        ASSERT(Position(target, 1).is_valid(), "invalid");
+        ASSERT(Position(target, 2).is_valid(), "invalid");
+        ASSERT(Position(target, 3).is_valid(), "invalid");
         uint32_t priority = get_hm().get_to_pos(node, target);
         robots[r].target = target;
         robots[r].priority = priority;

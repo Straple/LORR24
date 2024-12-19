@@ -17,6 +17,13 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 //
 //
 
+// ssh -i ../abc egor@51.250.101.48
+
+// scp -i ../abc -r * egor@51.250.101.48:/home/egor
+
+// ./compile.sh
+
+// ./build/lifelong -i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 180000
 
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
@@ -42,7 +49,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-static constexpr uint32_t THREADS = 31;
+static constexpr uint32_t THREADS = 6;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
@@ -54,9 +61,9 @@ using PLANNER = EPlanner;
 
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
-using TASKSHEDULLER = MyScheduler;
+using TASKSHEDULLER = TaskScheduler;
 
-#define ENABLE_SCHEDULER_TRICK
+//#define ENABLE_SCHEDULER_TRICK
 
 // PIBT
 // steps: 10000

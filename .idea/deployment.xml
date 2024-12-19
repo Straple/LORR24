@@ -2,11 +2,30 @@
 <project version="4">
   <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="Remote Host (14b3d7fa-cd81-4b1d-bdf7-7edf46a748da)">
+      <paths name="LORR24">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Remote Host (14b3d7fa-cd81-4b1d-bdf7-7edf46a748da)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/tmp.49F5r0IyE5" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/venv" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-wsl" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-wsl" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-wsl" />
+            <excludedPath local="true" path="$PROJECT_DIR$/venv" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Solution/Python/.idea" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-remote-host" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-remote-host" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-remote-host" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Solution/Python/.idea" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

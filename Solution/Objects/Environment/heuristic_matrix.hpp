@@ -6,12 +6,12 @@ class HeuristicMatrix {
     // dp[source][dest] = dist
     std::vector<std::vector<uint16_t>> dp;
 
-    void build(uint32_t source, const Graph &graph);
+    void build(uint32_t source);
 
 public:
     HeuristicMatrix() = default;
 
-    explicit HeuristicMatrix(const Graph &graph);
+    void init();
 
     [[nodiscard]] uint32_t get(uint32_t source, uint32_t dest) const;
 

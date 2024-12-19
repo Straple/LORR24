@@ -55,8 +55,10 @@ uint32_t call(const std::vector<Operation> &pool) {
     }
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
-    std::system(
-            "./lifelong -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 20 -p 100000000 > log.txt");
+    int ret_code = std::system(
+            "./lifelong -i ../example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 20 -p 100000000 > ../log.txt");
+
+    ASSERT(ret_code == 0, "invalid ret code");
 
     json data;
     std::ifstream input("test.json");

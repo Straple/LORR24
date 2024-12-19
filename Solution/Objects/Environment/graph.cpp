@@ -21,7 +21,7 @@ Graph::Graph(const Map &map) {
     to_edge.resize(node_to_pos.size());
 
     std::map<std::pair<uint32_t, uint32_t>, uint32_t> edges;
-    for (uint32_t node = 0; node < node_to_pos.size(); node++) {
+    for (uint32_t node = 1; node < node_to_pos.size(); node++) {
         for (uint32_t action = 0; action < 4; action++) {
             Position p = node_to_pos[node];
             Position to = p.simulate_action(static_cast<Action>(action));
