@@ -7,7 +7,7 @@ Position::Position(uint32_t pos, uint32_t dir)
     : x(pos / get_map().get_cols()),
       y(pos % get_map().get_cols()),
       dir(dir) {
-    ASSERT(0 <= pos < get_map().get_size(), "invalid pos");
+    ASSERT(0 <= pos && pos < get_map().get_size(), "invalid pos");
     ASSERT(0 <= x && x < get_map().get_cols(), "invalid x");
     ASSERT(0 <= y && y < get_map().get_cols(), "invalid y");
     ASSERT(0 <= dir && dir < 4, "invalid dir");

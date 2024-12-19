@@ -12,7 +12,7 @@ struct Task {
 
 
     int get_next_loc() {
-        if (idx_next_loc < locations.size()) {
+        if (idx_next_loc < static_cast<int>(locations.size())) {
             return locations.at(idx_next_loc);
         } else {
             assert(false);

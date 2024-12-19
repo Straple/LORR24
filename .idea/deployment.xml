@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" compareModeInSync="TEXT" showNewOnTargetInSync="false">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" showNewOnTargetInSync="false">
     <serverData>
       <paths name="LORR24">
         <serverdata>
@@ -21,6 +21,7 @@
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-wsl" />
             <excludedPath local="true" path="$PROJECT_DIR$/venv" />
             <excludedPath local="true" path="$PROJECT_DIR$/Solution/Python/.idea" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-remote-host" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-remote-host" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-remote-host" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-remote-host" />

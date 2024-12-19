@@ -78,7 +78,7 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
 }
 
 uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t dest) const {
-    ASSERT(0 <= dest < get_map().get_size(), "invalid dest");
+    ASSERT(0 <= dest && dest < get_map().get_size(), "invalid dest");
     ASSERT(Position(dest, 0).is_valid(), "invalid");
     ASSERT(Position(dest, 1).is_valid(), "invalid");
     ASSERT(Position(dest, 2).is_valid(), "invalid");
