@@ -10,12 +10,9 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 10000 | 14132   |        16582            |     17042->18055
 */
 
-// PIBT
-// 16017
-// 893
-// PIBT*
-//
-//
+// warehouse
+// PIBT: 9754
+// PIBT2: 10277
 
 // ssh -i ../abc egor@51.250.101.48
 
@@ -23,28 +20,21 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // ./compile.sh
 
-// ./build/lifelong -i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 180000
+// ./build/lifelong -i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 1800000
+
+// ./build/lifelong -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 300 -p 1800000
+
+// ./build/lifelong -i ./example_problems/my.domain/random_32_32_20_100.json -o test.json -s 1000 -t 300 -p 1800000
 
 // python3 PlanViz/script/run2.py --map example_problems/random.domain/maps/random-32-32-20.map --plan test.json --end 1000
 
-// -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 10000
+// -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
 #define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
-///#define ENABLE_DYNAMICS_DIST_MATRIX
-///static constexpr uint32_t UPDATE_DYNAMICS_DIST_MATRIX_TIME = 500;
-
-//#define ENABLE_PLANNER_SOLVER
-
 #define ENABLE_PIBT
-
-//#define ENABLE_PIBT_STAR
-
-//#define ENABLE_PIBT_SOLVER
-
-//#define ENABLE_PLANNER_MACHINE
 
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
@@ -64,13 +54,3 @@ struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = MyScheduler;
 
 //#define ENABLE_SCHEDULER_TRICK
-
-// PIBT
-// steps: 10000
-// time: 10496ms
-// score: 12768
-
-// PIBT + dynamic dists
-// steps: 10000
-// time: 131351ms
-// score: 16127

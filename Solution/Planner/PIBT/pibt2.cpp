@@ -191,8 +191,6 @@ uint32_t PIBT2::get_used(uint32_t r) const {
 
         node = to_node;
     }
-    // TODO: очень странно почему возможно встретить двух роботов
-    // ASSERT(answer.size() <= 1, "invalid answer size");
     if (answer.size() > 1) {
         return -2;
     }
@@ -261,7 +259,7 @@ bool PIBT2::build(uint32_t r) {
     }
 
     counter_call_build++;
-    if (counter_call_build % 16 == 0 && get_now() > end_time) {
+    if (counter_call_build % 256 == 0 && get_now() > end_time) {
         finish_time = true;
         return false;
     }
@@ -350,6 +348,6 @@ PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
         answer[r] = actions[robots[r].desired][0];
     }
 
-    //std::cout << "PIBT2: " << timer << '\n';
+    std::cout << "PIBT2: " << timer << '\n';
     return answer;
 }
