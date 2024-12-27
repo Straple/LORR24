@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Objects/Basic/assert.hpp>
 #include <cstdint>
 #include <vector>
 
@@ -20,7 +21,7 @@ public:
         }
     }
 
-    const T &top() const {
+    [[nodiscard]] const T &top() const {
         ASSERT(top_id < data.size(), "invalid top");
         return data[top_id];
     }

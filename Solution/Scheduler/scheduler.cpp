@@ -1,8 +1,8 @@
 #include <Scheduler/scheduler.hpp>
 
 #include <Objects/Basic/assert.hpp>
-#include <Objects/Environment/environment.hpp>
 #include <Objects/Basic/time.hpp>
+#include <Objects/Environment/environment.hpp>
 
 #include <atomic>
 #include <thread>
@@ -46,82 +46,17 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
     // для свободного робота будем поддерживать расстояния от него до всех задач
     // и будем постепенно обновлять это множество
 
-    // 2114 -> 6241 -> 7322 -> 11576
-    // 11706 их
-    //./build/lifelong -i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 1800000
-
     constexpr static uint32_t MAX_SCORE = -1;
 
     auto get_dist_to_start = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(
-                Position(env->curr_states[r].location, env->curr_states[r].orientation));
-
+        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-
-        uint32_t loc = env->task_pool[t].locations[0];
-
+        uint32_t loc = env->task_pool[t].locations[0] + 1;
         return get_hm().get_to_pos(source, loc);
-        /*uint32_t dist = MAX_SCORE;
-        for (uint32_t dir = 0; dir < 4; dir++) {
-            Position p(loc, dir);
-            uint32_t target = get_graph().get_node(p);
-            dist = std::min(dist, get_hm().get(source, target));
-        }
-        ASSERT(dist == get_hm().get_to_pos(source, loc), "invalid dist");
-        return dist;*/
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
         return get_dist_to_start(r, t);
-
-        /*std::array<uint64_t, 4> data{};
-        {
-            uint32_t source = get_graph().get_node(
-                    Position(env->curr_states[r].location, env->curr_states[r].orientation));
-
-            ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-
-            uint32_t loc = env->task_pool[t].locations[0];
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                Position p(loc, dir);
-                uint32_t target = get_graph().get_node(p);
-                data[dir] =//DefaultPlanner::get_h(env, env->curr_states[r].location, loc);
-                        get_hm().get(source, target);
-            }
-        }
-        for (uint32_t i = 0; i + 1 < env->task_pool[t].locations.size(); i++) {
-            //std::array<uint64_t, 4> new_data{MAX_SCORE, MAX_SCORE, MAX_SCORE, MAX_SCORE};
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                Position source_pos(env->task_pool[t].locations[i], dir);
-                uint32_t source_node = get_graph().get_node(source_pos);
-
-                Position target_pos(env->task_pool[t].locations[i + 1], dir);
-                uint32_t target_node = get_graph().get_node(target_pos);
-
-                uint64_t dist =//DefaultPlanner::get_h(env, source_pos.get_pos(), target_pos.get_pos());
-                        get_hm().get(source_node, target_node);
-                data[dir] += dist;
-            }
-        }
-        //for (uint32_t i = 0; i + 1 < env->task_pool[t].locations.size(); i++) {
-        //    std::array<uint64_t, 4> new_data{MAX_SCORE, MAX_SCORE, MAX_SCORE, MAX_SCORE};
-        //    for (uint32_t src_dir = 0; src_dir < 4; src_dir++) {
-        //        for (uint32_t dst_dir = 0; dst_dir < 4; dst_dir++) {
-        //            Position source_pos(env->task_pool[t].locations[i], src_dir);
-        //            uint32_t source_node = get_graph().get_node(source_pos);
-        //
-        //            Position target_pos(env->task_pool[t].locations[i + 1], dst_dir);
-        //            uint32_t target_node = get_graph().get_node(target_pos);
-        //
-        //            uint64_t dist =//DefaultPlanner::get_h(env, source_pos.get_pos(), target_pos.get_pos());
-        //                    get_hm().get(source_node, target_node);
-        //            new_data[dst_dir] = std::min(new_data[dst_dir], data[src_dir] + dist);
-        //        }
-        //    }
-        //    data = new_data;
-        //}
-
-        return *std::min_element(data.begin(), data.end());*/
     };
 
     static std::vector<int> timestep_updated(free_robots.size(), -1);

@@ -4,8 +4,8 @@
 #include <Objects/Environment/map.hpp>
 
 Position::Position(uint32_t pos, uint32_t dir)
-    : x(pos / get_map().get_cols()),
-      y(pos % get_map().get_cols()),
+    : x((pos - 1) / get_map().get_cols()),
+      y((pos - 1) % get_map().get_cols()),
       dir(dir) {
     ASSERT(0 <= pos && pos < get_map().get_size(), "invalid pos");
     ASSERT(0 <= x && x < get_map().get_cols(), "invalid x");
@@ -23,7 +23,7 @@ Position::Position(uint32_t x, uint32_t y, uint32_t dir)
 }
 
 uint32_t Position::get_pos() const {
-    return x * get_map().get_cols() + y;
+    return x * get_map().get_cols() + y + 1;
 }
 
 uint32_t Position::get_x() const {

@@ -2,8 +2,8 @@
 
 #include <Objects/Basic/assert.hpp>
 
-#include <iostream>
 #include <chrono>
+#include <iostream>
 
 using TimePoint = std::chrono::steady_clock::time_point;
 using Milliseconds = std::chrono::milliseconds;

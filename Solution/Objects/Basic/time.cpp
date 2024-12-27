@@ -4,8 +4,7 @@ TimePoint get_now() {
     return std::chrono::steady_clock::now();
 }
 
-Timer::Timer()
-        : start(get_now()) {
+Timer::Timer() : start(get_now()) {
 }
 
 uint64_t Timer::get_ms() const {

@@ -1,7 +1,6 @@
-#include "dsu.hpp"
+#include <Objects/Containers/dsu.hpp>
 
-#include "Objects/Basic/assert.hpp"
-
+#include <Objects/Basic/assert.hpp>
 #include <numeric>
 
 DSU::DSU(uint32_t size) {

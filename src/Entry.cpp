@@ -19,7 +19,7 @@
 void Entry::initialize(int preprocess_time_limit) {
     get_map() = Map(*env);
     get_graph() = Graph(get_map());
-    get_hm().init(get_graph());
+    get_hm() = HeuristicMatrix(get_graph());
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
@@ -34,8 +34,8 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 #ifdef ENABLE_SCHEDULER_TRICK
     std::vector<int> done_proposed_schedule =
 #endif
-    //call the task scheduler to assign tasks to agents
-    scheduler->plan(time_limit * 0.7, proposed_schedule);
+            //call the task scheduler to assign tasks to agents
+            scheduler->plan(time_limit * 0.7, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);

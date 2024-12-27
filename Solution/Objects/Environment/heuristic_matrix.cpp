@@ -38,10 +38,8 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
     }
 }
 
-void HeuristicMatrix::init(const Graph &graph) {
+HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #ifdef ENABLE_HEURISTIC_MATRIX
-    //Timer timer;
-
     dp.resize(graph.get_nodes_size());
 
     auto do_work = [&](uint32_t thr) {
@@ -57,12 +55,14 @@ void HeuristicMatrix::init(const Graph &graph) {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
-
-    //std::cout << dp.size() << ' ' << timer << std::endl;
 #endif
 }
 
 uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
+    if (!dest) {
+        return INVALID_DIST;
+    }
+
 #ifdef ENABLE_HEURISTIC_MATRIX
     ASSERT(0 < source && source < dp.size(), "invalid source");
     ASSERT(0 < dest && dest < dp.size(), "invalid dest");
@@ -76,15 +76,14 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
 }
 
 uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t dest) const {
-    if (dest == -1) {
-        return 0;
+    if (!dest) {
+        return INVALID_DIST;
     }
-    ASSERT(0 <= dest && dest < get_map().get_size(), "invalid dest");
+    ASSERT(0 < dest && dest < get_map().get_size(), "invalid dest");
     ASSERT(Position(dest, 0).is_valid(), "invalid");
     ASSERT(Position(dest, 1).is_valid(), "invalid");
     ASSERT(Position(dest, 2).is_valid(), "invalid");
     ASSERT(Position(dest, 3).is_valid(), "invalid");
-
 
     uint32_t e = get_graph().get_node(Position(dest, 0));
     uint32_t s = get_graph().get_node(Position(dest, 1));

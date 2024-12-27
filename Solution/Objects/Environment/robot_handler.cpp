@@ -10,7 +10,7 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         ASSERT(env.curr_states.size() == robots.size(), "invalid sizes");
         ASSERT(r < env.curr_states.size(), "invalid r");
 
-        Position pos(env.curr_states[r].location, env.curr_states[r].orientation);
+        Position pos(env.curr_states[r].location + 1, env.curr_states[r].orientation);
         ASSERT(pos.is_valid(),
                "invalid position: " + std::to_string(pos.get_x()) + " " + std::to_string(pos.get_y()) + " " +
                        std::to_string(pos.get_dir()));
@@ -24,7 +24,7 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         }
 
         auto &task = env.task_pool.at(task_id);
-        uint32_t target = task.get_next_loc();
+        uint32_t target = task.get_next_loc() + 1;
         ASSERT(0 <= target && target < get_map().get_size(), "invalid target");
         ASSERT(Position(target, 0).is_valid(), "invalid");
         ASSERT(Position(target, 1).is_valid(), "invalid");

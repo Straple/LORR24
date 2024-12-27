@@ -3,7 +3,9 @@
 #include <SharedEnv.h>
 #include <vector>
 
-// Contains information about map: rows, cols, is_free
+// Contains information about map:
+// rows, cols, is_free
+// 0 = NONE
 class Map {
     uint32_t rows = 0;
     uint32_t cols = 0;

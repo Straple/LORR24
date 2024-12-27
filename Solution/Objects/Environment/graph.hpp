@@ -28,7 +28,6 @@ class Graph {
     uint32_t edges_size = 0;
 
 public:
-
     Graph() = default;
 
     explicit Graph(const Map &map);
@@ -37,12 +36,16 @@ public:
 
     [[nodiscard]] uint32_t get_edges_size() const;
 
+    // graph node -> Position
     [[nodiscard]] Position get_pos(uint32_t node) const;
 
+    // Position -> graph node
     [[nodiscard]] uint32_t get_node(const Position &pos) const;
 
+    // graph node + action -> graph node
     [[nodiscard]] uint32_t get_to_node(uint32_t node, uint32_t action) const;
 
+    // graph node + action -> graph edge
     [[nodiscard]] uint32_t get_to_edge(uint32_t node, uint32_t action) const;
 };
 

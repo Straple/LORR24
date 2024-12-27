@@ -1,13 +1,15 @@
 #pragma once
 
 #include <SharedEnv.h>
+#include <cstdint>
+#include <vector>
 
 class RobotsHandler {
 public:
     struct Robot {
-        uint32_t node = 0;   // start node from graph
-        uint32_t target = -1;// target pos from map
-        uint32_t priority = 0;
+        uint32_t node = 0;    // start node from graph
+        uint32_t target = 0;  // target pos from map
+        uint32_t priority = 0;// like dist to target
     };
 
 private:
