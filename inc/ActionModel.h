@@ -55,7 +55,7 @@ protected:
         int new_location = prev.location;
         int new_orientation = prev.orientation;
         if (action == Action::FW) {
-            new_location += moves[prev.orientation];
+            new_location = new_location += moves[prev.orientation];
         } else if (action == Action::CR) {
             new_orientation = (prev.orientation + 1) % 4;
 

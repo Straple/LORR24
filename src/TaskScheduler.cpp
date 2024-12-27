@@ -29,6 +29,10 @@ void TaskScheduler::initialize(int preprocess_time_limit) {
  * @param time_limit The total time limit allocated for scheduling (in milliseconds).
  * @param proposed_schedule A reference to a vector that will be populated with the proposed schedule (next task id for each agent).
  */
+
 void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    DefaultPlanner::schedule_plan(time_limit, proposed_schedule, env);
+    //give at most half of the entry time_limit to scheduler;
+    //-SCHEDULER_TIMELIMIT_TOLERANCE for timing error tolerance
+    int limit = time_limit / 2 - DefaultPlanner::SCHEDULER_TIMELIMIT_TOLERANCE;
+    DefaultPlanner::schedule_plan(limit, proposed_schedule, env);
 }

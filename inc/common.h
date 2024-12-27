@@ -144,7 +144,7 @@ T read_param_json(nlohmann::json &data, std::string name) {
     }
     try {
         return data[name].get<T>();
-    } catch (const nlohmann::json::type_error& error) {
+    } catch (nlohmann::json::type_error error) {
         std::cerr << "Incorrect input JSON format for " << name << std::endl;
         std::cerr << "Message: " << error.what() << std::endl;
         exit(1);
@@ -159,7 +159,7 @@ T read_param_json(nlohmann::json &data, std::string name, T default_value) {
     }
     try {
         return data[name].get<T>();
-    } catch (const nlohmann::json::type_error& error) {
+    } catch (nlohmann::json::type_error error) {
         std::cerr << "Incorrect input JSON format for " << name << std::endl;
         std::cerr << "Message: " << error.what() << std::endl;
         exit(1);

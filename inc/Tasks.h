@@ -3,8 +3,8 @@
 
 struct Task {
     int task_id;
-    int t_completed = -1; // время выполнения задачи
-    int t_revealed = -1; // время создания
+    int t_completed = -1;
+    int t_revealed = -1;
     int agent_assigned = -1;
 
     vector<int> locations;
@@ -12,7 +12,7 @@ struct Task {
 
 
     int get_next_loc() {
-        if (idx_next_loc < static_cast<int>(locations.size())) {
+        if (idx_next_loc < locations.size()) {
             return locations.at(idx_next_loc);
         } else {
             assert(false);

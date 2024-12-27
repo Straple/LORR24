@@ -34,7 +34,9 @@ namespace DefaultPlanner {
         int loc2_y = loc2 % env->cols;
         return abs(loc_x - loc2_x) + abs(loc_y - loc2_y);
     }
-    void getNeighbors(const SharedEnvironment *env, std::vector<std::pair<int, int>> &neighbors, int location, int direction) {
+
+    void getNeighbors(const SharedEnvironment *env, std::vector<std::pair<int, int>> &neighbors, int location,
+                      int direction) {
         neighbors.clear();
         //forward
         assert(location >= 0 && location < env->map.size());
@@ -67,7 +69,8 @@ namespace DefaultPlanner {
         neighbors.emplace_back(std::make_pair(location, direction));//wait
     }
 
-    void getNeighbors_nowait(const SharedEnvironment *env, std::vector<std::pair<int, int>> &neighbors, int location, int direction) {
+    void getNeighbors_nowait(const SharedEnvironment *env, std::vector<std::pair<int, int>> &neighbors, int location,
+                             int direction) {
         neighbors.clear();
         //forward
         assert(location >= 0 && location < env->map.size());

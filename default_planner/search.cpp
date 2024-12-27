@@ -1,6 +1,5 @@
 #include "search.h"
 
-#include <Objects/Basic/assert.hpp>
 
 namespace DefaultPlanner {
     std::chrono::nanoseconds t;
@@ -89,8 +88,7 @@ namespace DefaultPlanner {
                 }
 
 
-                temp_op = ((flow[curr->id].d[d] + 1) *
-                           flow[next].d[(d + 2) % 4]);///( ( (flow[curr->id].d[d]+1) + flow[next].d[(d+2)%4]));
+                temp_op = ((flow[curr->id].d[d] + 1) * flow[next].d[(d + 2) % 4]);///( ( (flow[curr->id].d[d]+1) + flow[next].d[(d+2)%4]));
 
                 //all vertex flow
                 //the sum of all out going edge flow is the same as the total number of vertex visiting.
@@ -135,13 +133,22 @@ namespace DefaultPlanner {
                         }
                     } else {
 
-                        ASSERT(!re(temp_node, *existing), "error in astar: re-expansion");
+                        if (re(temp_node, *existing)) {
+                            std::cout << "error in astar: re-expansion" << std::endl;
+                            assert(false);
+                            exit(1);
+                        }
                     }
                 }
             }
         }
 
-        ASSERT(goal_node, "error in astar: no path found");
+
+        if (goal_node == nullptr) {
+            std::cout << "error in astar: no path found " << start << "," << goal << std::endl;
+            assert(false);
+            exit(1);
+        }
 
         traj.resize(goal_node->depth + 1);
         s_node *curr = goal_node;
