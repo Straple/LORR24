@@ -15,7 +15,6 @@ EPlanner::EPlanner() { env = new SharedEnvironment(); }
 
 void EPlanner::initialize(int preprocess_time_limit) {}
 
-// return next states for all agents
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     static TimePoint start = std::chrono::steady_clock::now();
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
@@ -31,7 +30,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
     });
 
-    PIBT pibt;
+    PIBT2 pibt;
     plan = pibt.solve(order, end_time);
 #endif
 }
