@@ -2,20 +2,18 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Containers/linear_heap.hpp>
-//#include <Objects/Basic/time.hpp>
-
 #include <settings.hpp>
 
 #include <thread>
 
-void HeuristicMatrix::build(uint32_t source) {
+void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
     auto &dists = dp[source];
-    dists.assign(get_graph().get_nodes_size(), -1);
+    dists.assign(graph.get_nodes_size(), -1);
 
     // (dist, node)
     LinearHeap<std::pair<uint32_t, uint32_t>> heap;
 
-    std::vector<bool> visited(get_graph().get_nodes_size());
+    std::vector<bool> visited(graph.get_nodes_size());
 
     heap.push({0, source});
 
@@ -31,7 +29,7 @@ void HeuristicMatrix::build(uint32_t source) {
         dists[node] = dist;
 
         for (uint32_t action = 0; action < 3 /*WITHOUT WAIT = 3*/; action++) {
-            uint32_t to = get_graph().get_to_node(node, action);
+            uint32_t to = graph.get_to_node(node, action);
             if (to && !visited[to] && dists[to] > dist + 1) {
                 dists[to] = dist + 1;
                 heap.push({dist + 1, to});
@@ -40,15 +38,15 @@ void HeuristicMatrix::build(uint32_t source) {
     }
 }
 
-void HeuristicMatrix::init() {
+void HeuristicMatrix::init(const Graph &graph) {
 #ifdef ENABLE_HEURISTIC_MATRIX
     //Timer timer;
 
-    dp.resize(get_graph().get_nodes_size());
+    dp.resize(graph.get_nodes_size());
 
     auto do_work = [&](uint32_t thr) {
         for (uint32_t node = thr + 1; node < dp.size(); node += THREADS) {
-            build(node);
+            build(node, graph);
         }
     };
 
@@ -73,7 +71,7 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
     Position a = get_graph().get_pos(source);
     Position b = get_graph().get_pos(dest);
     return std::abs(static_cast<int32_t>(a.get_x()) - static_cast<int32_t>(b.get_x())) +
-            std::abs(static_cast<int32_t>(a.get_y()) - static_cast<int32_t>(b.get_y()));
+           std::abs(static_cast<int32_t>(a.get_y()) - static_cast<int32_t>(b.get_y()));
 #endif
 }
 
@@ -83,6 +81,8 @@ uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t dest) const {
     ASSERT(Position(dest, 1).is_valid(), "invalid");
     ASSERT(Position(dest, 2).is_valid(), "invalid");
     ASSERT(Position(dest, 3).is_valid(), "invalid");
+
+
     uint32_t e = get_graph().get_node(Position(dest, 0));
     uint32_t s = get_graph().get_node(Position(dest, 1));
     uint32_t w = get_graph().get_node(Position(dest, 2));

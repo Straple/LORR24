@@ -20,7 +20,7 @@ void Entry::initialize(int preprocess_time_limit) {
     //get_env().init(env);
     get_map() = Map(*env);
     get_graph() = Graph(get_map());
-    get_hm().init();
+    get_hm().init(get_graph());
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
