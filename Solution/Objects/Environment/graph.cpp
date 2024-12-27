@@ -56,7 +56,7 @@ uint32_t Graph::get_edges_size() const {
 }
 
 Position Graph::get_pos(uint32_t node) const {
-    ASSERT(0 < node && node < node_to_pos.size(), "invalid node");
+    ASSERT(0 < node && node < node_to_pos.size(), "invalid node: " + std::to_string(node));
     return node_to_pos[node];
 }
 

@@ -7,16 +7,9 @@
 RobotsHandler::RobotsHandler(SharedEnvironment &env) {
     robots.resize(env.num_of_agents);
     for (uint32_t r = 0; r < robots.size(); r++) {
-        robots[r].priority = 0;
-        robots[r].node = 0;
-        robots[r].target = 0;
-
-        int task_id = env.curr_task_schedule[r];
-        if (!env.task_pool.count(task_id)) {
-            continue;
-        }
-
+        ASSERT(env.curr_states.size() == robots.size(), "invalid sizes");
         ASSERT(r < env.curr_states.size(), "invalid r");
+
         Position pos(env.curr_states[r].location, env.curr_states[r].orientation);
         ASSERT(pos.is_valid(),
                "invalid position: " + std::to_string(pos.get_x()) + " " + std::to_string(pos.get_y()) + " " +
@@ -24,6 +17,11 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         uint32_t node = get_graph().get_node(pos);
 
         robots[r].node = node;
+
+        int task_id = env.curr_task_schedule[r];
+        if (!env.task_pool.count(task_id)) {
+            continue;
+        }
 
         auto &task = env.task_pool.at(task_id);
         uint32_t target = task.get_next_loc();

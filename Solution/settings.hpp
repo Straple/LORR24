@@ -54,3 +54,5 @@ struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = MyScheduler;
 
 //#define ENABLE_SCHEDULER_TRICK
+
+// #define MY_FROM std::string(__FILE__) + std::to_string(__LINE__)

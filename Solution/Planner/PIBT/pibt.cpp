@@ -1,8 +1,8 @@
 #include <Planner/PIBT/pibt.hpp>
 
 #include <Objects/Basic/assert.hpp>
-#include <Objects/Environment/environment.hpp>
 #include <Objects/Basic/time.hpp>
+#include <Objects/Environment/environment.hpp>
 
 #include <unordered_set>
 
@@ -71,7 +71,6 @@ PIBT::PIBT() {
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].node = get_robots_handler().get_robot(r).node;
         robots[r].pos = get_graph().get_pos(get_robots_handler().get_robot(r).node).get_pos();
-        //robots[r].priority = get_robots_handler().get_robot(r).priority;
         pos_to_robot[robots[r].pos] = r;
     }
 }
@@ -96,9 +95,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
             ASSERT(!used.count(get_graph().get_pos(robots[r].node).get_pos()), "already used");
             used.insert(get_graph().get_pos(robots[r].node).get_pos());
             actions[r] = Action::W;
-            continue;
-        }
-        if (robots[r].desired != get_graph().get_pos(robots[r].node).get_dir()) {
+        } else if (static_cast<uint32_t>(robots[r].desired) != get_graph().get_pos(robots[r].node).get_dir()) {
             // нужно повернуться
 
             ASSERT(!used.count(get_graph().get_pos(robots[r].node).get_pos()), "already used");
@@ -107,7 +104,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
             auto calc = [&](Action rotate_type) {
                 Position p = get_graph().get_pos(robots[r].node);
                 int cnt = 0;
-                while (p.get_dir() != robots[r].desired) {
+                while (p.get_dir() != static_cast<uint32_t>(robots[r].desired)) {
                     cnt++;
                     p = p.simulate_action(rotate_type);
                 }
@@ -123,7 +120,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
 
     std::unordered_map<uint32_t, std::vector<uint32_t>> forwards;
     for (uint32_t r = 0; r < robots.size(); r++) {
-        if (robots[r].desired == get_graph().get_pos(robots[r].node).get_dir()) {
+        if (static_cast<uint32_t>(robots[r].desired) == get_graph().get_pos(robots[r].node).get_dir()) {
             ASSERT(!used.count(get_graph().get_pos(robots[r].node).get_pos()), "already used");
             //used.insert(get_graph().get_pos(robots[r].node).get_pos());
 
