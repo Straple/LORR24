@@ -23,6 +23,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     plan.assign(env->num_of_agents, Action::W);
 
     get_robots_handler() = RobotsHandler(*env);
+    return;
 
 #ifdef ENABLE_PIBT
     std::vector<uint32_t> order(env->num_of_agents);
