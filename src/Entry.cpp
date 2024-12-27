@@ -32,12 +32,13 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
+    return;
 
 #ifdef ENABLE_SCHEDULER_TRICK
     std::vector<int> done_proposed_schedule =
 #endif
-    //call the task scheduler to assign tasks to agents
-    scheduler->plan(time_limit * 0.7, proposed_schedule);
+            //call the task scheduler to assign tasks to agents
+            scheduler->plan(time_limit * 0.7, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
