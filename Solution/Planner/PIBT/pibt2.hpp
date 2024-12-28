@@ -19,6 +19,8 @@ public:
 
 class PIBT2 {
 
+    uint32_t PIBT_DEPTH = 0;
+
     static inline std::vector<Operation> actions = BuilderActions().get();
 
     // used_edge[depth][edge] = robot id
@@ -62,4 +64,4 @@ public:
     std::vector<Action> solve(const std::vector<uint32_t> &order, const TimePoint end_time);
 };
 
-// 4255 -> 8217 -> 9992 -> 12412 -> 14427 -> 14427 -> 14073
+// 4255 -> 8217 -> 9992 -> 12412 -> 14427

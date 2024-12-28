@@ -291,7 +291,7 @@ bool PIBT2::build(uint32_t r, uint32_t depth) {
         } else {
             // о нет! там кто-то есть
 
-            if(depth > 6){
+            if (depth > PIBT_DEPTH) {
                 continue;
             }
 
@@ -329,8 +329,7 @@ PIBT2::PIBT2() {
     }
 }
 
-std::vector<Action>
-PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
+std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
     this->end_time = end_time;
     Timer timer;
     // PIBT
@@ -340,7 +339,17 @@ PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
         }
         if (robots[r].desired == 0) {
             remove_path(r);
-            if (!build(r, 0)) {
+
+            PIBT_DEPTH = 6;
+            bool ok = false;
+            while (PIBT_DEPTH <= 6) {
+                if (build(r, 0)) {
+                    ok = true;
+                    break;
+                }
+                PIBT_DEPTH++;
+            }
+            if (!ok) {
                 add_path(r);
             }
         }
