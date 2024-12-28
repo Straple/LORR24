@@ -80,7 +80,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
     {
         auto do_work = [&](uint32_t thr) {
             for (uint32_t i = thr; i < order.size(); i += THREADS) {
-                if (std::chrono::steady_clock::now() >= end_time) {
+                if (get_now() >= end_time) {
                     break;
                 }
                 rebuild(order[i]);
@@ -118,13 +118,15 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
                 }
                 for (uint32_t i = thr; i < dp[r].size(); i += THREADS) {
                     auto [dist, task_id] = dp[r][i];
-                    //if (used_tasks.count(task_id)) {
+                    // not used in this timestep
                     if (used_task_t[task_id] == launch_num) {
                         continue;
                     }
+                    // this task is available
                     if (!env->task_pool.count(task_id)) {
                         continue;
                     }
+                    // robot already used this task
                     if (env->task_pool[task_id].agent_assigned != -1) {
                         continue;
                     }

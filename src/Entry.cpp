@@ -12,6 +12,8 @@
 
 #include <settings.hpp>
 
+#include <Objects/Basic/randomizer.hpp>
+
 // The initialize function will be called by competition system at the preprocessing stage.
 // Implement the initialize functions of the planner and scheduler to load or compute auxiliary data.
 // Note that, this function runs untill preprocess_time_limit (in milliseconds) is reached.
@@ -23,6 +25,26 @@ void Entry::initialize(int preprocess_time_limit) {
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
+
+    /*Randomizer rnd(5340000);
+    std::ofstream output("agents.txt");
+    std::set<uint32_t> S;
+    for(int i = 0; i < 600; i++){
+        uint32_t pos = 0;
+        while(true){
+            pos = rnd.get(1, get_map().get_size() - 1);
+            if(get_map().is_free(pos) && !S.count(pos)){
+                break;
+            }
+        }
+        S.insert(pos);
+    }
+    for(uint32_t pos : S){
+        pos--;
+        output << pos << '\n';
+    }
+    output.flush();
+    std::exit(0);*/
 }
 
 //The compute function will be called by competition system on each timestep.
