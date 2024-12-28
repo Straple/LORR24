@@ -253,7 +253,7 @@ void PIBT2::remove_path(uint32_t r) {
     }
 }
 
-bool PIBT2::build(uint32_t r) {
+bool PIBT2::build(uint32_t r, uint32_t depth) {
     if (finish_time) {
         return false;
     }
@@ -291,6 +291,10 @@ bool PIBT2::build(uint32_t r) {
         } else {
             // о нет! там кто-то есть
 
+            if(depth > 6){
+                continue;
+            }
+
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             if (robots[to_r].desired != 0) {
@@ -299,7 +303,7 @@ bool PIBT2::build(uint32_t r) {
             remove_path(to_r);
             add_path(r);
 
-            if (build(to_r)) {
+            if (build(to_r, depth + 1)) {
                 return true;
             }
 
@@ -336,7 +340,7 @@ PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
         }
         if (robots[r].desired == 0) {
             remove_path(r);
-            if (!build(r)) {
+            if (!build(r, 0)) {
                 add_path(r);
             }
         }

@@ -39,7 +39,10 @@ void build_meta_info(const std::string &filename) {
         Position pos = starts[id];
         for (int i = 0; i < path.size(); i += 2) {
             char c = path[i];
-            Action act = c == 'F' ? Action::FW : (c == 'R' ? Action::CR : (c == 'C' ? Action::CCR : (c == 'W' ? Action::W : (ASSERT(false, "invalid action"), Action::NA))));
+            if(c != 'F' && c != 'R' && c != 'C' && c != 'W'){
+                std::cout << "invalid action: " << c << std::endl;
+            }
+            Action act = c == 'F' ? Action::FW : (c == 'R' ? Action::CR : (c == 'C' ? Action::CCR : Action::W));
 
             dp[pos.get_pos()][pos.get_dir()][static_cast<uint32_t>(act)]++;
             dp[pos.get_pos()][4][static_cast<uint32_t>(act)]++;

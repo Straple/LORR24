@@ -54,10 +54,12 @@ class PIBT2 {
 
     void remove_path(uint32_t r);
 
-    bool build(uint32_t r);
+    bool build(uint32_t r, uint32_t depth);
 
 public:
     PIBT2();
 
     std::vector<Action> solve(const std::vector<uint32_t> &order, const TimePoint end_time);
 };
+
+// 4255 -> 8217 -> 9992 -> 12412 -> 14427 -> 14427 -> 14073
