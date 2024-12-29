@@ -10,10 +10,6 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 10000 | 14132   |        16582            |     17042->18055
 */
 
-// warehouse
-// PIBT: 9754
-// PIBT2: 10277
-
 // ssh -i ../abc egor@51.250.101.48
 
 // scp -i ../abc -r * egor@51.250.101.48:/home/egor
@@ -39,11 +35,9 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 // #define BUILD_META_INFO
 
-static constexpr uint32_t THREADS = 4;
+static constexpr uint32_t THREADS = 31;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
-
-static constexpr uint32_t SPLIT_ROBOTS_BOUND = 30;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм

@@ -180,6 +180,6 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         }
     }
 
-    std::cout << "Scheduler: " << timer << std::endl;
+    //std::cout << "Scheduler: " << timer << std::endl;
     return done_proposed_schedule;
 }

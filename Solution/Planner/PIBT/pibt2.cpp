@@ -80,7 +80,7 @@ std::vector<Operation> BuilderActions::get() {
             positions[d] = {p.get_x(), p.get_y()};
             S.insert(positions[d]);
         }
-        if(S.size() > 2){
+        if (S.size() > 2) {
             //continue;
         }
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> kek = positions;
@@ -258,7 +258,7 @@ void PIBT2::remove_path(uint32_t r) {
     }
 }
 
-bool PIBT2::build(uint32_t r, uint32_t depth) {
+bool PIBT2::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (finish_time) {
         return false;
     }
@@ -296,7 +296,9 @@ bool PIBT2::build(uint32_t r, uint32_t depth) {
         } else {
             // о нет! там кто-то есть
 
-            if (depth > PIBT_DEPTH) {
+            if (counter > 3'000 && depth > 6) {
+                continue;
+            } else if (counter > 10'000 && depth > 3) {
                 continue;
             }
 
@@ -308,7 +310,7 @@ bool PIBT2::build(uint32_t r, uint32_t depth) {
             remove_path(to_r);
             add_path(r);
 
-            if (build(to_r, depth + 1)) {
+            if (build(to_r, depth + 1, ++counter)) {
                 return true;
             }
 
@@ -344,17 +346,8 @@ std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimeP
         }
         if (robots[r].desired == 0) {
             remove_path(r);
-
-            PIBT_DEPTH = 10;
-            bool ok = false;
-            while (PIBT_DEPTH <= 10) {
-                if (build(r, 0)) {
-                    ok = true;
-                    break;
-                }
-                PIBT_DEPTH++;
-            }
-            if (!ok) {
+            uint32_t counter = 0;
+            if (!build(r, 0, counter)) {
                 add_path(r);
             }
         }
@@ -366,6 +359,6 @@ std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimeP
         answer[r] = actions[robots[r].desired][0];
     }
 
-    std::cout << "PIBT2: " << timer << '\n';
+    //std::cout << "PIBT2: " << timer << '\n';
     return answer;
 }

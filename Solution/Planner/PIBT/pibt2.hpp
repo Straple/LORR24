@@ -20,9 +20,6 @@ public:
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 class PIBT2 {
-
-    uint32_t PIBT_DEPTH = 0;
-
     static inline std::vector<Operation> actions = BuilderActions().get();
 
     // used_edge[depth][edge] = robot id
@@ -58,14 +55,10 @@ class PIBT2 {
 
     void remove_path(uint32_t r);
 
-    bool build(uint32_t r, uint32_t depth);
+    bool build(uint32_t r, uint32_t depth, uint32_t& counter);
 
 public:
     PIBT2();
 
     std::vector<Action> solve(const std::vector<uint32_t> &order, const TimePoint end_time);
 };
-
-// 4255 -> 8217 -> 9992 -> 12412 -> 14427 -> 15033 -> 15426
-
-// without depth block 3017

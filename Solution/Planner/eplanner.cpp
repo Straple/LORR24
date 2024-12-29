@@ -31,7 +31,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
     });
 
-    PIBT3 pibt;
+    PIBT2 pibt;
     plan = pibt.solve(order, end_time);
 #endif
 }
