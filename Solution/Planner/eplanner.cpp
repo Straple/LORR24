@@ -4,6 +4,7 @@
 #include <Objects/Environment/environment.hpp>
 #include <Planner/PIBT/pibt.hpp>
 #include <Planner/PIBT/pibt2.hpp>
+#include <Planner/PIBT/pibt3.hpp>
 #include <settings.hpp>
 
 #include <algorithm>
@@ -30,7 +31,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
     });
 
-    PIBT2 pibt;
+    PIBT3 pibt;
     plan = pibt.solve(order, end_time);
 #endif
 }

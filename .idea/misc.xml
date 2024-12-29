@@ -3,6 +3,7 @@
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
     <excludeRoots>
+      <file path="$PROJECT_DIR$/Clusters" />
       <file path="$PROJECT_DIR$/Solution/Python/.idea" />
       <file path="$PROJECT_DIR$/cmake-build-release-wsl" />
       <file path="$PROJECT_DIR$/venv" />

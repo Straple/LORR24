@@ -26,7 +26,7 @@ IF (NOT CMAKE_BUILD_TYPE)
 ENDIF ()
 
 # more warnings
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+#set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
@@ -112,14 +112,16 @@ ELSE ()
 
     add_executable(pibt_main Solution/Planner/PIBT/main/pibt_main.cpp ${SOURCES})
 
+    add_executable(tester Solution/tester.cpp ${SOURCES})
+
     add_executable(lifelong src/driver.cpp ${SOURCES})
-    #add_executable(build_main Solution/Tools/build_main.cpp ${SOURCES})
 
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     #target_link_libraries(build_main ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
 
     target_link_libraries(pibt_main ${Boost_LIBRARIES})
+    target_link_libraries(tester ${Boost_LIBRARIES})
 
 ENDIF ()
 

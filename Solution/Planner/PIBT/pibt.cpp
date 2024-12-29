@@ -6,7 +6,7 @@
 
 #include <unordered_set>
 
-bool PIBT::build(uint32_t r, int banned_desired) {
+bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
     if (pos_to_robot[robots[r].pos] == r) {
         pos_to_robot.erase(robots[r].pos);
     }
@@ -47,13 +47,17 @@ bool PIBT::build(uint32_t r, int banned_desired) {
         } else {
             // о нет! там кто-то есть
 
+            if(depth > 5){
+                continue;
+            }
+
             uint32_t to_r = pos_to_robot[to.get_pos()];
             pos_to_robot[to.get_pos()] = r;// теперь мы будем тут стоять
             robots[r].desired = dir;       // определим это направление
 
             // попробуем построить для to_r
             // и запретим ему ходить в нас (коллизия по ребру)
-            if (build(to_r, (dir + 2) % 4)) {
+            if (build(to_r, (dir + 2) % 4, depth + 1)) {
                 // найс, получилось
                 return true;
             }
@@ -83,7 +87,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
             break;
         }
         if (robots[r].desired == -1) {
-            build(r);
+            build(r, -1, 0);
         }
     }
 

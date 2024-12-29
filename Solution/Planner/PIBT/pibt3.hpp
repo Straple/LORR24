@@ -2,24 +2,14 @@
 
 #include <Objects/Basic/position.hpp>
 #include <Objects/Basic/time.hpp>
+#include <Planner/PIBT/pibt2.hpp>
 
-static constexpr inline uint32_t DEPTH = 3;
-
-using Operation = std::array<Action, DEPTH>;
-
-class BuilderActions {
-
-    std::vector<Operation> pool;
-
-    void generate(Operation &op, uint32_t i);
-
-public:
-    std::vector<Operation> get();
-};
+// 5658 -> 16694 -> 18253 -> 18944 -> 19507 -> 19910 -> 19985 -> 20348 -> 20680 -> 20988
 
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
-class PIBT2 {
+// CLuster mod
+class PIBT3 {
 
     uint32_t PIBT_DEPTH = 0;
 
@@ -30,6 +20,9 @@ class PIBT2 {
 
     // used_pos[depth][pos] = robot id
     std::array<std::vector<uint32_t>, DEPTH> used_pos;
+
+    // [pos]
+    std::vector<uint32_t> cluster_id;
 
     struct Robot {
         uint32_t start_node = 0;
@@ -46,6 +39,8 @@ class PIBT2 {
 
     bool finish_time = false;
 
+    [[nodiscard]] bool validate_path_IMPL(uint32_t r) const;
+
     [[nodiscard]] bool validate_path(uint32_t r) const;
 
     [[nodiscard]] bool check_path(uint32_t r) const;
@@ -60,12 +55,10 @@ class PIBT2 {
 
     bool build(uint32_t r, uint32_t depth);
 
+    void build_clusters();
+
 public:
-    PIBT2();
+    PIBT3();
 
     std::vector<Action> solve(const std::vector<uint32_t> &order, const TimePoint end_time);
 };
-
-// 4255 -> 8217 -> 9992 -> 12412 -> 14427 -> 15033 -> 15426
-
-// without depth block 3017

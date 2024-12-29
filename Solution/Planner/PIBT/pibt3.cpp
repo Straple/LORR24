@@ -1,118 +1,12 @@
-#include <Planner/PIBT/pibt2.hpp>
+#include <Planner/PIBT/pibt3.hpp>
 
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Basic/randomizer.hpp>
+#include <Objects/Containers/dsu.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <unordered_set>
 
-bool verify_lol(const Operation &op) {
-    return op[0] != Action::W;
-
-    for (uint32_t i = 0; i + 1 < op.size(); i++) {
-        if (op[i] == Action::W && op[i + 1] != Action::W) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void BuilderActions::generate(Operation &op, uint32_t i) {
-    if (i == DEPTH) {
-        if (verify_lol(op)) {
-            pool.push_back(op);
-        }
-    } else {
-        for (int32_t action = 3; action >= 0; action--) {
-            op[i] = static_cast<Action>(action);
-            generate(op, i + 1);
-        }
-    }
-}
-
-std::vector<Operation> BuilderActions::get() {
-    Operation op;
-
-    // read pool
-    {
-        //std::ifstream input("actions.txt");
-        std::stringstream input(
-                "64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR");
-
-        uint32_t num;
-        input >> num;
-        for (uint32_t i = 0; i < num; i++) {
-            std::string line;
-            input >> line;
-            ASSERT(line.size() == op.size(), "does not match sizes");
-            for (uint32_t j = 0; j < op.size(); j++) {
-                if (line[j] == 'W') {
-                    op[j] = Action::W;
-                } else if (line[j] == 'F') {
-                    op[j] = Action::FW;
-                } else if (line[j] == 'R') {
-                    op[j] = Action::CR;
-                } else if (line[j] == 'C') {
-                    op[j] = Action::CCR;
-                } else {
-                    ASSERT(false, "failed");
-                }
-            }
-            pool.push_back(op);
-        }
-    }
-
-    // add WWW
-    {
-        for (uint32_t i = 0; i < op.size(); i++) {
-            op[i] = Action::W;
-        }
-        pool.erase(std::find(pool.begin(), pool.end(), op));
-        pool.insert(pool.begin(), op);
-    }
-
-    std::vector<Operation> result;
-
-    std::set<std::array<std::pair<uint32_t, uint32_t>, DEPTH>> visited;
-    for (auto operation: pool) {
-        std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
-        Position p;
-        std::set<std::pair<uint32_t, uint32_t>> S;
-        for (uint32_t d = 0; d < DEPTH; d++) {
-            p = p.simulate_action(operation[d]);
-            positions[d] = {p.get_x(), p.get_y()};
-            S.insert(positions[d]);
-        }
-        if(S.size() > 2){
-            //continue;
-        }
-        std::array<std::pair<uint32_t, uint32_t>, DEPTH> kek = positions;
-        if (!visited.count(kek)) {
-            visited.insert(kek);
-            result.push_back(operation);
-        }
-    }
-
-    /*std::cout << "Operation: " << result.size() << std::endl;
-    for (auto operation: result) {
-        for (uint32_t d = 0; d < DEPTH; d++) {
-            char c = '#';
-            if (operation[d] == Action::FW) {
-                c = 'F';
-            } else if (operation[d] == Action::CR) {
-                c = 'R';
-            } else if (operation[d] == Action::CCR) {
-                c = 'C';
-            } else if (operation[d] == Action::W) {
-                c = 'W';
-            } else {
-                ASSERT(false, "failed");
-            }
-            std::cout << c;
-        }
-        std::cout << '\n';
-    }*/
-    return result;
-}
-
-bool PIBT2::validate_path(uint32_t r) const {
+bool PIBT3::validate_path_IMPL(uint32_t r) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
 
@@ -132,7 +26,31 @@ bool PIBT2::validate_path(uint32_t r) const {
     return true;
 }
 
-bool PIBT2::check_path(uint32_t r) const {
+bool PIBT3::validate_path(uint32_t r) const {
+    ASSERT(0 <= r && r < robots.size(), "invalid r");
+    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
+
+    uint32_t node = robots[r].start_node;
+    auto &path = actions[robots[r].desired];
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        auto action = path[depth];
+        uint32_t to_node = get_graph().get_to_node(node, action);
+        uint32_t to_edge = get_graph().get_to_edge(node, action);
+
+        if (!to_node || !to_edge) {
+            return false;
+        }
+
+        if (cluster_id[get_graph().get_pos(robots[r].start_node).get_pos()] != cluster_id[get_graph().get_pos(to_node).get_pos()]) {
+            return false;
+        }
+
+        node = to_node;
+    }
+    return true;
+}
+
+bool PIBT3::check_path(uint32_t r) const {
     if (!validate_path(r)) {
         return false;
     }
@@ -162,7 +80,7 @@ bool PIBT2::check_path(uint32_t r) const {
     return true;
 }
 
-std::array<uint32_t, DEPTH> PIBT2::get_path(uint32_t r) const {
+std::array<uint32_t, DEPTH> PIBT3::get_path(uint32_t r) const {
     uint32_t node = robots[r].start_node;
     auto &path = actions[robots[r].desired];
     std::array<uint32_t, DEPTH> result{};
@@ -176,7 +94,7 @@ std::array<uint32_t, DEPTH> PIBT2::get_path(uint32_t r) const {
     return result;
 }
 
-uint32_t PIBT2::get_used(uint32_t r) const {
+uint32_t PIBT3::get_used(uint32_t r) const {
     uint32_t node = robots[r].start_node;
     auto &path = actions[robots[r].desired];
     std::set<uint32_t> answer;
@@ -205,7 +123,7 @@ uint32_t PIBT2::get_used(uint32_t r) const {
     return *answer.begin();
 }
 
-void PIBT2::add_path(uint32_t r) {
+void PIBT3::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
 
@@ -232,7 +150,7 @@ void PIBT2::add_path(uint32_t r) {
     }
 }
 
-void PIBT2::remove_path(uint32_t r) {
+void PIBT3::remove_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
 
@@ -258,7 +176,7 @@ void PIBT2::remove_path(uint32_t r) {
     }
 }
 
-bool PIBT2::build(uint32_t r, uint32_t depth) {
+bool PIBT3::build(uint32_t r, uint32_t depth) {
     if (finish_time) {
         return false;
     }
@@ -285,7 +203,6 @@ bool PIBT2::build(uint32_t r, uint32_t depth) {
     }
 
     std::stable_sort(steps.begin(), steps.end());
-    //std::reverse(steps.begin(), steps.end());
 
     for (auto [priority, desired]: steps) {
         robots[r].desired = desired;
@@ -321,7 +238,125 @@ bool PIBT2::build(uint32_t r, uint32_t depth) {
     return false;
 }
 
-PIBT2::PIBT2() {
+void PIBT3::build_clusters() {
+    std::vector<uint32_t> order(robots.size());
+    std::iota(order.begin(), order.end(), 0);
+    static Randomizer rnd;
+    //std::shuffle(order.begin(), order.end(), rnd.generator);
+    std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
+    });
+
+    DSU dsu(get_map().get_size());
+
+    constexpr uint32_t CLUSTER_SIZE = 150;
+
+    // (priority, desired, r)
+    std::vector<std::tuple<int64_t, uint32_t, uint32_t>> pool;
+
+    for (uint32_t r: order) {
+        Position start = get_graph().get_pos(robots[r].start_node);
+
+        for (uint32_t desired = 0; desired < actions.size(); desired++) {
+            robots[r].desired = desired;
+            if (validate_path_IMPL(r)) {
+                auto path = get_path(r);
+
+                int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+
+                pool.emplace_back(priority, desired, r);
+            }
+        }
+        robots[r].desired = 0;
+    }
+    std::sort(pool.begin(), pool.end());
+    {
+        for (auto [_, desired, r]: pool) {
+            auto operation = actions[desired];
+            bool ok = true;
+            Position start = get_graph().get_pos(robots[r].start_node);
+            Position p = start;
+            std::set<std::pair<uint32_t, uint32_t>> S;
+            for (auto action: operation) {
+                p = p.simulate_action(action);
+                if (!p.is_valid()) {
+                    ok = false;
+                    break;
+                }
+                if (dsu.get(p.get_pos()) != dsu.get(start.get_pos())) {
+                    S.insert({p.get_pos(), dsu.get_size(p.get_pos())});
+                }
+            }
+            uint32_t total_size = dsu.get_size(start.get_pos());
+            for (auto [_, size]: S) {
+                total_size += size;
+            }
+            if (total_size > CLUSTER_SIZE) {
+                continue;
+            }
+
+            if (ok) {
+                Position p = start;
+                for (auto action: operation) {
+                    p = p.simulate_action(action);
+                    dsu.uni(p.get_pos(), start.get_pos());
+                }
+            }
+        }
+    }
+    std::set<std::pair<uint32_t, uint32_t>> S;
+    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
+        if (get_map().is_free(pos)) {
+            S.insert({dsu.get_size(pos), dsu.get(pos)});
+        }
+    }
+    while (S.size() >= 2 && S.begin()->first + (++S.begin())->first <= CLUSTER_SIZE) {
+        auto a = *S.begin();
+        S.erase(S.begin());
+        auto b = *S.begin();
+        S.erase(S.begin());
+        dsu.uni(a.second, b.second);
+        S.insert({dsu.get_size(a.second), dsu.get(a.second)});
+    }
+    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
+        if (!get_map().is_free(pos)) {
+            dsu.uni(0, pos);
+        }
+    }
+
+    cluster_id.resize(get_map().get_size());
+    for (uint32_t pos = 1; pos < cluster_id.size(); pos++) {
+        cluster_id[pos] = dsu.get(pos);
+    }
+
+    /*{
+        static uint32_t id = 0;
+        std::ofstream output("Clusters/cluster" + std::to_string(id) + ".txt");
+        id++;
+        output << get_map().get_rows() << ' ' << get_map().get_cols() << '\n';
+        std::unordered_map<uint32_t, uint32_t> kek;
+        for (uint32_t pos = 0; pos < cluster_id.size(); pos++) {
+            if(!kek.count(cluster_id[pos])){
+                kek[dsu.get(pos)] = kek.size();
+            }
+        }
+        for (uint32_t x = 0; x < get_map().get_rows(); x++) {
+            for (uint32_t y = 0; y < get_map().get_cols(); y++) {
+                if (y != 0) {
+                    output << ' ';
+                }
+                uint32_t val = kek[cluster_id[x * get_map().get_cols() + y + 1]];
+                if (val != 0) {
+                    val += 3;
+                }
+                output << val;
+            }
+            output << '\n';
+        }
+    }*/
+}
+
+PIBT3::PIBT3() {
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         used_pos[depth].resize(get_map().get_size(), -1);
         used_edge[depth].resize(get_graph().get_edges_size(), -1);
@@ -332,9 +367,11 @@ PIBT2::PIBT2() {
         robots[r].start_node = get_robots_handler().get_robot(r).node;
         add_path(r);
     }
+
+    build_clusters();
 }
 
-std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
+std::vector<Action> PIBT3::solve(const std::vector<uint32_t> &order, const TimePoint end_time) {
     this->end_time = end_time;
     Timer timer;
     // PIBT
@@ -366,6 +403,6 @@ std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimeP
         answer[r] = actions[robots[r].desired][0];
     }
 
-    std::cout << "PIBT2: " << timer << '\n';
+    std::cout << "PIBT3: " << timer << '\n';
     return answer;
 }

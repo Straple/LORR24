@@ -11,6 +11,7 @@
 // 10k: 18010
 
 // Priority Inheritance with BackTracking
+// Each robot is assigned a direction where the robot would like to go
 class PIBT {
     struct Robot {
         uint32_t node = 0;
@@ -27,7 +28,7 @@ class PIBT {
 
     std::unordered_map<uint32_t, uint32_t> pos_to_robot;
 
-    bool build(uint32_t r, int banned_desired = -1);
+    bool build(uint32_t r, int banned_desired, uint32_t depth);
 
 public:
     PIBT();
