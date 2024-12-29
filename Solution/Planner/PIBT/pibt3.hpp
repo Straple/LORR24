@@ -4,14 +4,12 @@
 #include <Objects/Basic/time.hpp>
 #include <Planner/PIBT/pibt2.hpp>
 
-// 5658 -> 16694 -> 18253 -> 18944 -> 19507 -> 19910 -> 19985 -> 20348 -> 20680 -> 20988
+// 5658 -> 16694 -> 18253 -> 18944 -> 19507 -> 19910 -> 19985 -> 20348 -> 20680 -> 20988 -> 21993 -> 22509
 
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 // CLuster mod
 class PIBT3 {
-
-    uint32_t PIBT_DEPTH = 0;
 
     static inline std::vector<Operation> actions = BuilderActions().get();
 
@@ -53,7 +51,7 @@ class PIBT3 {
 
     void remove_path(uint32_t r);
 
-    bool build(uint32_t r, uint32_t depth);
+    bool build(uint32_t r, uint32_t depth, uint32_t& counter);
 
     void build_clusters();
 

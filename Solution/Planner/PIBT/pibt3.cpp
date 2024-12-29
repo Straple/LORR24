@@ -176,7 +176,7 @@ void PIBT3::remove_path(uint32_t r) {
     }
 }
 
-bool PIBT3::build(uint32_t r, uint32_t depth) {
+bool PIBT3::build(uint32_t r, uint32_t depth, uint32_t& counter) {
     if (finish_time) {
         return false;
     }
@@ -213,7 +213,7 @@ bool PIBT3::build(uint32_t r, uint32_t depth) {
         } else {
             // о нет! там кто-то есть
 
-            if (depth > PIBT_DEPTH) {
+            if (counter > 100000 && depth > 10) {
                 continue;
             }
 
@@ -225,7 +225,7 @@ bool PIBT3::build(uint32_t r, uint32_t depth) {
             remove_path(to_r);
             add_path(r);
 
-            if (build(to_r, depth + 1)) {
+            if (build(to_r, depth + 1, ++counter)) {
                 return true;
             }
 
@@ -263,13 +263,13 @@ void PIBT3::build_clusters() {
                 auto path = get_path(r);
 
                 int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
-
                 pool.emplace_back(priority, desired, r);
             }
         }
         robots[r].desired = 0;
     }
-    std::sort(pool.begin(), pool.end());
+    //std::stable_sort(pool.begin(), pool.end());
+    std::shuffle(pool.begin(), pool.end(), rnd.generator);
     {
         for (auto [_, desired, r]: pool) {
             auto operation = actions[desired];
@@ -381,17 +381,8 @@ std::vector<Action> PIBT3::solve(const std::vector<uint32_t> &order, const TimeP
         }
         if (robots[r].desired == 0) {
             remove_path(r);
-
-            PIBT_DEPTH = 10;
-            bool ok = false;
-            while (PIBT_DEPTH <= 10) {
-                if (build(r, 0)) {
-                    ok = true;
-                    break;
-                }
-                PIBT_DEPTH++;
-            }
-            if (!ok) {
+            uint32_t counter = 0;
+            if (!build(r, 0, counter)) {
                 add_path(r);
             }
         }
