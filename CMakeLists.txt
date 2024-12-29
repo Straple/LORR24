@@ -72,8 +72,8 @@ file(GLOB SOURCES
 
 
 # Find Boost
-ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
-#SET(Boost_USE_STATIC_LIBS ON)
+#ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+SET(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup)
 
 include_directories(${Boost_INCLUDE_DIRS})

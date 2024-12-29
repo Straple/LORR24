@@ -8,6 +8,8 @@
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/map.hpp>
 
+#include <Planner/PIBT/pibt2.hpp>
+
 #include <Tools/tools.hpp>
 
 #include <settings.hpp>
@@ -25,6 +27,8 @@ void Entry::initialize(int preprocess_time_limit) {
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
+
+    PIBT2::actions = BuilderActions().get();
 
     /*Randomizer rnd(5340000);
     std::ofstream output("agents.txt");

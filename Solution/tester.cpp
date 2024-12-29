@@ -10,7 +10,7 @@ uint32_t call(const std::string &test, uint32_t test_id) {
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     int ret_code = std::system(
-            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o test" + std::to_string(test_id) + ".json -s 1000 -t 300 -p 100000000 > log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o test" + std::to_string(test_id) + ".json -s 1000 -t 100 -p 100000000 > log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
@@ -50,10 +50,31 @@ int main() {
     std::cout << "total: " << total << std::endl;
 }
 
-// PIBT2:
+/*
+MAPFPLANNER
+10k
+call(0): 21740, 303.916s
+call(1): 34562, 299.623s
+call(2): 31075, 292.259s
+call(3): 26337, 286.827s
+call(4): 24899, 280.435s
+call(5): 23453, 273.153s
+total: 162066
+
+1k
+call(0): 2169, 30.7614s
+call(1): 3447, 30.0941s
+call(2): 3622, 29.5492s
+call(3): 3317, 28.8547s
+call(4): 2797, 28.4491s
+call(5): 2358, 27.6499s
+total: 17710
+*/
 
 /*
-10k:
+PIBT2
+
+10k
 call(0): 22747, 21.7433s
 call(1): 32159, 26.0835s
 call(2): 28078, 44.2924s
@@ -61,10 +82,8 @@ call(3): 24978, 68.7657s
 call(4): 22338, 108.811s
 call(5): 20170, 147.452s
 total: 150470
-*/
 
-/*
-1k:
+1k
 call(0): 2264, 2.00376s
 call(1): 3309, 3.0305s
 call(2): 3017, 4.83418s

@@ -1,15 +1,87 @@
-#include "Planner/PIBT/pibt2.hpp"
-#include "Objects/Basic/assert.hpp"
-#include "Objects/Basic/randomizer.hpp"
+/*
+FFF
+FFR
+FFC
+FFW
+FRF
+FRR
+FRC
+FRW
+FCF
+FCR
+FCC
+FCW
+FWF
+FWR
+FWC
+FWW 15
+RFF
+RFR
+RFC
+RFW 19
+RRF 20
+RRR
+RRC
+RRW
+RCF
+RCR
+RCC
+RCW
+RWF
+RWR
+RWC
+RWW
+CFF
+CFR
+CFC
+CFW 35
+CRF
+CRR
+CRC
+CRW
+CCF
+CCR
+CCC
+CCW
+CWF
+CWR
+CWC
+CWW
+WFF
+WFR
+WFC
+WFW
+WRF
+WRR
+WRC
+WRW
+WCF
+WCR
+WCC
+WCW
+WWF
+WWR
+WWC
+*/
 
+#include <Objects/Basic/assert.hpp>
+#include <Objects/Basic/randomizer.hpp>
+#include <Planner/PIBT/pibt2.hpp>
+
+#include <thread>
 
 using json = nlohmann::json;
 
 bool verify(const Operation &op) {
-    return true;
+    for (auto x: op) {
+        if (x != Action::W) {
+            return true;
+        }
+    }
+    return false;
 }
 
-void write_pool(const std::vector<Operation> &pool, std::ofstream &output) {
+void write_pool(const std::vector<Operation> &pool, std::ostream &output) {
     output << pool.size() << '\n';
     for (auto op: pool) {
         for (auto &action: op) {
@@ -44,23 +116,28 @@ void generate(Operation &op, uint32_t i, std::vector<Operation> &pool) {
     }
 }
 
-uint32_t call(const std::vector<Operation> &pool) {
-    std::cout << "call: " << std::flush;
-    Timer timer;
+uint32_t call(const std::vector<Operation> &pool, uint32_t thr) {
+    //std::cout << "call: " << std::flush;
+    //Timer timer;
 
     {
-        std::ofstream output("actions.txt");
+        std::ofstream output("Tmp/actions" + std::to_string(thr) + ".txt");
         write_pool(pool, output);
     }
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     int ret_code = std::system(
-            "./lifelong -i ../example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 20 -p 100000000 > ../log.txt");
+            ("./cmake-build-release-wsl/lifelong -i example_problems/random.domain/random_32_32_20_300.json -o Tmp/test"//
+             + std::to_string(thr)                                                                                      //
+             + ".json -s 1000 -t 100 -p 100000000 --unique_id "                                                         //
+             + std::to_string(thr)                                                                                      //
+             + " > Tmp/log" + std::to_string(thr) + ".txt")
+                    .c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
     json data;
-    std::ifstream input("test.json");
+    std::ifstream input("Tmp/test" + std::to_string(thr) + ".json");
     try {
         data = json::parse(input);
     } catch (const json::parse_error &error) {
@@ -69,520 +146,151 @@ uint32_t call(const std::vector<Operation> &pool) {
     }
 
     uint32_t value = data["numTaskFinished"];
-    std::cout << value << ", " << timer << std::endl;
+    //std::cout << value << ", " << timer << std::endl;
     return value;
 }
 
 int main() {
+    Timer timer;
     std::vector<Operation> pool;
     {
         Operation op;
         generate(op, 0, pool);
+        //write_pool(pool, std::cout);
     }
 
-    std::cout << pool.size() << std::endl;
+    auto build_pool = [&](const std::vector<int> &state) {
+        std::vector<Operation> res;
+        for (uint32_t id: state) {
+            res.push_back(pool[id]);
+        }
+        return res;
+    };
 
-    Randomizer rnd;
+    auto get_score = [&](const std::vector<int> &state, uint32_t thr) {
+        return call(build_pool(state), thr);
+    };
+
+    Randomizer rnd(303);
     std::ofstream ansput("answers.txt");
 
-    uint32_t best = 0;
-
-    while (true) {
-        std::vector<Operation> state = pool;
-        std::shuffle(state.begin(), state.end(), rnd.generator);
-        std::cout << "NEW " << best << std::endl;
-        uint32_t ans_score = call(state);
-
-        auto try_to_swap = [&]() {
-            uint32_t a = rnd.get(0, state.size() - 1);
-            uint32_t b = rnd.get(0, state.size() - 1);
-            std::swap(state[a], state[b]);
-
-            uint32_t cur_score = call(state);
-
-            if (cur_score > best) {
-                best = cur_score;
-                ansput << "SCORE: " << cur_score << std::endl;
-                write_pool(state, ansput);
-                ansput << std::endl;
+    uint32_t STATES_SIZE = 36;
+    std::vector<std::pair<uint32_t, std::vector<int>>> states(1);
+    for (auto &[score, state]: states) {
+        state = {15, 19, 20, 35};
+        /*uint32_t K = rnd.get(15, 40);
+        for (uint32_t k = 0; k < K; k++) {
+            int x = rnd.get(0, (int) pool.size() - 1);
+            if (std::find(state.begin(), state.end(), x) == state.end()) {
+                state.push_back(x);
             }
-
-            if (cur_score >= ans_score) {
-                ans_score = cur_score;
-            } else {
-                std::swap(state[a], state[b]);
-            }
-        };
-
-        auto try_to_reverse = [&]() {
-            uint32_t a = rnd.get(0, state.size() - 1);
-            uint32_t b = rnd.get(0, state.size() - 1);
-            if (a > b) {
-                std::swap(a, b);
-            }
-            for (int32_t left = a, right = b; left < right; left++, right--) {
-                std::swap(state[left], state[right]);
-            }
-
-            uint32_t cur_score = call(state);
-
-            if (cur_score > best) {
-                best = cur_score;
-                ansput << "SCORE: " << cur_score << std::endl;
-                write_pool(state, ansput);
-                ansput << std::endl;
-            }
-
-            if (cur_score >= ans_score) {
-                ans_score = cur_score;
-            } else {
-                for (int32_t left = a, right = b; left < right; left++, right--) {
-                    std::swap(state[left], state[right]);
+        }*/
+        score = get_score(state, 0);
+    }
+    {
+        states.resize(STATES_SIZE);
+        for (int i = 1; i < states.size(); i++) {
+            auto &[score, state] = states[i];
+            uint32_t K = rnd.get(15, 20);
+            for (uint32_t k = 0; k < K; k++) {
+                int x = rnd.get(0, (int) pool.size() - 1);
+                if (std::find(state.begin(), state.end(), x) == state.end()) {
+                    state.push_back(x);
                 }
             }
-        };
+            score = get_score(state, 0);
+        }
+        //std::vector<int> state(pool.size());
+        //std::iota(state.begin(), state.end(), 0);
+        //states.emplace_back(get_score(state, 0), state);
+    }
 
-        for (uint32_t step = 0; step < 100; step++) {
-            if (rnd.get_d() < 0.3) {
-                try_to_reverse();
-            } else {
-                try_to_swap();
+    auto try_swap = [&](std::vector<int> state) {
+        if (state.size() < 2) {
+            return state;
+        }
+        std::swap(state[rnd.get(0, state.size() - 1)], state[rnd.get(0, state.size() - 1)]);
+        return state;
+    };
+
+    auto try_add = [&](std::vector<int> state) {
+        // 100 попыток
+        for (int k = 0; k < 100; k++) {
+            int x = rnd.get(0, pool.size() - 1);
+            if (std::find(state.begin(), state.end(), x) == state.end()) {
+                state.insert(state.begin() + rnd.get(0, state.size()), x);
+                break;
             }
         }
+        return state;
+    };
+
+    auto try_remove = [&](std::vector<int> state) {
+        if (state.empty()) {
+            return state;
+        }
+        int i = rnd.get(0, state.size() - 1);
+        state.erase(state.begin() + i);
+        return state;
+    };
+
+    constexpr uint32_t THREADS = 6;
+
+    for (uint32_t step = 0;; step++) {
+        std::cout << "NEW STEP " << step << ", " << timer << std::endl;
+        std::vector<std::vector<std::pair<uint32_t, std::vector<int>>>> new_states(THREADS);
+        for (const auto &[score, state]: states) {
+            new_states[0].emplace_back(score, state);
+        }
+
+        auto do_work = [&](uint32_t thr) {
+            for (uint32_t i = thr; i < states.size(); i += THREADS) {
+                auto state = states[i].second;
+                int k = rnd.get(1, 3);
+                for (int i = 0; i < k; i++) {
+                    double x = rnd.get_d();
+                    if (x < 0.3) {
+                        state = try_add(state);
+                    } else if (x < 0.6) {
+                        state = try_swap(state);
+                    } else {
+                        state = try_remove(state);
+                    }
+                }
+                new_states[thr].emplace_back(get_score(state, thr), state);
+            }
+        };
+
+        std::vector<std::thread> threads(THREADS);
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr] = std::thread(do_work, thr);
+        }
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr].join();
+        }
+
+        {
+            states.clear();
+            for (auto &data: new_states) {
+                for (const auto &[score, state]: data) {
+                    states.emplace_back(score, state);
+                }
+            }
+            std::sort(states.begin(), states.end(), std::greater<>());
+        }
+
+        std::cout << "states: " << states.size() << std::endl;
+        for (auto &[score, state]: states) {
+            std::cout << score << " ";
+        }
+        std::cout << std::endl;
+
+        if (states.size() > STATES_SIZE) {
+            states.resize(STATES_SIZE);
+        }
+
+        std::cout << "score: " << states[0].first << "\n";
+        write_pool(build_pool(states[0].second), ansput);
+        std::cout << std::endl;
     }
 }
-
-/*C:\Windows\system32\wsl.exe --distribution Ubuntu --exec /bin/bash -c "cd /home/straple/LORR24 && /home/straple/LORR24/pibt_main"
-num: 64
-Operation: 17
-WWW
-RRF
-CWF
-FFF
-FCC
-RFW
-FFR
-CFC
-RWF
-WFC
-CRF
-FRF
-FWF
-RFF
-CFF
-FCF
-WFF
-64
-NEW 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 0
-call: 2034
-call: 2034
-call: 2034
-call: 2034
-call: 2034
-call: 2118
-call: 2096
-call: 2191
-call: 2172
-call: 2101
-call: 2174
-call: 2191
-call: 2191
-call: 2176
-call: 2191
-call: 2191
-call: 2124
-call: 2191
-call: 1958
-call: 2137
-call: 2191
-call: 2176
-call: 2191
-call: 1984
-call: 1965
-call: 2097
-call: 2191
-call: 2105
-call: 2174
-call: 2191
-call: 2191
-call: 2191
-call: 2191
-call: 2102
-call: 2139
-call: 2191
-call: 1975
-call: 2176
-call: 2191
-call: 2097
-call: 2191
-call: 1447
-call: 1851
-call: 2188
-call: 2191
-call: 2081
-call: 2191
-call: 2191
-call: 2191
-call: 2118
-call: 2174
-call: 2191
-call: 2191
-call: 2191
-call: 2069
-call: 2191
-call: 2172
-call: 2191
-call: 1950
-call: 2191
-call: 2191
-call: 2191
-call: 2139
-call: 2118
-call: 2191
-call: 2086
-call: 2191
-call: 2090
-call: 2191
-call: 2166
-call: 1988
-call: 2139
-call: 2191
-call: 2095
-call: 2191
-call: 45
-call: 2191
-call: 2191
-call: 2191
-call: 2125
-call: 2172
-call: 2191
-call: 2191
-call: 2172
-call: 2191
-call: 2191
-call: 2191
-call: 2187
-call: 2133
-call: 2191
-NEW 2191
-call: 0
-call: 7
-call: 7
-call: 7
-call: 6
-call: 9
-call: 9
-call: 12
-call: 12
-call: 12
-call: 10
-call: 12
-call: 12
-call: 12
-call: 11
-call: 12
-call: 12
-call: 66
-call: 66
-call: 62
-call: 58
-call: 0
-call: 0
-call: 66
-call: 66
-call: 66
-call: 78
-call: 82
-call: 82
-call: 82
-call: 82
-call: 82
-call: 82
-call: 2054
-call: 2054
-call: 1883
-call: 2053
-call: 2054
-call: 2063
-call: 2063
-call: 2087
-call: 2087
-call: 2087
-call: 2087
-call: 2
-call: 2087
-call: 2091
-call: 1940
-call: 2091
-call: 2089
-call: 2091
-call: 1647
-call: 2086
-call: 2091
-call: 2091
-call: 2091
-call: 2091
-call: 2091
-call: 2024
-call: 1904
-call: 2091
-call: 2112
-call: 2127
-call: 2127
-call: 2007
-call: 2127
-call: 2114
-call: 1754
-call: 2127
-call: 2127
-call: 2127
-call: 2127
-call: 2074
-call: 2158
-call: 2158
-call: 1974
-call: 2158
-call: 2158
-call: 1951
-call: 2114
-call: 2158
-call: 1993
-call: 2158
-call: 2158
-call: 2158
-call: 2112
-call: 0
-call: 1974
-call: 2158
-call: 2158
-call: 2046
-call: 2075
-call: 2158
-call: 2158
-call: 2158
-call: 2124
-call: 2158
-call: 2075
-call: 2104
-call: 2158
-call: 2044
-NEW 2191
-call: 1924
-call: 1924
-call: 2004
-call: 1379
-call: 14
-call: 1858
-call: 2005
-call: 1980
-call: 2024
-call: 1878
-call: 1981
-call: 0
-call: 2073
-call: 2122
-call: 1961
-call: 2122
-call: 2122
-call: 832
-call: 2124
-call: 0
-call: 2124
-call: 2124
-call: 2124
-call: 2124
-call: 1982
-call: 2006
-call: 2124
-call: 2124
-call: 1998
-call: 2124
-call: 1863
-call: 2124
-call: 2124
-call: 0
-call: 2141
-call: 2110
-call: 2077
-call: 2108
-call: 2141
-call: 1937
-call: 1982
-call: 2043
-call: 2029
-call: 2075
-call: 2
-call: 2141
-call: 2141
-call: 2141
-call: 1961
-call: 2141
-call: 2141
-call: 2
-call: 2078
-call: 2141
-call: 2141
-call: 2141
-call: 2141
-call: 2065
-call: 1935
-call: 1899
-call: 1841
-call: 2141
-call: 2212
-call: 2212
-call: 2212
-call: 72
-call: 2231
-call: 2231
-call: 2205
-call: 2182
-call: 2221
-call: 2231
-call: 2165
-call: 2231
-call: 2231
-call: 2231
-call: 2231
-call: 2228
-call: 2231
-call: 2231
-call: 2242
-call: 2038
-call: 2242
-call: 2242
-call: 2085
-call: 2065
-call: 2242
-call: 2047
-call: 2242
-call: 2030
-call: 2242
-call: 2242
-call: 2135
-call: 2243
-call: 2243
-call: 2243
-call: 2241
-call: 2243
-call: 1893
-call: 2243
-call: 2243
-NEW 2243
-call: 1229
-call: 1469
-call: 1469
-call: 792
-call: 1340
-call: 1413
-call: 1469
-call: 1501
-call: 1501
-call: 1501
-call: 74
-call: 1501
-call: 1501
-call: 1501
-call: 1501
-call: 1501
-call: 1501
-call: 1005
-call: 1501
-call: 1014
-call: 1501
-call: 2085
-call: 2085
-call: 2085
-call: 2085
-call: 2085
-call: 2112
-call: 2112
-call: 2157
-call: 2157
-call: 2157
-call: 0
-call: 2157
-call: 2172
-call: 2172
-call: 2172
-call: 2172
-call: 2188
-call: 2131
-call: 2126
-call: 2188
-call: 2129
-call: 2188
-call: 2188
-call: 24
-call: 2176
-call: 2161
-call: 2188
-call: 2198
-call: 2149
-call: 2041
-call: 2073
-call: 2198
-call: 2086
-call: 2198
-call: 2133
-call: 2156
-call: 2198
-call: 2097
-call: 2198
-call: 2146
-call: 2067
-call: 2198
-call: 2239
-call: 2216
-call: 2246
-call: 2246
-call: 2237
-call: 144
-call:
-
-
- SCORE: 2034
-64
-RRF CWF FFF WCR FCC CCR CWR WCC RFW FWW RWW RFR RRC FFR FFW CFC FRR RCC CCW CRF WWC FWC FRW RWF FFC WWW FWR WRR WWR WCF WRW WRC FRC CWW FCR FRF RRW RRR WCW FCW RWR WFW RWC FWF CFR WWF RFF RCF CRR CRC CWC RFC WFC RCW CFF CCF FCF RCR WFF WFR CCC WRF CRW CFW
-
-SCORE: 2118
-64
-RRF CWF FFF WCR FCC CCR CWR WCC RFW FWW RWW RFR RRC FFR FFW CFC FRR RCC CCW CRF WWC FWC FRW RWF FFC WWW FWR WRR WRW WCF CCF WFC FRC CWW FCR FRF FCW RRR CFW RRW RWR WFW RWC FWF CFR WWF RFF RCF CRR CRC CWC RFC WRC RCW CFF WWR FCF RCR WFF WFR CCC WRF CRW WCW
-
-SCORE: 2191
-64
-RRF CWF FFF WCR FCC CCR CWR WCC RFW FWW RWW RFR RRC FFR FFW CFC FRR RCC CCW CWW WWC FWC FRW RWF FFC WWW FWR WRR WRW WCF CCF WFC FRC CRF FCR FRF FCW RRR CFW RRW RWR WFW RWC FWF CFR WWF RFF RCF CRR CRC CWC RFC WRC RCW CFF WWR FCF RCR WFF WFR CCC WRF CRW WCW
-
-SCORE: 2212
-64
-WCW WCC CWR WWR RWW WRC FCC CRR RRC CCR FFF CWC RWF RWR CFF CRC FFR RFW RCC CRW RFC FCF FRW FWF RRW FWW CFW WFF WCR WWC FFC FRR CFR RWC CCC FWR WCF RFF RCW WFC WWF RCF WFR FCR FRC CCW WFW CWW RRR CFC RRF FRF WWW CCF CWF CRF WRF WRR FCW FWC RCR RFR FFW WRW
-
-SCORE: 2231
-64
-WCW WCC CWR CRC RWW CWF FCC CRR RRC CCR FFF CWC RWF RWR CFF WWR FFR RFW RCC CRW RFC FCF FRW FWF RRW FWW CFW WFF WCR WWC FFC FRR CFR RWC CCC FWR WCF RFF RCW WFC WWF RCF WFR FCR FRC CCW WFW CWW RRR CFC RRF FRF WWW CCF WRC CRF WRF WRR FCW FWC RCR RFR FFW WRW
-
-SCORE: 2242
-64
-WCW WCC CWR CRC FCF CWF FCC CRR RRC WCR FFF CWC RWF WRC CFF WWR FFR RFW RCC CRW CCW RWW FRW FWF RRW FWW RCW WFF CCR WWC CFW FRR CFR RWC RWR FWR WCF RFF FFC WFC WWF FCW WFR RRF FRC RFC WFW CWW RRR CFC FCR FRF WWW CCF CCC CRF WRF WRR RCF FWC RCR RFR FFW WRW
-
-SCORE: 2243
-64
-WCW WCC RRW FRC FCF CWF FCC CRR RRC CCW FFF CWC RWF WRC CFF WWC FFR RFW RCC FCR FFW CRW FRW FWF CWR FWW RCW WFF CCR WWR CFW FRR CFR RWC RWR FWR WCF RFF FFC WFC WWF FCW WFR RRF CRC RFC WFW CWW RRR CFC RWW FRF WWW CCF CCC CRF WRF WRR RCF FWC RCR RFR WCR WRW
-
-SCORE: 2246
-64
-FCR RCC FRR WRR WWC CRF RRW RFF FWW RWW FRW CRW RCR WCC CWC CCR FRC FFW WWR WCW WFW FFC CRC WWW RWC WRC RWR RFW WFC CFC FRF FCF RFC RRF RFR CWR WWF FWC FFF FWR CCF WCR CFW RCF WFF RRC CCC CRR CWF RRR CFR WRW CWW CCW WFR CFF FCC RWF WCF FCW RCW WRF FFR FWF
-
-
- */

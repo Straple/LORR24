@@ -8,8 +8,8 @@
 #include <memory>
 #include <signal.h>
 
-#include <settings.hpp>
 #include <Tools/tools.hpp>
+#include <settings.hpp>
 
 
 #ifdef PYTHON
@@ -43,9 +43,23 @@ int main(int argc, char **argv) {
 #endif
     // Declare the supported options.
     po::options_description desc("Allowed options");
-    desc.add_options()("help", "produce help message")("inputFile,i", po::value<std::string>()->required(), "input file name")("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")("fileStoragePath,f", po::value<std::string>()->default_value(""), "the large file storage path")("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")("logFile,l", po::value<std::string>()->default_value(""), "redirect stdout messages into the specified log file")("logDetailLevel,d", po::value<int>()->default_value(1), "the minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only");
+    desc.add_options()("help", "produce help message")                                                                                                                                                                                        //
+            ("unique_id,u", po::value<uint32_t>()->default_value(0), "my unique id for unique launch")                                                                                                                                        //
+            ("inputFile,i", po::value<std::string>()->required(), "input file name")                                                                                                                                                          //
+            ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")                                   //
+            ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")//
+            ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")                                                                                                                                 //
+            ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")                                                                                                                                                     //
+            ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the large file storage path")                                                                                                                                 //
+            ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")                                                                                                                          //
+            ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")                                                                                                             //
+            ("logFile,l", po::value<std::string>()->default_value(""), "redirect stdout messages into the specified log file")                                                                                                                //
+            ("logDetailLevel,d", po::value<int>()->default_value(1), "the minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only");
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
+
+    UNIQUE_ID = vm["unique_id"].as<uint32_t>();
+    //std::cout << "unique_id: " << UNIQUE_ID << std::endl;
 
     if (vm.count("help")) {
         std::cout << desc << std::endl;

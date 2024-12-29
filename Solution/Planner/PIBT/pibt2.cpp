@@ -32,7 +32,7 @@ std::vector<Operation> BuilderActions::get() {
 
     // read pool
     {
-        //std::ifstream input("actions.txt");
+        //std::ifstream input("Tmp/actions" + std::to_string(UNIQUE_ID) + ".txt");
         std::stringstream input(
                 "64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR");
 

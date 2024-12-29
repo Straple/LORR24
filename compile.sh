@@ -5,7 +5,7 @@ mkdir build
 # build exec for cpp
 
 cmake -B build ./ -DPYTHON=false -DCMAKE_BUILD_TYPE=Release
-make -C build -j
+make -C build -j1
 
 
 # build exec for python
