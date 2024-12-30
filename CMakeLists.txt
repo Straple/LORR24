@@ -54,6 +54,7 @@ file(GLOB SOURCES
         default_planner/*.cpp
 
         # team solution
+        Solution/settings.cpp
         Solution/Objects/*.cpp
         Solution/Objects/Basic/*.cpp
         Solution/Objects/Containers/*.cpp

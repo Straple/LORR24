@@ -51,4 +51,4 @@ using TASKSHEDULLER = MyScheduler;
 
 static constexpr uint32_t INVALID_DIST = 0;
 
-static inline uint32_t UNIQUE_ID = 0;
+uint32_t &get_unique_id();

@@ -32,16 +32,17 @@ std::vector<Operation> BuilderActions::get() {
 
     // read pool
     {
-        //std::ifstream input("Tmp/actions" + std::to_string(UNIQUE_ID) + ".txt");
-        std::stringstream input(
-                "64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR");
+        std::cout << "pibt unique_id: " << get_unique_id() << std::endl;
+        std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
+        //std::stringstream input(
+        //        "64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR");
 
         uint32_t num;
         input >> num;
         for (uint32_t i = 0; i < num; i++) {
             std::string line;
             input >> line;
-            ASSERT(line.size() == op.size(), "does not match sizes");
+            ASSERT(line.size() == op.size(), "does not match sizes: >" + line + "<, " + std::to_string(op.size()));
             for (uint32_t j = 0; j < op.size(); j++) {
                 if (line[j] == 'W') {
                     op[j] = Action::W;
@@ -64,13 +65,13 @@ std::vector<Operation> BuilderActions::get() {
         for (uint32_t i = 0; i < op.size(); i++) {
             op[i] = Action::W;
         }
-        pool.erase(std::find(pool.begin(), pool.end(), op));
+        //pool.erase(std::find(pool.begin(), pool.end(), op));
         pool.insert(pool.begin(), op);
     }
 
-    std::vector<Operation> result;
+    std::vector<Operation> result = pool;
 
-    std::set<std::array<std::pair<uint32_t, uint32_t>, DEPTH>> visited;
+    /*std::set<std::array<std::pair<uint32_t, uint32_t>, DEPTH>> visited;
     for (auto operation: pool) {
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
         Position p;
@@ -88,7 +89,7 @@ std::vector<Operation> BuilderActions::get() {
             visited.insert(kek);
             result.push_back(operation);
         }
-    }
+    }*/
 
     /*std::cout << "Operation: " << result.size() << std::endl;
     for (auto operation: result) {
@@ -207,7 +208,7 @@ uint32_t PIBT2::get_used(uint32_t r) const {
 
 void PIBT2::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
+    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired: " + std::to_string(robots[r].desired) + " " + std::to_string(actions.size()));
 
     uint32_t node = robots[r].start_node;
     ASSERT(node != 0, "invalid start node");

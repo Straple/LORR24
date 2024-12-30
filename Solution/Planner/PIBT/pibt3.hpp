@@ -11,7 +11,7 @@
 // CLuster mod
 class PIBT3 {
 
-    static inline std::vector<Operation> actions = BuilderActions().get();
+    static inline std::vector<Operation> actions;// = BuilderActions().get();
 
     // used_edge[depth][edge] = robot id
     std::array<std::vector<uint32_t>, DEPTH> used_edge;
