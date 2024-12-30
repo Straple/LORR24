@@ -36,9 +36,13 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
     }
 }
 
-const RobotsHandler::Robot &RobotsHandler::get_robot(uint32_t r) const {
+const Robot &RobotsHandler::get_robot(uint32_t r) const {
     ASSERT(r < robots.size(), "invalid r");
     return robots[r];
+}
+
+const std::vector<Robot> &RobotsHandler::get_robots() const {
+    return robots;
 }
 
 uint32_t RobotsHandler::size() const {

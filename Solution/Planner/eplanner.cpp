@@ -5,6 +5,7 @@
 #include <Planner/PIBT/pibt.hpp>
 #include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibt3.hpp>
+#include <Planner/PIBT/pibt_lns.hpp>
 #include <settings.hpp>
 
 #include <algorithm>
@@ -25,13 +26,16 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     get_robots_handler() = RobotsHandler(*env);
 
 #ifdef ENABLE_PIBT
-    std::vector<uint32_t> order(env->num_of_agents);
+    /*std::vector<uint32_t> order(env->num_of_agents);
     iota(order.begin(), order.end(), 0);
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
     });
 
-    PIBT2 pibt;
-    plan = pibt.solve(order, end_time);
+    PIBT2 pibt(get_robots_handler().get_robots(), std::vector<std::unordered_map<uint32_t, uint32_t>>(get_robots_handler().size()));
+    plan = pibt.solve(order, end_time);*/
+
+    PIBT_LNS pibt(get_robots_handler().get_robots());
+    plan = pibt.solve(end_time);
 #endif
 }

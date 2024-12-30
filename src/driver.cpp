@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     // Declare the supported options.
     po::options_description desc("Allowed options");
     desc.add_options()("help", "produce help message")                                                                                                                                                                                        //
-            ("unique_id,u", po::value<uint32_t>()->required(), "my unique id for unique launch")                                                                                                                                        //
+            ("unique_id,u", po::value<uint32_t>()->default_value(0), "my unique id for unique launch")                                                                                                                                        //
             ("inputFile,i", po::value<std::string>()->required(), "input file name")                                                                                                                                                          //
             ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")                                   //
             ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")//

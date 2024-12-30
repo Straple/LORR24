@@ -33,9 +33,10 @@ std::vector<Operation> BuilderActions::get() {
     // read pool
     {
         std::cout << "pibt unique_id: " << get_unique_id() << std::endl;
-        std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
-        //std::stringstream input(
-        //        "64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR");
+        //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
+        std::stringstream input(
+                //"64\nFWW CFW RWW RCR CWC WCR FFW RRW FCW WCC WCW FFF FCF RFC CCW FRW RRR RFF RRC FWF RWR FRF CRW WRR WWC WFW RCW FRC FRR WWF WFC CCR WWW RCF RWF FWC WFR CWW RFR CRR WRF CWR CCC CWF WWR WFF FWR CFC RFW WRC CCF WRW FCR WCF FFC FCC RRF CRF RCC CFF FFR RWC CRC CFR"
+                "16\nFWW CFW FFW FFF FCF RFC RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF");
 
         uint32_t num;
         input >> num;
@@ -65,7 +66,6 @@ std::vector<Operation> BuilderActions::get() {
         for (uint32_t i = 0; i < op.size(); i++) {
             op[i] = Action::W;
         }
-        //pool.erase(std::find(pool.begin(), pool.end(), op));
         pool.insert(pool.begin(), op);
     }
 
@@ -91,7 +91,7 @@ std::vector<Operation> BuilderActions::get() {
         }
     }*/
 
-    /*std::cout << "Operation: " << result.size() << std::endl;
+    std::cout << "Operation: " << result.size() << std::endl;
     for (auto operation: result) {
         for (uint32_t d = 0; d < DEPTH; d++) {
             char c = '#';
@@ -109,16 +109,16 @@ std::vector<Operation> BuilderActions::get() {
             std::cout << c;
         }
         std::cout << '\n';
-    }*/
+    }
     return result;
 }
 
 bool PIBT2::validate_path(uint32_t r) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
+    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired");
 
-    uint32_t node = robots[r].start_node;
-    auto &path = actions[robots[r].desired];
+    uint32_t node = robots[r].node;
+    auto &path = actions[desires[r]];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -138,10 +138,10 @@ bool PIBT2::check_path(uint32_t r) const {
         return false;
     }
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
+    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired");
 
-    uint32_t node = robots[r].start_node;
-    auto &path = actions[robots[r].desired];
+    uint32_t node = robots[r].node;
+    auto &path = actions[desires[r]];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -164,8 +164,8 @@ bool PIBT2::check_path(uint32_t r) const {
 }
 
 std::array<uint32_t, DEPTH> PIBT2::get_path(uint32_t r) const {
-    uint32_t node = robots[r].start_node;
-    auto &path = actions[robots[r].desired];
+    uint32_t node = robots[r].node;
+    auto &path = actions[desires[r]];
     std::array<uint32_t, DEPTH> result{};
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
@@ -177,9 +177,28 @@ std::array<uint32_t, DEPTH> PIBT2::get_path(uint32_t r) const {
     return result;
 }
 
+uint32_t PIBT2::get_path_weight(uint32_t r) const {
+    uint32_t node = robots[r].node;
+    auto &path = actions[desires[r]];
+    uint32_t result = 0;
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        auto action = path[depth];
+        uint32_t to_node = get_graph().get_to_node(node, action);
+        uint32_t to_edge = get_graph().get_to_edge(node, action);
+
+        ASSERT(r < weights.size(), "invalid weights size");
+        if (weights[r].count(to_edge)) {
+            result += weights[r].at(to_edge);
+        }
+
+        node = to_node;
+    }
+    return result;
+}
+
 uint32_t PIBT2::get_used(uint32_t r) const {
-    uint32_t node = robots[r].start_node;
-    auto &path = actions[robots[r].desired];
+    uint32_t node = robots[r].node;
+    auto &path = actions[desires[r]];
     std::set<uint32_t> answer;
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
@@ -208,11 +227,11 @@ uint32_t PIBT2::get_used(uint32_t r) const {
 
 void PIBT2::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired: " + std::to_string(robots[r].desired) + " " + std::to_string(actions.size()));
+    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired: " + std::to_string(desires[r]) + " " + std::to_string(actions.size()));
 
-    uint32_t node = robots[r].start_node;
+    uint32_t node = robots[r].node;
     ASSERT(node != 0, "invalid start node");
-    auto &path = actions[robots[r].desired];
+    auto &path = actions[desires[r]];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -235,10 +254,10 @@ void PIBT2::add_path(uint32_t r) {
 
 void PIBT2::remove_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= robots[r].desired && robots[r].desired < actions.size(), "invalid desired");
+    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired");
 
-    uint32_t node = robots[r].start_node;
-    auto &path = actions[robots[r].desired];
+    uint32_t node = robots[r].node;
+    auto &path = actions[desires[r]];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -270,17 +289,17 @@ bool PIBT2::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         return false;
     }
 
-    uint32_t old_desired = robots[r].desired;
+    uint32_t old_desired = desires[r];
 
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
     for (uint32_t desired = 1; desired < actions.size(); desired++) {
-        robots[r].desired = desired;
+        desires[r] = desired;
         if (validate_path(r) && get_used(r) != -2) {
             auto path = get_path(r);
 
-            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
-
+            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target) * 10;
+            priority += get_path_weight(r);
             steps.emplace_back(priority, desired);
         }
     }
@@ -289,7 +308,7 @@ bool PIBT2::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     //std::reverse(steps.begin(), steps.end());
 
     for (auto [priority, desired]: steps) {
-        robots[r].desired = desired;
+        desires[r] = desired;
         if (check_path(r)) {
             // отлично! там никого нет
             add_path(r);
@@ -305,7 +324,7 @@ bool PIBT2::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            if (robots[to_r].desired != 0) {
+            if (desires[to_r] != 0) {
                 continue;
             }
             remove_path(to_r);
@@ -320,19 +339,21 @@ bool PIBT2::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         }
     }
 
-    robots[r].desired = old_desired;
+    desires[r] = old_desired;
     return false;
 }
 
-PIBT2::PIBT2() {
+PIBT2::PIBT2(std::vector<Robot> robots, std::vector<std::unordered_map<uint32_t, uint32_t>> weights)
+    : robots(robots), weights(weights) {
+
+    desires.resize(this->robots.size());
+
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         used_pos[depth].resize(get_map().get_size(), -1);
         used_edge[depth].resize(get_graph().get_edges_size(), -1);
     }
 
-    robots.resize(get_robots_handler().size());
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        robots[r].start_node = get_robots_handler().get_robot(r).node;
+    for (uint32_t r = 0; r < this->robots.size(); r++) {
         add_path(r);
     }
 }
@@ -345,7 +366,7 @@ std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimeP
         if (get_now() > end_time) {
             break;
         }
-        if (robots[r].desired == 0) {
+        if (desires[r] == 0) {
             remove_path(r);
             uint32_t counter = 0;
             if (!build(r, 0, counter)) {
@@ -357,7 +378,7 @@ std::vector<Action> PIBT2::solve(const std::vector<uint32_t> &order, const TimeP
     std::vector<Action> answer(robots.size());
 
     for (uint32_t r = 0; r < robots.size(); r++) {
-        answer[r] = actions[robots[r].desired][0];
+        answer[r] = actions[desires[r]][0];
     }
 
     //std::cout << "PIBT2: " << timer << '\n';
