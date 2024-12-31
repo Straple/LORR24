@@ -104,7 +104,35 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
             return timestep_updated[lhs] > timestep_updated[rhs];
         });
 
-        std::vector<std::atomic<uint32_t>> thr_task(THREADS);
+        for (uint32_t r: order) {
+            for (auto [dist, task_id]: dp[r]) {
+                // not used in this timestep
+                if (used_task_t[task_id] == launch_num) {
+                    continue;
+                }
+                // this task is available
+                if (!env->task_pool.count(task_id)) {
+                    continue;
+                }
+                // robot already used this task
+                if (env->task_pool[task_id].agent_assigned != -1) {
+                    continue;
+                }
+
+                ASSERT(env->task_pool.count(task_id), "no contains");
+                ASSERT(env->task_pool[task_id].agent_assigned == -1, "already assigned");
+                ASSERT(used_task_t[task_id] < launch_num, "already used");
+
+                proposed_schedule[r] = task_id;
+                used_task_t[task_id] = launch_num;
+                if (get_dist_to_start(r, task_id) <= 3) {
+                    done_proposed_schedule[r] = task_id;
+                }
+                break;
+            }
+        }
+
+        /*std::vector<std::atomic<uint32_t>> thr_task(THREADS);
         std::vector<std::atomic<uint32_t>> answer(THREADS);
 
         auto do_work = [&](uint32_t thr) {
@@ -177,7 +205,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         }
         for (uint32_t thr = 0; thr < THREADS; thr++) {
             threads[thr].join();
-        }
+        }*/
     }
 
     //std::cout << "Scheduler: " << timer << std::endl;
