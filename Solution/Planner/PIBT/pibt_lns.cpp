@@ -2,7 +2,7 @@
 
 #include <Objects/Environment/environment.hpp>
 
-PIBT_LNS::PIBT_LNS(std::vector<Robot> robots) : robots(robots), weights(robots.size()) {
+PIBT_LNS::PIBT_LNS(const std::vector<Robot>& robots) : robots(robots), weights(robots.size()) {
 }
 
 std::pair<double, std::array<std::vector<Action>, PIBT_LNS_DEPTH>> PIBT_LNS::simulate(TimePoint end_time) const {
@@ -27,7 +27,7 @@ std::pair<double, std::array<std::vector<Action>, PIBT_LNS_DEPTH>> PIBT_LNS::sim
             int32_t new_dist = get_hm().get_to_pos(get_graph().get_to_node(cur_robots[r].node, actions[r]), cur_robots[r].target);
             // в идеале old_dist = new_dist + 1
             // old_dist - new_dist <= 1
-            //score += -(old_dist - new_dist - 1);
+            // score += -(old_dist - new_dist - 1);
         }
 
         // simulate move

@@ -129,7 +129,7 @@ uint32_t call(const std::string &testname, const std::vector<Operation> &pool, u
     int ret_code = std::system(
             ("./cmake-build-release-wsl/lifelong -i " + testname + " -o Tmp/test"//
              + std::to_string(thr)                                               //
-             + ".json -s 1000 -t 200 -p 100000000 --unique_id "                  //
+             + ".json -s 1000 -t 100 -p 100000000 --unique_id "                  //
              + std::to_string(thr)                                               //
              + " > Tmp/log" + std::to_string(thr) + ".txt")
                     .c_str());
@@ -169,16 +169,18 @@ int main() {
     auto get_score = [&](const std::vector<uint32_t> &state, uint32_t thr) -> uint32_t {
         auto pool = build_pool(state);
         if (call("example_problems/my.domain/random_32_32_20_100.json", pool, thr) > 350) {
-            return call("example_problems/random.domain/random_32_32_20_300.json", pool, thr);
+            return call("example_problems/random.domain/random_32_32_20_100.json", pool, thr) +
+                   call("example_problems/random.domain/random_32_32_20_200.json", pool, thr) +
+                   call("example_problems/random.domain/random_32_32_20_300.json", pool, thr);
         } else {
             return 0;
         }
     };
 
-    constexpr uint32_t THREADS = 6;
+    constexpr uint32_t THREADS = 96;
     std::vector<Randomizer> rnds(THREADS);
     {
-        Randomizer rnd(20401);
+        Randomizer rnd(86242);
         for (uint32_t i = 0; i < THREADS; i++) {
             rnds[i] = Randomizer(rnd.get());
         }
@@ -249,8 +251,11 @@ int main() {
         return state;
     };
 
+    std::ofstream log("log.txt");
+    std::ofstream resultput("results.txt");
+
     for (uint32_t step = 0;; step++) {
-        std::cout << "NEW STEP " << step << ", " << timer << std::endl;
+        log << "NEW STEP " << step << ", " << timer << std::endl;
 
         std::vector<std::pair<uint32_t, std::vector<uint32_t>>> answers(THREADS);
 
@@ -258,18 +263,17 @@ int main() {
             Timer timer;
             auto state = build_random_state(thr);
             answers[thr] = {get_score(state, thr), state};
+            // 100s
             while (timer.get_ms() < 100'000) {
-                int k = rnds[thr].get(1, 3);
-                for (int i = 0; i < k; i++) {
-                    double x = rnds[thr].get_d();
-                    if (x < 0.3) {
-                        state = try_add(state, thr);
-                    } else if (x < 0.6) {
-                        state = try_swap(state, thr);
-                    } else {
-                        state = try_remove(state, thr);
-                    }
+                double x = rnds[thr].get_d();
+                if (x < 0.3) {
+                    state = try_add(state, thr);
+                } else if (x < 0.6) {
+                    state = try_swap(state, thr);
+                } else {
+                    state = try_remove(state, thr);
                 }
+
                 uint32_t score = get_score(state, thr);
 
                 if (score > answers[thr].first) {
@@ -288,12 +292,24 @@ int main() {
 
         std::sort(answers.begin(), answers.end(), std::greater<>());
 
-        //std::cout << "score: " << answers[0].first << std::endl;
-        std::cout << "scores: ";
-        for (auto ans: answers) {
-            std::cout << ans.first << ' ';
+        {
+            log << "scores: ";
+            for (auto ans: answers) {
+                log << ans.first << ' ';
+            }
+            log << std::endl;
         }
-        std::cout << std::endl;
+
+        {
+            resultput << "===========\n";
+            resultput << "step: " << step << std::endl;
+            for (auto ans: answers) {
+                resultput << "score: " << ans.first << '\n';
+                write_pool(build_pool(ans.second), resultput);
+                resultput << '\n';
+            }
+            resultput.flush();
+        }
 
         if (answer.first < answers[0].first) {
             answer = answers[0];
@@ -315,16 +331,14 @@ RRF FCC CFC RFR FFW
 
 */
 
-/*
-NEW STEP 0, 172.073us
-scores: 2208 2205 736 421 222 0
-NEW STEP 1, 100.782s
-scores: 2294 1517 1004 918 902 0
-NEW STEP 2, 212.258s
-scores: 2113 1778 945 156 0 0
-NEW STEP 3, 370.56s
-scores: 1386 612 454 453 386 0
-NEW STEP 4, 512.735s
-scores: 1311 1137 0 0 0 0
-NEW STEP 5, 627.635s
-*/
+
+/*NEW STEP 0, 367.589us
+scores: 2429 2078 1770 1740 1622 1556 1545 1450 1334 1247 1242 1225 1194 1096 1054 1027 1006 941 882 818 715 700 692 672 631 586 578
+568 523 468 457 392 381 359 321 304 299 187 186 177 169 139 108 93 69 19 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+NEW STEP 1, 198.305s
+scores: 2238 1839 1816 1796 1653 1578 1515 1263 1235 1039 1028 1000 948 890 807 772 768 729 723 693 633 622 614 568 511 507 457 446 4
+01 363 304 276 214 187 111 94 49 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+NEW STEP 2, 322.263s
+scores: 2271 2206 1914 1760 1755 1659 1570 1532 1400 1266 1184 1175 1109 1103 1097 1086 1056 1017 999 969 914 912 908 906 888 822 767
+ 764 643 577 551 504 443 336 317 289 216 213 135 128 110 47 33 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+NEW STEP 3, 501.533s*/
