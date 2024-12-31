@@ -6,6 +6,7 @@
 #include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibt3.hpp>
 #include <Planner/PIBT/pibt_lns.hpp>
+#include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 
 #include <algorithm>
@@ -19,7 +20,7 @@ void EPlanner::initialize(int preprocess_time_limit) {}
 
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     static TimePoint start = std::chrono::steady_clock::now();
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 10);
 
     plan.assign(env->num_of_agents, Action::W);
 
@@ -32,9 +33,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
     });
 
-    std::vector<std::unordered_map<uint32_t, uint32_t>> weights(get_robots_handler().size());
-    PIBT2 pibt(get_robots_handler().get_robots(), weights);
-    plan = pibt.solve(order, end_time);
+    //std::vector<std::unordered_map<uint32_t, uint32_t>> weights(get_robots_handler().size());
+    //PIBT2 pibt(get_robots_handler().get_robots(), weights);
+
+    PIBTS pibt(get_robots_handler().get_robots());
+    plan = pibt.solve(end_time);
 
     //PIBT_LNS pibt(get_robots_handler().get_robots());
     //plan = pibt.solve(end_time);
