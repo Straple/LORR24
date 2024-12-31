@@ -20,7 +20,7 @@ void EPlanner::initialize(int preprocess_time_limit) {}
 
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     static TimePoint start = std::chrono::steady_clock::now();
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 10);
+    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
 
     plan.assign(env->num_of_agents, Action::W);
 

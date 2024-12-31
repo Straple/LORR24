@@ -2,8 +2,6 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
-#include <thread>
-
 
 bool PIBTS::validate_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
@@ -182,7 +180,7 @@ void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, in
     int32_t old_dist = get_hm().get_to_pos(robots[r].node, robots[r].target);
     int32_t cur_dist = get_hm().get_to_pos(finish_node, robots[r].target);
     int32_t diff = old_dist - cur_dist;
-    double power = (order[r] + 1) * 1.0 / robots.size();
+    double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
     cur_score += sign * diff * power;
 }
 
@@ -350,7 +348,7 @@ bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &r
     for (auto [_, desired]: steps) {
         state.desires[r] = desired;
 
-        if(rnd.get_d() < 0.2){
+        if (rnd.get_d() < 0.2) {
             continue;
         }
 
@@ -361,7 +359,7 @@ bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &r
         } else {
             // о нет! там кто-то есть
 
-            if (counter > 100) {
+            if (counter > 1'000) {
                 continue;
             }
 
@@ -403,6 +401,78 @@ bool PIBTS::try_build(uint32_t r, Randomizer &rnd) {
     return false;
 }
 
+bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
+    if (counter == -1 || (counter % 256 == 0 && get_now() >= end_time)) {
+        counter = -1;
+        return false;
+    }
+
+    uint32_t old_desired = desires[r];
+
+    // (priority, desired)
+    std::vector<std::pair<int64_t, uint32_t>> steps;
+    for (uint32_t desired = 1; desired < actions.size(); desired++) {
+        desires[r] = desired;
+        if (validate_path(r, desires[r]) && get_used(r) != -2) {
+            auto path = get_path(r, desires[r]);
+
+            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+            steps.emplace_back(priority, desired);
+        }
+    }
+
+    std::stable_sort(steps.begin(), steps.end());
+    //std::reverse(steps.begin(), steps.end());
+
+    for (auto [priority, desired]: steps) {
+        desires[r] = desired;
+        if (is_free_path(r)) {
+            // отлично! там никого нет
+            add_path(r);
+            return true;
+        } else {
+            // о нет! там кто-то есть
+
+            if (counter > 3'000 && depth > 6) {
+                continue;
+            } else if (counter > 10'000 && depth > 3) {
+                continue;
+            } else if (counter > 30'000) {
+                continue;
+            }
+
+            uint32_t to_r = get_used(r);
+            ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
+            if (desires[to_r] != 0) {
+                continue;
+            }
+            remove_path(to_r);
+            add_path(r);
+
+            if (build(to_r, depth + 1, ++counter)) {
+                return true;
+            }
+
+            remove_path(r);
+            add_path(to_r);
+        }
+    }
+
+    desires[r] = old_desired;
+    return false;
+}
+
+bool PIBTS::build(uint32_t r) {
+    remove_path(r);
+    uint32_t counter = 0;
+    if (!build(r, 0, counter)) {
+        add_path(r);
+        return false;
+    } else {
+        return true;
+    }
+}
+
 PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
 
     desires.resize(robots.size());
@@ -414,15 +484,15 @@ PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
 
     // build order
     {
-        std::vector<uint32_t> p(robots.size());
-        iota(p.begin(), p.end(), 0);
-        std::stable_sort(p.begin(), p.end(), [&](uint32_t lhs, uint32_t rhs) {
-            return robots[lhs].priority > robots[rhs].priority;
+        order.resize(robots.size());
+        iota(order.begin(), order.end(), 0);
+        std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+            return robots[lhs].priority < robots[rhs].priority;
         });
 
-        order.resize(robots.size());
+        weight.resize(robots.size());
         for (uint32_t i = 0; i < robots.size(); i++) {
-            order[p[i]] = i;
+            weight[order[i]] = i;
         }
     }
 
@@ -434,13 +504,23 @@ PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
 std::vector<Action> PIBTS::solve(TimePoint end_time) {
     this->end_time = end_time;
     Timer timer;
+
+    for (uint32_t r: order) {
+        if (desires[r] == 0) {
+            if (get_now() >= end_time) {
+                break;
+            }
+            build(r);
+        }
+    }
+
+    uint32_t cnt_try = 0;
+    uint32_t cnt_accept = 0;
     static Randomizer rnd;
-    //std::vector<std::thread> threads(THREADS);
-    uint32_t cnt = 0;
     while (get_now() < end_time) {
         uint32_t r = rnd.get(0, robots.size() - 1);
-        try_build(r, rnd);
-        cnt++;
+        cnt_accept += try_build(r, rnd);
+        cnt_try++;
     }
 
     std::vector<Action> answer(robots.size());
@@ -449,6 +529,6 @@ std::vector<Action> PIBTS::solve(TimePoint end_time) {
         answer[r] = actions[desires[r]][0];
     }
 
-    std::cout << "PIBTS: " << timer << ", " << cnt << '\n';
+    std::cout << "PIBTS: " << timer << ", " << cnt_accept << "/" << cnt_try << '\n';
     return answer;
 }

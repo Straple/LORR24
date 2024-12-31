@@ -39,6 +39,8 @@ class PIBTS {
 
     std::vector<uint32_t> order;
 
+    std::vector<uint32_t> weight;
+
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
 
     [[nodiscard]] bool is_free_path(uint32_t r) const;
@@ -66,6 +68,10 @@ class PIBTS {
     bool try_build(uint32_t r, State &state, uint32_t& counter, Randomizer& rnd) const;
 
     bool try_build(uint32_t r, Randomizer& rnd);
+
+    bool build(uint32_t r, uint32_t depth, uint32_t &counter);
+
+    bool build(uint32_t r);
 
 public:
     static inline std::vector<Operation> actions;
