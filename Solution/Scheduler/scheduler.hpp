@@ -16,4 +16,7 @@ public:
     void initialize(int preprocess_time_limit);
 
     std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
+    std::vector<int> GreedyShedule(int time_limit, std::vector<int> &proposed_schedule);
+    std::vector<int> OptimizeShedule(int time_limit, std::vector<int> &schedule);
+
 };
