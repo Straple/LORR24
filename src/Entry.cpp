@@ -7,6 +7,8 @@
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/map.hpp>
+#include <Objects/Environment/BusynessMap.hpp>
+
 
 #include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibts.hpp>
@@ -25,6 +27,7 @@ void Entry::initialize(int preprocess_time_limit) {
     get_map() = Map(*env);
     get_graph() = Graph(get_map());
     get_hm() = HeuristicMatrix(get_graph());
+    get_busyness_map() = BusynessMap(get_map());
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);

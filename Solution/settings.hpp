@@ -33,7 +33,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 #define ENABLE_PIBT
 
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
-// #define BUILD_META_INFO
+//#define BUILD_META_INFO
 
 static constexpr uint32_t THREADS = 4;
 
@@ -51,7 +51,7 @@ struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = MyScheduler;
 
-//#define ENABLE_SCHEDULER_TRICK
+#define ENABLE_SCHEDULER_TRICK
 
 static constexpr uint32_t INVALID_DIST = 0;
 

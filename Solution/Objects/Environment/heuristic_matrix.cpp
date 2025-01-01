@@ -96,3 +96,4 @@ HeuristicMatrix &get_hm() {
     static HeuristicMatrix hm;
     return hm;
 }
+

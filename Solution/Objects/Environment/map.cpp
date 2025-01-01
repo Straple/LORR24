@@ -1,5 +1,7 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/map.hpp>
+#include <cstddef>
+#include <vector>
 
 Map::Map(const SharedEnvironment &env) : rows(env.rows), cols(env.cols) {
     ASSERT(get_size() == env.map.size() + 1, "size mismatch");
@@ -9,6 +11,11 @@ Map::Map(const SharedEnvironment &env) : rows(env.rows), cols(env.cols) {
         map[pos + 1] = env.map[pos] == 0;
     }
 }
+
+Map::Map(const std::vector<bool>& mp, size_t cols, size_t rows):rows(rows), cols(cols), map(mp){
+    map.resize(rows*cols);
+}
+
 
 uint32_t Map::get_rows() const {
     return rows;

@@ -15,6 +15,7 @@ class Map {
 public:
     Map() = default;
     explicit Map(const SharedEnvironment &env);
+    explicit Map(const std::vector<bool>& mp,  size_t cols, size_t rows);
 
     [[nodiscard]] uint32_t get_rows() const;
 
