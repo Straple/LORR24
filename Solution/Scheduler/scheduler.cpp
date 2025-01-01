@@ -302,6 +302,7 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int>& 
         for (int i = 0; i < rb; i++){
             for (int g = 0; g < free_tasks.size(); g++){
                 dist_matrix[i+1][g+1] = get_dist_to_start(free_robots[i], free_tasks[g]);
+                // dist_matrix[i+1][g+1] *= dist_matrix[i+1][g+1];
             }
         }
         auto ans = Hungarian(dist_matrix, rb, free_tasks.size());
@@ -310,7 +311,7 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int>& 
             if (ans[i] != -1){
                 auto r = free_robots[i-1];
                 auto t = free_tasks[ans[i]-1];
-                schedule[free_robots[i-1]] = free_tasks[ans[i]-1];
+                schedule[r] = t;
                 if (get_dist_to_start(r,t) <= 3){
                     done_proposed_schedule[r] = t;
                 }
@@ -372,7 +373,6 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int>& 
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    auto schedule = proposed_schedule;
     // auto shedule = GreedyShedule(time_limit/2, proposed_schedule);
     auto done_proposed_schedule = OptimizeShedule(time_limit, proposed_schedule);
     return done_proposed_schedule;
