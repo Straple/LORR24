@@ -176,11 +176,11 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
     return answer;
 }
 
-void PIBTS::update_score(uint32_t r, uint32_t finish_node, int64_t &cur_score, int sign) const {
+void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, int sign) const {
     int32_t old_dist = get_hm().get_to_pos(robots[r].node, robots[r].target);
     int32_t cur_dist = get_hm().get_to_pos(finish_node, robots[r].target);
-    int64_t diff = old_dist - cur_dist;
-    int64_t power = (static_cast<int32_t>(robots.size()) - weight[r]);// * 1.0 / robots.size();
+    int64_t diff = (old_dist - cur_dist);                             // * (old_dist - cur_dist) * (old_dist - cur_dist);
+    double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
     cur_score += sign * diff * power;
 }
 
@@ -401,8 +401,9 @@ bool PIBTS::try_build(uint32_t r, Randomizer &rnd) {
     return false;
 }
 
-uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, int64_t old_score) {
+uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, double old_score) {
     visited[r] = visited_counter;
+
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
     uint32_t old_desired = desires[r];
@@ -411,7 +412,6 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, int64
         if (!validate_path(r, desired) || get_used(r) == -2) {
             continue;
         }
-
         auto path = get_path(r, desired);
 
         int64_t priority = get_hm().get_to_pos(path.back(), robots[r].target);
@@ -424,16 +424,17 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, int64
     for (auto [_, desired]: steps) {
         desires[r] = desired;
 
-        if (rnd.get_d() < 0.2) {
-            continue;
-        }
+        //if (rnd.get_d() < 0.1) {
+        //    continue;
+        //}
 
         if (is_free_path(r)) {
             // отлично! там никого нет
             add_path(r);
-            if (old_score <= cur_score ||
+            if (old_score <= cur_score
                 // old_score > cur_score
-                rnd.get_d() < 1.0 / (old_score - cur_score + 4)) {
+                //|| rnd.get_d() < 1.0 / (old_score - cur_score + 10)
+                ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -476,7 +477,7 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, int64
 }
 
 bool PIBTS::try_build2(uint32_t r, Randomizer &rnd) {
-    int64_t old_score = cur_score;
+    double old_score = cur_score;
     remove_path(r);
     uint32_t counter = 0;
     uint32_t res = try_build2(r, counter, rnd, old_score);
@@ -588,7 +589,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
     }
 }
 
-std::vector<Action> PIBTS::solve(TimePoint end_time) {
+std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     this->end_time = end_time;
     //Timer timer;
 
@@ -603,9 +604,9 @@ std::vector<Action> PIBTS::solve(TimePoint end_time) {
 
     uint32_t cnt_try = 0;
     uint32_t cnt_accept = 0;
-    static Randomizer rnd;
+    Randomizer rnd(seed);
     while (get_now() < end_time) {
-        //for (int step = 0; step < 1000; step++) {
+    //for (int step = 0; step < 500; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
         visited_counter++;
 
@@ -619,8 +620,10 @@ std::vector<Action> PIBTS::solve(TimePoint end_time) {
         answer[r] = actions[desires[r]][0];
     }
 
-    //std::cout << "PIBTS: " << timer << ", " << cnt_accept << "/" << cnt_try << '\n';
-    //static Timer total_timer;
-    //std::cout << "total: " << total_timer << '\n';
+    // std::cout << "PIBTS: " << timer << ", " << cnt_accept << "/" << cnt_try << '\n';
     return answer;
+}
+
+double PIBTS::get_score() const {
+    return cur_score;
 }
