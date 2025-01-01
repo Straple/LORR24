@@ -179,7 +179,7 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
 void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, int sign) const {
     int32_t old_dist = get_hm().get_to_pos(robots[r].node, robots[r].target);
     int32_t cur_dist = get_hm().get_to_pos(finish_node, robots[r].target);
-    int64_t diff = (old_dist - cur_dist);                             // * (old_dist - cur_dist) * (old_dist - cur_dist);
+    int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
     cur_score += sign * diff * power;
 }
@@ -434,7 +434,7 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
             if (old_score <= cur_score
                 // old_score > cur_score
                 //|| rnd.get_d() < 1.0 / (old_score - cur_score + 10)
-                ) {
+            ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -605,8 +605,12 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     uint32_t cnt_try = 0;
     uint32_t cnt_accept = 0;
     Randomizer rnd(seed);
-    while (get_now() < end_time) {
-    //for (int step = 0; step < 500; step++) {
+    for (uint32_t step = 0; step < PIBTS_STEPS; step++) {
+        if (PIBTS_STEPS == -1) {
+            if (get_now() >= end_time) {
+                break;
+            }
+        }
         uint32_t r = rnd.get(0, robots.size() - 1);
         visited_counter++;
 
