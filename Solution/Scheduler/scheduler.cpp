@@ -96,17 +96,10 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
-        // 12236
-        return get_dist_to_start(r, t);
-
-        // 11163
-        uint32_t res = 0;
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        for (int loc: env->task_pool[t].locations) {
-            res += get_hm().get_to_pos(source, loc + 1);
-            source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
-        }
-        return res;
+        ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+        uint32_t loc = env->task_pool[t].locations[0] + 1;
+        return get_dhm().get(source, loc);
     };
 
     static std::vector<int> timestep_updated(free_robots.size(), -1);

@@ -52,6 +52,8 @@ DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map) {
 }
 
 void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) {
+    Timer timer;
+
     std::unordered_set<uint32_t> robots_pos;
     for (auto robot: get_robots_handler().get_robots()) {
         robots_pos.insert(get_graph().get_pos(robot.node).get_pos());
@@ -67,13 +69,6 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     std::sort(pool.begin(), pool.end());
 
     std::atomic<uint32_t> total_rebuild = 0;
-    /*for (uint32_t index = 0; index < pool.size() && get_now() < end_time; index++) {
-        auto [_, target] = pool[index];
-
-        timestep_updated[target] = env.curr_timestep;
-        rebuild(target, robots_pos);
-        ++total_rebuild;
-    }*/
 
     auto do_work = [&](uint32_t thr) {
         for (uint32_t index = thr; index < pool.size() && get_now() < end_time; index += THREADS) {
@@ -95,6 +90,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 
 #ifdef ENABLE_PRINT_LOG
     std::cout << "total rebuild: " << total_rebuild << '\n';
+    std::cout << "rebuild time: " << timer << '\n';
 #endif
 }
 
@@ -103,14 +99,6 @@ uint64_t DynamicHeuristicMatrix::get(uint32_t source, uint32_t target) {
 
     if (!matrix[target].empty()) {
         ASSERT(source < matrix[target].size(), "invalid source");
-        /*uint32_t hm = get_hm().get_to_pos(source, target);
-        uint32_t dhm = matrix[target][source];
-        //if (hm != dhm) {
-        //    std::cout << get_hm().get_to_pos(source, target) << std::endl;
-        //}
-        ASSERT(hm == dhm, "invalid matrix");
-        // source: (x:0, y:3, dir:0)
-        // target: (x: 2, y: 0)*/
         return matrix[target][source];
     } else {
         return get_hm().get_to_pos(source, target);
