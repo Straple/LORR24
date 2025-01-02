@@ -3,12 +3,12 @@
 #include "heuristics.h"
 #include "utils.h"
 
+#include <Objects/Environment/BusynessMap.hpp>
+#include <Objects/Environment/dynamic_heuristic_matrix.hpp>
 #include <Objects/Environment/environment.hpp>
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/map.hpp>
-#include <Objects/Environment/BusynessMap.hpp>
-
 
 #include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibts.hpp>
@@ -27,7 +27,8 @@ void Entry::initialize(int preprocess_time_limit) {
     get_map() = Map(*env);
     get_graph() = Graph(get_map());
     get_hm() = HeuristicMatrix(get_graph());
-    get_busyness_map() = BusynessMap(get_map());
+    get_dhm() = DynamicHeuristicMatrix(get_map());
+    // get_busyness_map() = BusynessMap(get_map());
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
@@ -61,7 +62,9 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
-    //static Timer total_timer;
+    get_robots_handler() = RobotsHandler(*env); // update locations
+    get_dhm().update(*env, get_now() + Milliseconds(DHM_TIMELIMIT)); // update DHM
+
 #ifdef ENABLE_SCHEDULER_TRICK
     std::vector<int> done_proposed_schedule =
 #endif

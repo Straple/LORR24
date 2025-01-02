@@ -177,8 +177,8 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, int sign) const {
-    int32_t old_dist = get_hm().get_to_pos(robots[r].node, robots[r].target);
-    int32_t cur_dist = get_hm().get_to_pos(finish_node, robots[r].target);
+    int64_t old_dist = get_dhm().get(robots[r].node, robots[r].target);
+    int64_t cur_dist = get_dhm().get(finish_node, robots[r].target);
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
     cur_score += sign * diff * power;
@@ -338,7 +338,7 @@ bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &r
 
         auto path = get_path(r, desired);
 
-        int64_t priority = get_hm().get_to_pos(path.back(), robots[r].target);
+        int64_t priority = get_dhm().get(path.back(), robots[r].target);
 
         steps.emplace_back(priority, desired);
     }
@@ -414,7 +414,7 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
         }
         auto path = get_path(r, desired);
 
-        int64_t priority = get_hm().get_to_pos(path.back(), robots[r].target);
+        int64_t priority = get_dhm().get(path.back(), robots[r].target);
 
         steps.emplace_back(priority, desired);
     }
@@ -503,7 +503,7 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (validate_path(r, desires[r]) && get_used(r) != -2) {
             auto path = get_path(r, desires[r]);
 
-            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+            int64_t priority = get_dhm().get(path.back(), robots[r].target);
             steps.emplace_back(priority, desired);
         }
     }

@@ -26,7 +26,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -35,15 +35,17 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 500;
+
+static constexpr uint32_t DHM_TIMELIMIT = 30;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм

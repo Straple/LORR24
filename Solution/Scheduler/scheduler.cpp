@@ -146,6 +146,12 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
         }
     }
 
+
+#ifdef ENABLE_PRINT_LOG
+    std::cout << "free robots: " << free_robots.size() << '\n';
+    std::cout << "free tasks: " << free_tasks.size() << '\n';
+#endif
+
     auto done_proposed_schedule = proposed_schedule;
     {
         static std::vector<uint32_t> used_task_t(500'000);// max task available
@@ -185,7 +191,7 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
 
             proposed_schedule[r] = task_id;
             used_task_t[task_id] = launch_num;
-            if (get_dist_to_start(r, task_id) <= 3) {
+            if (get_dist_to_start(r, task_id) <= 1) {
                 done_proposed_schedule[r] = task_id;
             }
         }

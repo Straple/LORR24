@@ -32,7 +32,6 @@ std::vector<Operation> BuilderActions::get() {
 
     // read pool
     {
-        std::cout << "pibt unique_id: " << get_unique_id() << std::endl;
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
                 "16\nFWW CFW FFW FFF FCF RFC RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF"
@@ -97,6 +96,7 @@ std::vector<Operation> BuilderActions::get() {
         }
     }*/
 
+#ifdef ENABLE_PRINT_LOG
     std::cout << "Operation: " << result.size() << std::endl;
     for (auto operation: result) {
         for (uint32_t d = 0; d < DEPTH; d++) {
@@ -116,6 +116,7 @@ std::vector<Operation> BuilderActions::get() {
         }
         std::cout << '\n';
     }
+#endif
     return result;
 }
 

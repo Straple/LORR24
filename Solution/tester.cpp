@@ -10,7 +10,7 @@ uint32_t call(const std::string &test, uint32_t test_id) {
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     int ret_code = std::system(
-            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 40 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 100000 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
@@ -130,16 +130,23 @@ call(5): 2643, 133.274s
 total: 19687
 
 PIBT2 + 500 solver steps + SHEDULER_TRICK
-call(0): 2454, 10.8006s
-call(1): 3934, 17.3619s
-call(2): 4130, 25.4601s
-call(3): 3812, 41.3976s
-call(4): 3163, 105.836s
-call(5): 2773, 137.323s
-total: 20266
+call(0): 2448, 14.288s
+call(1): 3875, 21.5622s
+call(2): 4245, 38.3575s
+call(3): 3639, 111.126s
+call(4): 3218, 133.659s
+call(5): 2794, 208.623s
+total: 20219
 
-500 solver steps + SHEDULER_TRICK
-very bad results
+PIBT2 + 500 solver steps + SHEDULER_TRICK + DHM
+call(0): 2452, 35.8154s
+call(1): 4121, 39.3456s
+call(2): 4828, 43.2985s
+call(3): 4416, 58.853s
+call(4): 3441, 102.102s
+call(5): 2909, 124.727s
+total: 22167
+
 */
 
 // PIBT3
