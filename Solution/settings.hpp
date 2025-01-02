@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <set>
+#include <fstream>
+#include <iostream>
 
 /*
 steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
@@ -32,18 +34,20 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 #define ENABLE_PIBT
 
+#define ENABLE_DHM
+
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
-static constexpr uint32_t THREADS = 4;
+static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 500;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
 static constexpr uint32_t DHM_TIMELIMIT = 400;
 
@@ -60,3 +64,20 @@ using TASKSHEDULLER = MyScheduler;
 static constexpr uint32_t INVALID_DIST = 0;
 
 uint32_t &get_unique_id();
+
+#define ENABLE_FILEPRINT
+
+struct Printer {
+};
+
+template<typename T>
+const Printer &operator<<(const Printer &printer, const T &value) {
+#ifdef ENABLE_FILEPRINT
+    //static std::ofstream log("printer.txt");
+    //log << value;
+    std::cout << value;
+#else
+    std::cout << value;
+#endif
+    return printer;
+}

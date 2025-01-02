@@ -97,7 +97,7 @@ std::vector<Operation> BuilderActions::get() {
     }*/
 
 #ifdef ENABLE_PRINT_LOG
-    std::cout << "Operation: " << result.size() << std::endl;
+    Printer() << "Operation: " << result.size() << '\n';
     for (auto operation: result) {
         for (uint32_t d = 0; d < DEPTH; d++) {
             char c = '#';
@@ -112,9 +112,9 @@ std::vector<Operation> BuilderActions::get() {
             } else {
                 ASSERT(false, "failed");
             }
-            std::cout << c;
+            Printer() << c;
         }
-        std::cout << '\n';
+        Printer() << '\n';
     }
 #endif
     return result;

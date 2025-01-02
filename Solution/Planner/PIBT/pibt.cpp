@@ -24,10 +24,11 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
             // если там никого нет или он еще не посчитан
             if (!pos_to_robot.count(to.get_pos()) || robots[pos_to_robot[to.get_pos()]].desired == -1) {
 
-                uint32_t dist = get_hm().get(robots[r].node, get_graph().get_node(to)) +
-                                get_hm().get_to_pos(get_graph().get_node(to), get_robots_handler().get_robot(r).target);
+                ASSERT(false, "outdated");
+                //uint32_t dist = get_hm().get(robots[r].node, get_graph().get_node(to)) +
+                //                get_hm().get_to_pos(get_graph().get_node(to), get_robots_handler().get_robot(r).target);
 
-                actions.emplace_back(dist, dir);
+                //actions.emplace_back(dist, dir);
             }
         }
     }
@@ -180,6 +181,6 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
         ASSERT(actions[r] != Action::NA, "NA action");
     }
 
-    std::cout << "PIBT: " << timer << '\n';
+    Printer() << "PIBT: " << timer << '\n';
     return actions;
 }

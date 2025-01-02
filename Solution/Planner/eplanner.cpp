@@ -58,11 +58,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     int64_t best = -1e18;
 #ifdef ENABLE_PRINT_LOG
-    std::cout << "PIBTS: ";
+    Printer() << "PIBTS: ";
 #endif
     for (uint32_t thr = 0; thr < THREADS; thr++) {
 #ifdef ENABLE_PRINT_LOG
-        std::cout << results[thr].first << ' ';
+        Printer() << results[thr].first << ' ';
 #endif
         if (best < results[thr].first) {
             best = results[thr].first;
@@ -70,13 +70,13 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
     }
 #ifdef ENABLE_PRINT_LOG
-    std::cout << '\n';
+    Printer() << '\n';
 #endif
     //PIBT_LNS pibt(get_robots_handler().get_robots());
 
 #endif
 
 #ifdef ENABLE_PRINT_LOG
-    std::cout << "Planner: " << timer << std::endl;
+    Printer() << "Planner: " << timer << '\n';
 #endif
 }

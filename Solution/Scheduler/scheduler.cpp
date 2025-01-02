@@ -92,14 +92,14 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get_to_pos(source, loc);
+        return get_hm().get_to_pos(source, loc);// Heuristic Matrix
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_dhm().get(source, loc);
+        return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
     };
 
     static std::vector<int> timestep_updated(free_robots.size(), -1);
@@ -141,8 +141,8 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
 
 
 #ifdef ENABLE_PRINT_LOG
-    std::cout << "free robots: " << free_robots.size() << '\n';
-    std::cout << "free tasks: " << free_tasks.size() << '\n';
+    Printer() << "free robots: " << free_robots.size() << '\n';
+    Printer() << "free tasks: " << free_tasks.size() << '\n';
 #endif
 
     auto done_proposed_schedule = proposed_schedule;
@@ -219,7 +219,7 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
     }
 
 #ifdef ENABLE_PRINT_LOG
-    std::cout << "Scheduler: " << timer << std::endl;
+    Printer() << "Scheduler: " << timer << '\n';
 #endif
     return done_proposed_schedule;
 }

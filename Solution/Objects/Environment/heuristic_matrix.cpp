@@ -7,15 +7,17 @@
 #include <thread>
 
 void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
-    auto &dists = dp[source];
+    auto &dists = matrix[source];
     dists.assign(graph.get_nodes_size(), -1);
 
     // (dist, node)
-    LinearHeap<std::pair<uint32_t, uint32_t>> heap;
+    std::priority_queue<std::pair<uint32_t, uint32_t>> heap;
 
     std::vector<bool> visited(graph.get_nodes_size());
 
-    heap.push({0, source});
+    for (uint32_t dir = 0; dir < 4; dir++) {
+        heap.push({0, get_graph().get_node(Position(source, dir))});
+    }
 
     while (!heap.empty()) {
         auto [dist, node] = heap.top();
@@ -26,13 +28,18 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
         }
         visited[node] = true;
 
-        dists[node] = dist;
+        uint32_t inv = get_graph().get_node(get_graph().get_pos(node).rotate().rotate());
+        dists[inv] = dist;
 
         for (uint32_t action = 0; action < 3 /*WITHOUT WAIT = 3*/; action++) {
-            uint32_t to = graph.get_to_node(node, action);
-            if (to && !visited[to] && dists[to] > dist + 1) {
-                dists[to] = dist + 1;
-                heap.push({dist + 1, to});
+            uint32_t to = get_graph().get_to_node(node, action);
+            if (to && !visited[to]) {
+                uint32_t to_inv = get_graph().get_node(get_graph().get_pos(to).rotate().rotate());
+                uint64_t to_dist = dist + 1;
+                if (dists[to_inv] > to_dist) {
+                    dists[to_inv] = to_dist;
+                    heap.push({to_dist, to});
+                }
             }
         }
     }
@@ -40,11 +47,13 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #ifdef ENABLE_HEURISTIC_MATRIX
-    dp.resize(graph.get_nodes_size());
+    matrix.resize(get_map().get_size());
 
     auto do_work = [&](uint32_t thr) {
-        for (uint32_t node = thr + 1; node < dp.size(); node += THREADS) {
-            build(node, graph);
+        for (uint32_t pos = thr + 1; pos < matrix.size(); pos += THREADS) {
+            if(Position(pos, 0).is_valid()) {
+                build(pos, graph);
+            }
         }
     };
 
@@ -58,7 +67,7 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #endif
 }
 
-uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
+/*uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
     if (!dest) {
         return INVALID_DIST;
     }
@@ -73,27 +82,31 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t dest) const {
     return std::abs(static_cast<int32_t>(a.get_x()) - static_cast<int32_t>(b.get_x())) +
            std::abs(static_cast<int32_t>(a.get_y()) - static_cast<int32_t>(b.get_y()));
 #endif
-}
+}*/
 
-uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t dest) const {
-    if (!dest) {
+uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t target) const {
+    if (!target) {
         return INVALID_DIST;
     }
-    ASSERT(0 < dest && dest < get_map().get_size(), "invalid dest");
-    ASSERT(Position(dest, 0).is_valid(), "invalid");
-    ASSERT(Position(dest, 1).is_valid(), "invalid");
-    ASSERT(Position(dest, 2).is_valid(), "invalid");
-    ASSERT(Position(dest, 3).is_valid(), "invalid");
+    ASSERT(0 < target && target < get_map().get_size(), "invalid dest");
+    ASSERT(Position(target, 0).is_valid(), "invalid");
+    ASSERT(Position(target, 1).is_valid(), "invalid");
+    ASSERT(Position(target, 2).is_valid(), "invalid");
+    ASSERT(Position(target, 3).is_valid(), "invalid");
 
-    uint32_t e = get_graph().get_node(Position(dest, 0));
+    ASSERT(target < matrix.size(), "invalid target");
+    ASSERT(source < matrix[target].size(), "invalid source");
+
+    return matrix[target][source];
+
+    /*uint32_t e = get_graph().get_node(Position(dest, 0));
     uint32_t s = get_graph().get_node(Position(dest, 1));
     uint32_t w = get_graph().get_node(Position(dest, 2));
     uint32_t n = get_graph().get_node(Position(dest, 3));
-    return std::min(std::min(get(source, e), get(source, s)), std::min(get(source, w), get(source, n)));
+    return std::min(std::min(get(source, e), get(source, s)), std::min(get(source, w), get(source, n)));*/
 }
 
 HeuristicMatrix &get_hm() {
     static HeuristicMatrix hm;
     return hm;
 }
-

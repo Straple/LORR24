@@ -65,7 +65,8 @@ std::vector<Action> lacam_solve() {
             to->used_poses.insert(to_pos);
             to->actions[node->depth][node->index] = static_cast<Action>(action);
 
-            to->score -= get_hm().get(to_node, get_robots_handler().get_robot(node->index).target);
+            ASSERT(false, "outdated");
+            //to->score -= get_hm().get(to_node, get_robots_handler().get_robot(node->index).target);
             // += to->index == get_robots_handler().size();
 
             if (to->index == get_robots_handler().size()) {

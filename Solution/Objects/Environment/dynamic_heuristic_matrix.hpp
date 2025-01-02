@@ -9,7 +9,6 @@
 #include <vector>
 
 class DynamicHeuristicMatrix {
-
     // matrix[target (map pos)][source (graph node)] = dist source -> target
     std::vector<std::vector<uint32_t>> matrix;
 
@@ -26,7 +25,7 @@ public:
     void update(SharedEnvironment &env, TimePoint end_time);
 
     // source graph node -> target map pos
-    [[nodiscard]] uint64_t get(uint32_t source, uint32_t target);
+    [[nodiscard]] uint32_t get(uint32_t source, uint32_t target) const;
 };
 
 DynamicHeuristicMatrix &get_dhm();

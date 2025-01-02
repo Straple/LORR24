@@ -394,6 +394,6 @@ std::vector<Action> PIBT3::solve(const std::vector<uint32_t> &order, const TimeP
         answer[r] = actions[robots[r].desired][0];
     }
 
-    std::cout << "PIBT3: " << timer << '\n';
+    Printer() << "PIBT3: " << timer << '\n';
     return answer;
 }
