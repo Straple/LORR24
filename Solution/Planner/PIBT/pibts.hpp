@@ -11,6 +11,8 @@
 // -i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 70 -p 100000000
 // 65.7547s
 // PIBTS: 13509
+// PIBTS+brezhart: 12244
+// PIBTS+egor:     12339
 // their: 10338
 // 669.072s
 // PIBTS: 141219

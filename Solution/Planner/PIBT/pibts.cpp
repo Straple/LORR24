@@ -591,7 +591,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
 
 std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     this->end_time = end_time;
-    //Timer timer;
+    Randomizer rnd(seed);
 
     for (uint32_t r: order) {
         if (desires[r] == 0) {
@@ -604,7 +604,6 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
 
     uint32_t cnt_try = 0;
     uint32_t cnt_accept = 0;
-    Randomizer rnd(seed);
     for (uint32_t step = 0; step < PIBTS_STEPS; step++) {
         if (PIBTS_STEPS == -1) {
             if (get_now() >= end_time) {
@@ -623,8 +622,6 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     for (uint32_t r = 0; r < robots.size(); r++) {
         answer[r] = actions[desires[r]][0];
     }
-
-    // std::cout << "PIBTS: " << timer << ", " << cnt_accept << "/" << cnt_try << '\n';
     return answer;
 }
 

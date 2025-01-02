@@ -21,6 +21,7 @@ void EPlanner::initialize(int preprocess_time_limit) {}
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     static TimePoint start = std::chrono::steady_clock::now();
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit - 50);
+    Timer timer;
 
     plan.assign(env->num_of_agents, Action::W);
 
@@ -57,16 +58,26 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     }
 
     int64_t best = -1e18;
-    //std::cout << "PIBTS: ";
+#ifdef ENABLE_PRINT_LOG
+    std::cout << "PIBTS: ";
+#endif
     for (uint32_t thr = 0; thr < THREADS; thr++) {
-        //std::cout << results[thr].first << ' ';
+#ifdef ENABLE_PRINT_LOG
+        std::cout << results[thr].first << ' ';
+#endif
         if (best < results[thr].first) {
             best = results[thr].first;
             plan = results[thr].second;
         }
     }
-    //std::cout << '\n';
+#ifdef ENABLE_PRINT_LOG
+    std::cout << '\n';
+#endif
     //PIBT_LNS pibt(get_robots_handler().get_robots());
 
+#endif
+
+#ifdef ENABLE_PRINT_LOG
+    std::cout << "Planner: " << timer << std::endl;
 #endif
 }

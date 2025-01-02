@@ -35,13 +35,15 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-static constexpr uint32_t THREADS = 4;
+//#define ENABLE_PRINT_LOG
+
+static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 500;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
