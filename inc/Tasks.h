@@ -6,6 +6,7 @@ struct Task {
     int t_completed = -1;
     int t_revealed = -1;
     int agent_assigned = -1;
+    int full_distance = -1;
 
     vector<int> locations;
     int idx_next_loc = 0;
@@ -30,6 +31,8 @@ struct Task {
             locations.push_back(loc);
     };
 
+    // void calc_full_distance();
+
     Task(){};
 
     Task(Task *other) {
@@ -39,6 +42,7 @@ struct Task {
         t_revealed = other->t_revealed;
         idx_next_loc = other->idx_next_loc;
         agent_assigned = other->agent_assigned;
+        full_distance = other->full_distance;
     };
 
     Task(const Task &other) {
@@ -48,5 +52,6 @@ struct Task {
         t_revealed = other.t_revealed;
         idx_next_loc = other.idx_next_loc;
         agent_assigned = other.agent_assigned;
+        full_distance = other.full_distance;
     };
 };
