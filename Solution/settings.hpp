@@ -61,7 +61,7 @@ struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = MyScheduler;
 
-#define ENABLE_SCHEDULER_TRICK
+// #define ENABLE_SCHEDULER_TRICK
 
 static constexpr uint32_t INVALID_DIST = 0;
 

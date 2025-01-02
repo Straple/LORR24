@@ -13,6 +13,20 @@
 void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
+void calc_full_distance(Task& task){
+    if (task.full_distance != -1){
+        return;
+    }
+    auto& hm = get_hm();
+    int dist_sum = 0;
+    for (size_t i = 0; i + 1 < task.locations.size(); ++i){
+        uint32_t from = task.locations[i] + 1;
+        uint32_t to = task.locations[i+1] + 1;
+        dist_sum += hm.get_to_pos(from, to);
+    }
+    task.full_distance = dist_sum;
+}
+
 const int INF = 1000000;
 
 std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m) {
@@ -254,27 +268,50 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
     }
     for (auto &[t, task]: env->task_pool) {
         if (task.agent_assigned == -1) {
+            calc_full_distance(task);
             free_tasks.push_back(t);
+            std::cout << "SZ: " << t << " " <<  task.locations.size() << " " << task.full_distance << std::endl;
         }
+    }
+
+    if (free_robots.size() > free_tasks.size()) {
+        std::cout << "BIGGER" << std::endl;
+    } else {
+        std::cout << "LOWER" << std::endl;
     }
 
     // RUN HUNGARY
     {
         int rb = min(free_robots.size(), free_tasks.size());
         // int rb =  min((int)free_robots.size(), 1);;
+<<<<<<< HEAD
         std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(free_tasks.size() + 1, 0));
         for (int i = 0; i < rb; i++) {
             for (int g = 0; g < free_tasks.size(); g++) {
                 dist_matrix[i + 1][g + 1] = get_dist_to_start(free_robots[i], free_tasks[g]);
+=======
+        std::vector<std::vector<int>> dist_matrix(rb+1, std::vector<int>(free_tasks.size() + 1, 0));
+        for (int i = 0; i < rb; i++){
+            for (int g = 0; g < free_tasks.size(); g++){
+                dist_matrix[i+1][g+1] =  (int)get_dist_to_start(free_robots[i], free_tasks[g]);
+>>>>>>> 0f3123e (save)
                 // dist_matrix[i+1][g+1] *= dist_matrix[i+1][g+1];
             }
         }
         auto ans = Hungarian(dist_matrix, rb, free_tasks.size());
+<<<<<<< HEAD
         for (int i = 1; i < ans.size(); i++) {
             //std::cout << free_robots[i-1] << " -> " << free_tasks[ans[i]-1] << endl;
             if (ans[i] != -1) {
                 auto r = free_robots[i - 1];
                 auto t = free_tasks[ans[i] - 1];
+=======
+        for (int i = 1; i < ans.size(); i++){
+            if (ans[i] != -1){
+                auto r = free_robots[i-1];
+                auto t = free_tasks[ans[i]-1];
+                 std::cout << r << " -> " << t <<  " " << env->task_pool[t].full_distance << " | " << dist_matrix[i][ans[i]] << endl;
+>>>>>>> 0f3123e (save)
                 schedule[r] = t;
                 if (get_dist_to_start(r, t) <= 3) {
                     done_proposed_schedule[r] = t;
@@ -309,14 +346,18 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
             }
         }
     }
+<<<<<<< HEAD
     std::cout << "not_assigned_to_nearest size: " << not_assigned_to_nearest.size() << " " << free_robots.size() << " " << free_tasks.size() << std::endl;
+=======
+    // std::cout  << "not_assigned_to_nearest size: " << not_assigned_to_nearest.size() << " " << free_robots.size() << " " << free_tasks.size() << std::endl;
+>>>>>>> 0f3123e (save)
 
     for (const auto &flip_r_i: not_assigned_to_nearest) {
         auto flip = free_robots[flip_r_i];
         assert(closeset_task[flip_r_i] != -1);
         auto task_to_flip_with = closeset_task[flip_r_i];
         if (task_to_robot.find(task_to_flip_with) == task_to_robot.end()) {
-            std::cout << "TASK << " << task_to_flip_with << " IS EMPTY: SETTING " << flip << " for it " << endl;
+            // std::cout << "TASK << " << task_to_flip_with << " IS EMPTY: SETTING " << flip << " for it " << endl;
             schedule[flip] = task_to_flip_with;
             continue;
         }
@@ -327,9 +368,13 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
         auto distance_was = get_dist_to_start(robot_to_flip_with, task_to_flip_with) + get_dist_to_start(flip, schedule[flip]);
         auto distance_new = get_dist_to_start(robot_to_flip_with, schedule[flip]) + get_dist_to_start(flip, task_to_flip_with);
 
+<<<<<<< HEAD
         std::cout << "Distances: " << distance_was << " " << distance_new << std::endl;
+=======
+        // std::cout << "Distances: " <<  distance_was << " " << distance_new << std::endl;
+>>>>>>> 0f3123e (save)
         if (distance_was > distance_new) {
-            std::cout << "PERFORM SWAP" << std::endl;
+            // std::cout << "PERFORM SWAP" << std::endl;
             std::swap(schedule[flip], schedule[robot_to_flip_with]);
         }
     }
@@ -337,13 +382,18 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
+<<<<<<< HEAD
     return GreedyShedule(time_limit, proposed_schedule);
     // auto shedule = GreedyShedule(time_limit, proposed_schedule);
+=======
+    //auto done_proposed_schedule = GreedyShedule(time_limit, proposed_schedule);
+>>>>>>> 0f3123e (save)
     auto done_proposed_schedule = OptimizeShedule(time_limit, proposed_schedule);
     return done_proposed_schedule;
 }
 
 
+<<<<<<< HEAD
 // std::vector<int> MyScheduler::planV2(int time_limit, std::vector<int> &proposed_schedule) {
 //     Timer timer;
 
@@ -363,3 +413,5 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
 
 //     return proposed_schedule;
 // }
+=======
+>>>>>>> 0f3123e (save)

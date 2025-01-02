@@ -53,6 +53,8 @@ file(GLOB SOURCES
         src/TaskManager.cpp
         src/TaskScheduler.cpp
 
+        inc/.*cpp
+
         default_planner/*.cpp
 
         # team solution
