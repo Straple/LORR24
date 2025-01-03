@@ -11,7 +11,7 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
     dists.assign(graph.get_nodes_size(), -1);
 
     // (dist, node)
-    std::priority_queue<std::pair<uint32_t, uint32_t>> heap;
+    std::priority_queue<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, uint32_t>>, std::greater<>> heap;
 
     std::vector<bool> visited(graph.get_nodes_size());
 
@@ -84,7 +84,7 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #endif
 }*/
 
-uint32_t HeuristicMatrix::get_to_pos(uint32_t source, uint32_t target) const {
+uint32_t HeuristicMatrix::get(uint32_t source, uint32_t target) const {
     if (!target) {
         return INVALID_DIST;
     }
