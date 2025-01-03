@@ -89,7 +89,7 @@ DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map) {
     used.resize(map.get_size(), -1);
     for (uint32_t pos = 1; pos < matrix.size(); pos++) {
         if (Position(pos, 0).is_valid()) {
-            matrix[pos].assign(get_graph().get_nodes_size(), -1);
+            //matrix[pos].assign(get_graph().get_nodes_size(), -1);
         }
     }
 }
@@ -155,6 +155,7 @@ uint32_t DynamicHeuristicMatrix::get(uint32_t source, uint32_t target) const {
         source = get_graph().get_to_node(get_graph().get_to_node(source, 1), 1);
         // get_graph().get_node(get_graph().get_pos(source).rotate().rotate());
         ASSERT(source < matrix[target].size(), "invalid source");
+        ASSERT(matrix[target][source] != -1, "invalid matrix");
         return matrix[target][source];
     } else {
         return get_hm().get(source, target);

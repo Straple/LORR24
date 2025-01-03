@@ -31,13 +31,17 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     iota(order.begin(), order.end(), 0);
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
-    });*/
+    });
 
     //std::vector<std::unordered_map<uint32_t, uint32_t>> weights(get_robots_handler().size());
-    //PIBT2 pibt(get_robots_handler().get_robots(), weights);
+    PIBT2 pibt(get_robots_handler().get_robots()//, weights
+    );
 
     //PIBTS pibt(get_robots_handler().get_robots());
-    //plan = pibt.solve(end_time);
+    plan = pibt.solve(order, end_time);*/
+
+    //PIBTS pibt(get_robots_handler().get_robots());
+    //plan = pibt.solve(end_time, 0);
 
     std::vector<std::pair<int64_t, std::vector<Action>>> results(THREADS);
 
@@ -72,7 +76,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << '\n';
 #endif
-    //PIBT_LNS pibt(get_robots_handler().get_robots());
 
 #endif
 

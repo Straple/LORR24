@@ -3,21 +3,10 @@
 #include "heuristics.h"
 #include "utils.h"
 
-#include <Objects/Environment/BusynessMap.hpp>
-#include <Objects/Environment/dynamic_heuristic_matrix.hpp>
-#include <Objects/Environment/environment.hpp>
-#include <Objects/Environment/graph.hpp>
-#include <Objects/Environment/heuristic_matrix.hpp>
-#include <Objects/Environment/map.hpp>
-
-#include <Planner/PIBT/pibt2.hpp>
-#include <Planner/PIBT/pibts.hpp>
-
-#include <Tools/tools.hpp>
-
-#include <settings.hpp>
-
 #include <Objects/Basic/randomizer.hpp>
+#include <Objects/Environment/environment.hpp>
+#include <Tools/tools.hpp>
+#include <settings.hpp>
 
 // The initialize function will be called by competition system at the preprocessing stage.
 // Implement the initialize functions of the planner and scheduler to load or compute auxiliary data.
@@ -28,12 +17,12 @@ void Entry::initialize(int preprocess_time_limit) {
     get_graph() = Graph(get_map());
     get_hm() = HeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map());
+    get_operations() = OperationsGenerator().get();
+    get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());
 
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
-
-    PIBTS::actions = PIBT2::actions = BuilderActions().get();
 
     /*Randomizer rnd(5340000);
     std::ofstream output("agents.txt");
@@ -63,6 +52,7 @@ void Entry::initialize(int preprocess_time_limit) {
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
 #ifdef ENABLE_PRINT_LOG
+    static Timer total_timer;
     Timer timer;
     Printer() << "\n";
     Printer() << "Timestep: " << env->curr_timestep << '\n';
@@ -89,6 +79,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Entry time: " << timer << '\n';
+    Printer() << "Total time: " << total_timer << '\n';
 #endif
 }
 

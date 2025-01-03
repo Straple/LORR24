@@ -19,12 +19,21 @@
 // their: 114397
 // PIBT2: 116357
 
-// 131740 -> 133168 -> 133970
+// -i ./example_problems/random.domain/random_32_32_20_300.json -o test.json -s 10000 -t 10000 -p 100000000
+// without PIBTS
+// score: 28611
+// timer: 15.0559s
+//
+// PIBTS_STEPS = 500
+// score: 35969 -> 37049 -> 37914
+// timer: 50.202s
 
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 // Solver mode
 class PIBTS {
+
+    double temp = 1;
 
     double cur_score = 0;
 
@@ -67,7 +76,7 @@ class PIBTS {
 
     [[nodiscard]] bool is_free_path(uint32_t r, const State &state) const;
 
-    [[nodiscard]] std::array<uint32_t, DEPTH> get_path(uint32_t r, uint32_t desired) const;
+    [[nodiscard]] EPath get_path(uint32_t r, uint32_t desired) const;
 
     [[nodiscard]] uint32_t get_used(uint32_t r) const;
 
@@ -101,8 +110,6 @@ class PIBTS {
     bool build(uint32_t r);
 
 public:
-    static inline std::vector<Operation> actions;
-
     explicit PIBTS(const std::vector<Robot> &robots);
 
     std::vector<Action> solve(TimePoint end_time, uint64_t seed);

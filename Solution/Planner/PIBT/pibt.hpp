@@ -2,14 +2,6 @@
 
 #include <Objects/Basic/position.hpp>
 
-// my.domain
-// PIBT: 452 ->
-// their: 412
-
-// random.domain
-// 1k: 2014
-// 10k: 18010
-
 // Priority Inheritance with BackTracking
 // Each robot is assigned a direction where the robot would like to go
 class PIBT {

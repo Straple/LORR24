@@ -5,48 +5,28 @@
 
 bool PIBTS::validate_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desired && desired < actions.size(), "invalid desired");
-
+    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
     uint32_t node = robots[r].node;
-    auto &path = actions[desired];
-    for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-
-        if (!to_node || !to_edge) {
-            return false;
-        }
-
-        node = to_node;
-    }
-    return true;
+    return get_omap().get_poses_path(node, desires[r])[0] > 0;
 }
 
 bool PIBTS::is_free_path(uint32_t r) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired");
+    ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
     ASSERT(validate_path(r, desires[r]), "invalid path");
 
-    uint32_t node = robots[r].node;
-    auto &path = actions[desires[r]];
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
+    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
-
-        if (used_edge[depth][to_edge] != -1) {
-            ASSERT(used_edge[depth][to_edge] != r, "invalid used_edge");
+        if (used_pos[depth][poses_path[depth]] != -1) {
+            ASSERT(used_pos[depth][poses_path[depth]] != r, "invalid used_node");
             return false;
         }
-
-        if (used_pos[depth][to_pos] != -1) {
-            ASSERT(used_pos[depth][to_pos] != r, "invalid used_node");
+        if (used_edge[depth][edges_path[depth]] != -1) {
+            ASSERT(used_edge[depth][edges_path[depth]] != r, "invalid used_edge");
             return false;
         }
-
-        node = to_node;
     }
     return true;
 }
@@ -54,11 +34,11 @@ bool PIBTS::is_free_path(uint32_t r) const {
 bool PIBTS::is_free_path(uint32_t r, const State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desired && desired < actions.size(), "invalid desired");
+    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
     ASSERT(validate_path(r, desires[r]), "invalid path");
 
     uint32_t node = robots[r].node;
-    auto &path = actions[desired];
+    auto &path = get_operations()[desired];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -86,33 +66,25 @@ bool PIBTS::is_free_path(uint32_t r, const State &state) const {
     return true;
 }
 
-std::array<uint32_t, DEPTH> PIBTS::get_path(uint32_t r, uint32_t desired) const {
+EPath PIBTS::get_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desired && desired < actions.size(), "invalid desired");
+    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
     ASSERT(validate_path(r, desired), "invalid path");
 
     uint32_t node = robots[r].node;
-    auto &path = actions[desired];
-    std::array<uint32_t, DEPTH> result{};
-    for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-
-        result[depth] = to_node;
-        node = to_node;
-    }
-    return result;
+    return get_omap().get_nodes_path(node, desired);
 }
 
 uint32_t PIBTS::get_used(uint32_t r) const {
     uint32_t node = robots[r].node;
-    auto &path = actions[desires[r]];
     uint32_t answer = -1;
+
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
+    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
         if (used_edge[depth][to_edge] != -1) {
             if (answer == -1) {
@@ -131,7 +103,6 @@ uint32_t PIBTS::get_used(uint32_t r) const {
                 break;
             }
         }
-        node = to_node;
     }
     return answer;
 }
@@ -139,7 +110,7 @@ uint32_t PIBTS::get_used(uint32_t r) const {
 uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
     uint32_t node = robots[r].node;
-    auto &path = actions[desired];
+    auto &path = get_operations()[desired];
     uint32_t answer = -1;
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
@@ -186,18 +157,15 @@ void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, in
 
 void PIBTS::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired: " + std::to_string(desires[r]) + " " + std::to_string(actions.size()));
+    ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired: " + std::to_string(desires[r]) + " " + std::to_string(get_operations().size()));
 
-    uint32_t node = robots[r].node;
-    ASSERT(node != 0, "invalid start node");
-    auto &path = actions[desires[r]];
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
+    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
-        ASSERT(to_node, "invalid to_node");
         ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
         ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
 
@@ -206,21 +174,19 @@ void PIBTS::add_path(uint32_t r) {
 
         ASSERT(used_pos[depth][to_pos] == -1, "already used");
         used_pos[depth][to_pos] = r;
-
-        node = to_node;
     }
 
-    update_score(r, node, cur_score, +1);
+    update_score(r, get_omap().get_nodes_path(source, desires[r]).back(), cur_score, +1);
 }
 
 void PIBTS::add_path(uint32_t r, State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desired && desired < actions.size(), "invalid desired: " + std::to_string(desired) + " " + std::to_string(actions.size()));
+    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired: " + std::to_string(desired) + " " + std::to_string(get_operations().size()));
 
     uint32_t node = robots[r].node;
     ASSERT(node != 0, "invalid start node");
-    auto &path = actions[desired];
+    auto &path = get_operations()[desired];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -251,17 +217,15 @@ void PIBTS::add_path(uint32_t r, State &state) const {
 
 void PIBTS::remove_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desires[r] && desires[r] < actions.size(), "invalid desired");
+    ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
 
-    uint32_t node = robots[r].node;
-    auto &path = actions[desires[r]];
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
+    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
-        ASSERT(to_node, "invalid to_node");
         ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
         ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
 
@@ -270,20 +234,18 @@ void PIBTS::remove_path(uint32_t r) {
 
         ASSERT(used_pos[depth][to_pos] == r, "invalid node");
         used_pos[depth][to_pos] = -1;
-
-        node = to_node;
     }
 
-    update_score(r, node, cur_score, -1);
+    update_score(r, get_omap().get_nodes_path(source, desires[r]).back(), cur_score, -1);
 }
 
 void PIBTS::remove_path(uint32_t r, State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desired && desired < actions.size(), "invalid desired");
+    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
 
     uint32_t node = robots[r].node;
-    auto &path = actions[desired];
+    auto &path = get_operations()[desired];
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         auto action = path[depth];
         uint32_t to_node = get_graph().get_to_node(node, action);
@@ -330,7 +292,7 @@ void PIBTS::flush_state(const State &state) {
 bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &rnd) const {
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
-    for (uint32_t desired = 1; desired < actions.size(); desired++) {
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
         state.desires[r] = desired;
         if (!validate_path(r, desired) || get_used(r, state) == -2) {
             continue;
@@ -407,15 +369,17 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
     uint32_t old_desired = desires[r];
-    for (uint32_t desired = 1; desired < actions.size(); desired++) {
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
         desires[r] = desired;
-        if (!validate_path(r, desired) || get_used(r) == -2) {
+        if (!validate_path(r, desired)) {
             continue;
         }
-        auto path = get_path(r, desired);
-
+        uint32_t to_r = get_used(r);
+        if (to_r == -2) {
+            continue;
+        }
+        const auto &path = get_path(r, desired);
         int64_t priority = get_dhm().get(path.back(), robots[r].target);
-
         steps.emplace_back(priority, desired);
     }
 
@@ -433,7 +397,7 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
             add_path(r);
             if (old_score <= cur_score
                 // old_score > cur_score
-                //|| rnd.get_d() < 1.0 / (old_score - cur_score + 10)
+                // || rnd.get_d() < 1.0 / (old_score - cur_score + 10) * temp
             ) {
                 return 1;// accepted
             } else {
@@ -498,14 +462,22 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
-    for (uint32_t desired = 1; desired < actions.size(); desired++) {
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
         desires[r] = desired;
-        if (validate_path(r, desires[r]) && get_used(r) != -2) {
-            auto path = get_path(r, desires[r]);
-
-            int64_t priority = get_dhm().get(path.back(), robots[r].target);
-            steps.emplace_back(priority, desired);
+        if (!validate_path(r, desires[r])) {
+            continue;
         }
+        uint32_t to_r = get_used(r);
+        if (to_r == -2) {
+            continue;
+        }
+        if (to_r != -1 && desires[to_r] != 0) {
+            continue;
+        }
+        const auto &path = get_path(r, desires[r]);
+
+        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+        steps.emplace_back(priority, desired);
     }
 
     std::stable_sort(steps.begin(), steps.end());
@@ -530,9 +502,7 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            if (desires[to_r] != 0) {
-                continue;
-            }
+            ASSERT(desires[to_r] == 0, "invalid desires");
             remove_path(to_r);
             add_path(r);
 
@@ -593,6 +563,8 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     this->end_time = end_time;
     Randomizer rnd(seed);
 
+    //auto p = order;
+    //std::shuffle(p.begin(), p.end(), rnd.generator);
     for (uint32_t r: order) {
         if (desires[r] == 0) {
             if (get_now() >= end_time) {
@@ -615,12 +587,15 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
 
         cnt_accept += try_build2(r, rnd);
         cnt_try++;
+        temp *= 0.99;
     }
+
+    //Printer() << "PIBTS: " << cnt_accept << "/" << cnt_try << '\n';
 
     std::vector<Action> answer(robots.size());
 
     for (uint32_t r = 0; r < robots.size(); r++) {
-        answer[r] = actions[desires[r]][0];
+        answer[r] = get_operations()[desires[r]][0];
     }
     return answer;
 }

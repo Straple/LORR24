@@ -17,7 +17,8 @@ std::pair<double, std::array<std::vector<Action>, PIBT_LNS_DEPTH>> PIBT_LNS::sim
         });
 
         // call PIBT
-        PIBT2 pibt(cur_robots, weights);
+        PIBT2 pibt(cur_robots//, weights
+                    );
         auto actions = pibt.solve(order, end_time);
 
         // update result
