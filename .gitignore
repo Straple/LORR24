@@ -10,3 +10,5 @@ python/__pycache__
 output.json
 .idea
 .cache
+Tmp
+CMakePresets.json
