@@ -246,18 +246,26 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
         uint32_t loc = env->task_pool[t].locations[0] + 1;
         return get_hm().get(source, loc);
     };
+
+    auto get_dist = [&](uint32_t r, uint32_t t) {
+        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        // ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+        uint32_t loc = env->task_pool[t].locations[0] + 1;
+        return get_hm().get(source, loc); // Dynamic Heuristic Matrix
+    };
+
     std::vector<int> done_proposed_schedule = schedule;
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
     std::unordered_map<int, size_t> task_to_robot;
 
-    int current_sum_dist = 0;
-    for (size_t i = 0; i < schedule.size(); i++) {
-        if (schedule[i] >= 0) {
-            task_to_robot[schedule[i]] = i;
-            current_sum_dist += get_dist_to_start(i, schedule[i]);
-        }
-    }
+    // int current_sum_dist = 0;
+    // for (size_t i = 0; i < schedule.size(); i++) {
+    //     if (schedule[i] >= 0) {
+    //         task_to_robot[schedule[i]] = i;
+    //         current_sum_dist += get_dist(i, schedule[i]);
+    //     }
+    // }
 
     std::vector<uint32_t> free_robots, free_tasks;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
@@ -270,48 +278,26 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
         if (task.agent_assigned == -1) {
             calc_full_distance(task);
             free_tasks.push_back(t);
-            std::cout << "SZ: " << t << " " <<  task.locations.size() << " " << task.full_distance << std::endl;
         }
-    }
-
-    if (free_robots.size() > free_tasks.size()) {
-        std::cout << "BIGGER" << std::endl;
-    } else {
-        std::cout << "LOWER" << std::endl;
     }
 
     // RUN HUNGARY
     {
         int rb = min(free_robots.size(), free_tasks.size());
         // int rb =  min((int)free_robots.size(), 1);;
-<<<<<<< HEAD
-        std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(free_tasks.size() + 1, 0));
-        for (int i = 0; i < rb; i++) {
-            for (int g = 0; g < free_tasks.size(); g++) {
-                dist_matrix[i + 1][g + 1] = get_dist_to_start(free_robots[i], free_tasks[g]);
-=======
         std::vector<std::vector<int>> dist_matrix(rb+1, std::vector<int>(free_tasks.size() + 1, 0));
         for (int i = 0; i < rb; i++){
             for (int g = 0; g < free_tasks.size(); g++){
-                dist_matrix[i+1][g+1] =  (int)get_dist_to_start(free_robots[i], free_tasks[g]);
->>>>>>> 0f3123e (save)
+                dist_matrix[i+1][g+1] =  (int)get_dist(free_robots[i], free_tasks[g]);
                 // dist_matrix[i+1][g+1] *= dist_matrix[i+1][g+1];
             }
         }
         auto ans = Hungarian(dist_matrix, rb, free_tasks.size());
-<<<<<<< HEAD
-        for (int i = 1; i < ans.size(); i++) {
-            //std::cout << free_robots[i-1] << " -> " << free_tasks[ans[i]-1] << endl;
-            if (ans[i] != -1) {
-                auto r = free_robots[i - 1];
-                auto t = free_tasks[ans[i] - 1];
-=======
         for (int i = 1; i < ans.size(); i++){
             if (ans[i] != -1){
                 auto r = free_robots[i-1];
                 auto t = free_tasks[ans[i]-1];
-                 std::cout << r << " -> " << t <<  " " << env->task_pool[t].full_distance << " | " << dist_matrix[i][ans[i]] << endl;
->>>>>>> 0f3123e (save)
+                //std::cout << r << " -> " << t <<  " " << env->task_pool[t].full_distance << " | " << dist_matrix[i][ans[i]] << endl;
                 schedule[r] = t;
                 if (get_dist_to_start(r, t) <= 3) {
                     done_proposed_schedule[r] = t;
@@ -346,12 +332,6 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
             }
         }
     }
-<<<<<<< HEAD
-    std::cout << "not_assigned_to_nearest size: " << not_assigned_to_nearest.size() << " " << free_robots.size() << " " << free_tasks.size() << std::endl;
-=======
-    // std::cout  << "not_assigned_to_nearest size: " << not_assigned_to_nearest.size() << " " << free_robots.size() << " " << free_tasks.size() << std::endl;
->>>>>>> 0f3123e (save)
-
     for (const auto &flip_r_i: not_assigned_to_nearest) {
         auto flip = free_robots[flip_r_i];
         assert(closeset_task[flip_r_i] != -1);
@@ -368,11 +348,6 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
         auto distance_was = get_dist_to_start(robot_to_flip_with, task_to_flip_with) + get_dist_to_start(flip, schedule[flip]);
         auto distance_new = get_dist_to_start(robot_to_flip_with, schedule[flip]) + get_dist_to_start(flip, task_to_flip_with);
 
-<<<<<<< HEAD
-        std::cout << "Distances: " << distance_was << " " << distance_new << std::endl;
-=======
-        // std::cout << "Distances: " <<  distance_was << " " << distance_new << std::endl;
->>>>>>> 0f3123e (save)
         if (distance_was > distance_new) {
             // std::cout << "PERFORM SWAP" << std::endl;
             std::swap(schedule[flip], schedule[robot_to_flip_with]);
@@ -382,36 +357,8 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-<<<<<<< HEAD
-    return GreedyShedule(time_limit, proposed_schedule);
+    // return GreedyShedule(time_limit, proposed_schedule);
     // auto shedule = GreedyShedule(time_limit, proposed_schedule);
-=======
-    //auto done_proposed_schedule = GreedyShedule(time_limit, proposed_schedule);
->>>>>>> 0f3123e (save)
     auto done_proposed_schedule = OptimizeShedule(time_limit, proposed_schedule);
     return done_proposed_schedule;
 }
-
-
-<<<<<<< HEAD
-// std::vector<int> MyScheduler::planV2(int time_limit, std::vector<int> &proposed_schedule) {
-//     Timer timer;
-
-//     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
-//     std::vector<uint32_t> free_robots, free_tasks;
-//     for (uint32_t r = 0; r < env->num_of_agents; r++) {
-//         uint32_t t = env->curr_task_schedule[r];
-//         if (t == -1) {
-//             free_robots.push_back(r);
-//         }
-//     }
-//     for (auto &[t, task]: env->task_pool) {
-//         if (task.agent_assigned == -1) {
-//             free_tasks.push_back(t);
-//         }
-//     }
-
-//     return proposed_schedule;
-// }
-=======
->>>>>>> 0f3123e (save)
