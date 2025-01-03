@@ -43,7 +43,9 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
 
     for (uint32_t dir = 0; dir < 4; dir++) {
         ASSERT(Position(source, dir).is_valid(), "invalid");
-        queue[0].push_back(get_graph().get_node(Position(source, dir)));
+        uint32_t node = get_graph().get_node(Position(source, dir));
+        queue[0].push_back(node);
+        dists[node] = 0;
     }
 
     while (true) {
@@ -62,26 +64,20 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
             continue;
         }
         visited[node] = true;
-
-        //uint32_t inv = get_graph().get_node(get_graph().get_pos(node).rotate().rotate());
-        //dists[inv] = queue_dist;
-        dists[node] = queue_dist;
+        ASSERT(dists[node] == queue_dist, "invalid dist");
 
         for (uint32_t action = 0; action < 3; action++) {
             uint32_t to = get_graph().get_to_node(node, action);
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
-                uint64_t to_dist = queue_dist + 1 + (used[get_graph().get_pos(to).get_pos()] == timestep);
+                uint64_t to_dist = queue_dist + 1;
+                if (action == 0) {// if forward
+                    to_dist += (used[get_graph().get_pos(to).get_pos()] == timestep);
+                }
                 if (dists[to] > to_dist) {
                     dists[to] = to_dist;
                     push_queue(to_dist, to);
                 }
-                /*uint32_t to_inv = get_graph().get_node(get_graph().get_pos(to).rotate().rotate());
-                uint64_t to_dist = queue_dist + 1 + (used[get_graph().get_pos(to).get_pos()] == timestep);//robots_pos.count(get_graph().get_pos(to).get_pos());
-                if (dists[to_inv] > to_dist) {
-                    dists[to_inv] = to_dist;
-                    push_queue(to_dist, to);
-                }*/
             }
         }
     }
@@ -117,6 +113,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
         pool.emplace_back(timestep_updated[target], target);
     }
     std::sort(pool.begin(), pool.end());
+    pool.erase(std::unique(pool.begin(), pool.end()), pool.end());
 
     std::atomic<uint32_t> total_rebuild = 0;
 
