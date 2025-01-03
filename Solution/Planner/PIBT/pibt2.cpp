@@ -495,7 +495,7 @@ bool PIBT2::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (validate_path(r) && get_used(r) != -2) {
             auto path = get_path(r);
 
-            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target) * 10;
+            int64_t priority = get_hm().get(path.back(), get_robots_handler().get_robot(r).target) * 10;
             priority += get_path_weight(r); // ENABLE PATH WEIGHT
             steps.emplace_back(priority, desired);
         }
@@ -572,7 +572,7 @@ std::optional<PIBT2::State> PIBT2::build2_IMPL(uint32_t r) const {
 
             auto path = get_path(r, cur_state);
 
-            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target) * 10;
+            int64_t priority = get_hm().get(path.back(), get_robots_handler().get_robot(r).target) * 10;
             priority += get_path_weight(r, cur_state);
 
             steps.emplace_back(priority, desired);

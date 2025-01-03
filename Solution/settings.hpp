@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <set>
 #include <fstream>
 #include <iostream>
+#include <set>
 
 /*
 steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
@@ -39,17 +39,19 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
-static constexpr uint32_t THREADS = 32;
+// -i ./example_problems/game.domain/brc202d_500.json -o test.json -s 1000 -t 10000 -p 100000000
+
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 500;
 
-static constexpr uint32_t DHM_TIMELIMIT = 400;
+static constexpr uint32_t DHM_TIMELIMIT = 30;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
@@ -68,13 +70,14 @@ uint32_t &get_unique_id();
 #define ENABLE_FILEPRINT
 
 struct Printer {
+    std::ofstream &get() const;
 };
 
 template<typename T>
-const Printer &operator<<(const Printer &printer, const T &value) {
+Printer operator<<(Printer printer, const T &value) {
 #ifdef ENABLE_FILEPRINT
-    //static std::ofstream log("printer.txt");
-    //log << value;
+    printer.get() << value;
+    printer.get().flush();
     std::cout << value;
 #else
     std::cout << value;

@@ -30,7 +30,7 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         ASSERT(Position(target, 1).is_valid(), "invalid");
         ASSERT(Position(target, 2).is_valid(), "invalid");
         ASSERT(Position(target, 3).is_valid(), "invalid");
-        uint32_t priority = get_hm().get_to_pos(node, target);
+        uint32_t priority = get_hm().get(node, target);
         robots[r].target = target;
         robots[r].priority = priority;
     }

@@ -7,23 +7,53 @@
 #include <atomic>
 #include <thread>
 
-void DynamicHeuristicMatrix::rebuild(uint32_t source, const std::unordered_set<uint32_t> &robots_pos) {
+void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
     ASSERT(source < matrix.size(), "invalid source");
     auto &dists = matrix[source];
     dists.assign(get_graph().get_nodes_size(), -1);
 
     // (dist, node)
-    std::priority_queue<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, uint32_t>>, std::greater<>> heap;
+    //std::priority_queue<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, uint32_t>>, std::greater<>> heap;
+
+    // queue[dist - queue_dist] = { node }
+    std::vector<std::vector<uint32_t>> queue(1);
+    uint32_t queue_dist = 0;
+
     std::vector<bool> visited(dists.size());
+
+    auto update_queue = [&]() {
+        while (!queue.empty() && queue[0].empty()) {
+            queue.erase(queue.begin());
+            /*for (uint32_t i = 0; i + 1 < queue.size(); i++) {
+                std::swap(queue[i], queue[i + 1]);
+            }
+            queue.back().clear();// safe space for future usage*/
+            queue_dist++;
+        }
+    };
+
+    auto push_queue = [&](uint32_t dist, uint32_t node) {
+        ASSERT(queue_dist <= dist, "invalid dist");
+        uint32_t index = dist - queue_dist;
+        if (index >= queue.size()) {
+            queue.resize(index + 1);
+        }
+        queue[index].push_back(node);
+    };
 
     for (uint32_t dir = 0; dir < 4; dir++) {
         ASSERT(Position(source, dir).is_valid(), "invalid");
-        heap.push({0, get_graph().get_node(Position(source, dir))});
+        queue[0].push_back(get_graph().get_node(Position(source, dir)));
     }
 
-    while (!heap.empty()) {
-        auto [dist, node] = heap.top();
-        heap.pop();
+    while (true) {
+        update_queue();
+        if (queue.empty()) {
+            break;
+        }
+        ASSERT(!queue[0].empty(), "empty");
+        uint32_t node = queue[0].back();
+        queue[0].pop_back();
 
         ASSERT(0 < node && node < get_graph().get_nodes_size(), "invalid node");
         ASSERT(node < visited.size(), "invalid node");
@@ -33,19 +63,25 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, const std::unordered_set<u
         }
         visited[node] = true;
 
-        uint32_t inv = get_graph().get_node(get_graph().get_pos(node).rotate().rotate());
-        dists[inv] = dist;
+        //uint32_t inv = get_graph().get_node(get_graph().get_pos(node).rotate().rotate());
+        //dists[inv] = queue_dist;
+        dists[node] = queue_dist;
 
         for (uint32_t action = 0; action < 3; action++) {
             uint32_t to = get_graph().get_to_node(node, action);
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
-                uint32_t to_inv = get_graph().get_node(get_graph().get_pos(to).rotate().rotate());
-                uint64_t to_dist = dist + 1 + robots_pos.count(get_graph().get_pos(to).get_pos());
+                uint64_t to_dist = queue_dist + 1 + (used[get_graph().get_pos(to).get_pos()] == timestep);
+                if (dists[to] > to_dist) {
+                    dists[to] = to_dist;
+                    push_queue(to_dist, to);
+                }
+                /*uint32_t to_inv = get_graph().get_node(get_graph().get_pos(to).rotate().rotate());
+                uint64_t to_dist = queue_dist + 1 + (used[get_graph().get_pos(to).get_pos()] == timestep);//robots_pos.count(get_graph().get_pos(to).get_pos());
                 if (dists[to_inv] > to_dist) {
                     dists[to_inv] = to_dist;
-                    heap.push({to_dist, to});
-                }
+                    push_queue(to_dist, to);
+                }*/
             }
         }
     }
@@ -54,6 +90,7 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, const std::unordered_set<u
 DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map) {
     matrix.resize(map.get_size());
     timestep_updated.resize(map.get_size());
+    used.resize(map.get_size(), -1);
     for (uint32_t pos = 1; pos < matrix.size(); pos++) {
         if (Position(pos, 0).is_valid()) {
             matrix[pos].assign(get_graph().get_nodes_size(), -1);
@@ -65,10 +102,10 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 #ifdef ENABLE_DHM
     Timer timer;
 
-    std::unordered_set<uint32_t> robots_pos;
     for (auto robot: get_robots_handler().get_robots()) {
         ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
-        robots_pos.insert(get_graph().get_pos(robot.node).get_pos());
+        //robots_pos.insert(get_graph().get_pos(robot.node).get_pos());
+        used[get_graph().get_pos(robot.node).get_pos()] = env.curr_timestep;
     }
 
     // (timestep updated, target pos)
@@ -88,7 +125,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
             auto [_, target] = pool[index];
 
             timestep_updated[target] = env.curr_timestep;
-            rebuild(target, robots_pos);
+            rebuild(target, env.curr_timestep);
             ++total_rebuild;
         }
     };
@@ -110,7 +147,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 }
 
 uint32_t DynamicHeuristicMatrix::get(uint32_t source, uint32_t target) const {
-    if(!target){
+    if (!target) {
         return INVALID_DIST;
     }
 
@@ -118,13 +155,15 @@ uint32_t DynamicHeuristicMatrix::get(uint32_t source, uint32_t target) const {
     ASSERT(target < matrix.size(), "invalid target");
 
     if (!matrix[target].empty()) {
+        source = get_graph().get_to_node(get_graph().get_to_node(source, 1), 1);
+        // get_graph().get_node(get_graph().get_pos(source).rotate().rotate());
         ASSERT(source < matrix[target].size(), "invalid source");
         return matrix[target][source];
     } else {
-        return get_hm().get_to_pos(source, target);
+        return get_hm().get(source, target);
     }
 #else
-    return get_hm().get_to_pos(source, target);
+    return get_hm().get(source, target);
 #endif
 }
 

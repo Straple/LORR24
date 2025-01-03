@@ -23,8 +23,8 @@ std::pair<double, std::array<std::vector<Action>, PIBT_LNS_DEPTH>> PIBT_LNS::sim
         // update result
         result[depth] = actions;
         for (uint32_t r = 0; r < robots.size(); r++) {
-            int32_t old_dist = get_hm().get_to_pos(cur_robots[r].node, cur_robots[r].target);
-            int32_t new_dist = get_hm().get_to_pos(get_graph().get_to_node(cur_robots[r].node, actions[r]), cur_robots[r].target);
+            int32_t old_dist = get_hm().get(cur_robots[r].node, cur_robots[r].target);
+            int32_t new_dist = get_hm().get(get_graph().get_to_node(cur_robots[r].node, actions[r]), cur_robots[r].target);
             // в идеале old_dist = new_dist + 1
             // old_dist - new_dist <= 1
             // score += -(old_dist - new_dist - 1);
@@ -33,12 +33,12 @@ std::pair<double, std::array<std::vector<Action>, PIBT_LNS_DEPTH>> PIBT_LNS::sim
         // simulate move
         for (uint32_t r = 0; r < robots.size(); r++) {
             cur_robots[r].node = get_graph().get_to_node(cur_robots[r].node, actions[r]);
-            cur_robots[r].priority = get_hm().get_to_pos(cur_robots[r].node, cur_robots[r].target);
+            cur_robots[r].priority = get_hm().get(cur_robots[r].node, cur_robots[r].target);
         }
     }
     for (uint32_t r = 0; r < robots.size(); r++) {
-        int32_t old_dist = get_hm().get_to_pos(robots[r].node, cur_robots[r].target);
-        int32_t new_dist = get_hm().get_to_pos(cur_robots[r].node, cur_robots[r].target);
+        int32_t old_dist = get_hm().get(robots[r].node, cur_robots[r].target);
+        int32_t new_dist = get_hm().get(cur_robots[r].node, cur_robots[r].target);
         score += old_dist - new_dist;
         //score += (2 - r * 1.0 / robots.size()) * get_hm().get_to_pos(cur_robots[r].node, cur_robots[r].target) * 1.0 / std::max(1U, get_hm().get_to_pos(robots[r].node, cur_robots[r].target));
     }
@@ -54,8 +54,8 @@ void PIBT_LNS::update_weights(const std::array<std::vector<Action>, PIBT_LNS_DEP
             uint32_t to_edge = get_graph().get_to_edge(robot.node, actions[depth][r]);
             edges_path[depth] = to_edge;
 
-            int32_t old_dist = get_hm().get_to_pos(robot.node, robot.target);
-            int32_t new_dist = get_hm().get_to_pos(to_node, robot.target);
+            int32_t old_dist = get_hm().get(robot.node, robot.target);
+            int32_t new_dist = get_hm().get(to_node, robot.target);
             //score += old_dist - new_dist;
             int32_t m = old_dist - new_dist;
             if (m <= 0) {
@@ -70,7 +70,7 @@ void PIBT_LNS::update_weights(const std::array<std::vector<Action>, PIBT_LNS_DEP
 
             // simulate move
             robot.node = to_node;
-            robot.priority = get_hm().get_to_pos(robot.node, robot.target);
+            robot.priority = get_hm().get(robot.node, robot.target);
         }
     }
 }

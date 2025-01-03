@@ -196,7 +196,7 @@ bool PIBT3::build(uint32_t r, uint32_t depth, uint32_t& counter) {
         if (validate_path(r) && get_used(r) != -2) {
             auto path = get_path(r);
 
-            int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+            int64_t priority = get_hm().get(path.back(), get_robots_handler().get_robot(r).target);
 
             steps.emplace_back(priority, desired);
         }
@@ -262,7 +262,7 @@ void PIBT3::build_clusters() {
             if (validate_path_IMPL(r)) {
                 auto path = get_path(r);
 
-                int64_t priority = get_hm().get_to_pos(path.back(), get_robots_handler().get_robot(r).target);
+                int64_t priority = get_hm().get(path.back(), get_robots_handler().get_robot(r).target);
                 pool.emplace_back(priority, desired, r);
             }
         }

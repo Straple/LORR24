@@ -62,8 +62,13 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
-    get_robots_handler() = RobotsHandler(*env); // update locations
-    get_dhm().update(*env, get_now() + Milliseconds(DHM_TIMELIMIT)); // update DHM
+#ifdef ENABLE_PRINT_LOG
+    Timer timer;
+    Printer() << "\n";
+    Printer() << "Timestep: " << env->curr_timestep << '\n';
+#endif
+    get_robots_handler() = RobotsHandler(*env);                     // update locations
+    get_dhm().update(*env, get_now() + Milliseconds(DHM_TIMELIMIT));// update DHM
 
 #ifdef ENABLE_SCHEDULER_TRICK
     std::vector<int> done_proposed_schedule =
@@ -80,6 +85,10 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 #ifdef ENABLE_SCHEDULER_TRICK
     proposed_schedule = std::move(done_proposed_schedule);
     update_goal_locations(proposed_schedule);
+#endif
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "Entry time: " << timer << '\n';
 #endif
 }
 

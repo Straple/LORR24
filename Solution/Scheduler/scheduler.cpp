@@ -92,7 +92,7 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get_to_pos(source, loc);// Heuristic Matrix
+        return get_hm().get(source, loc);// Heuristic Matrix
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
@@ -230,7 +230,7 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get_to_pos(source, loc);
+        return get_hm().get(source, loc);
     };
     std::vector<int> done_proposed_schedule = schedule;
 
