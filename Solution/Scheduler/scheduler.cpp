@@ -22,7 +22,7 @@ void calc_full_distance(Task& task){
     for (size_t i = 0; i + 1 < task.locations.size(); ++i){
         uint32_t from = task.locations[i] + 1;
         uint32_t to = task.locations[i+1] + 1;
-        dist_sum += hm.get_to_pos(from, to);
+        dist_sum += hm.get(from, to);
     }
     task.full_distance = dist_sum;
 }
@@ -357,7 +357,7 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    // return GreedyShedule(time_limit, proposed_schedule);
+    //return GreedyShedule(time_limit, proposed_schedule);
     // auto shedule = GreedyShedule(time_limit, proposed_schedule);
     auto done_proposed_schedule = OptimizeShedule(time_limit, proposed_schedule);
     return done_proposed_schedule;
