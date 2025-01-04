@@ -7,7 +7,7 @@ class MyScheduler {
 public:
     SharedEnvironment *env;
 
-    explicit MyScheduler(SharedEnvironment *env) : env(env) {};
+    explicit MyScheduler(SharedEnvironment *env) : env(env){};
 
     MyScheduler() { env = new SharedEnvironment(); };
 
@@ -16,7 +16,8 @@ public:
     void initialize(int preprocess_time_limit);
 
     std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
-    std::vector<int> GreedyShedule(int time_limit, std::vector<int> &proposed_schedule);
-    std::vector<int> OptimizeShedule(int time_limit, std::vector<int> &schedule);
 
+    std::vector<int> GreedySchedule(int time_limit, std::vector<int> &proposed_schedule);
+
+    std::vector<int> OptimizeSchedule(int time_limit, std::vector<int> &schedule);
 };

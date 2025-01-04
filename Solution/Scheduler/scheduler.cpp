@@ -13,15 +13,16 @@
 void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
-void calc_full_distance(Task& task){
+void calc_full_distance(Task &task) {
     /*if (task.full_distance != -1){
         return;
     }*/
-    auto& hm = get_hm();
+    auto &hm = get_hm();
     int dist_sum = 0;
-    for (size_t i = 0; i + 1 < task.locations.size(); ++i){
+    for (size_t i = 0; i + 1 < task.locations.size(); ++i) {
         uint32_t from = task.locations[i] + 1;
-        uint32_t to = task.locations[i+1] + 1;
+        uint32_t to = task.locations[i + 1] + 1;
+        ASSERT(false, "from must be graph node (INCORRECT), to must be map node (CORRECT)");
         dist_sum += hm.get(from, to);
     }
     //task.full_distance = dist_sum;
@@ -68,7 +69,7 @@ std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m)
     return ans;
 }
 
-std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &proposed_schedule) {
+std::vector<int> MyScheduler::GreedySchedule(int time_limit, std::vector<int> &proposed_schedule) {
     static uint32_t launch_num = 0;
     launch_num++;
 
@@ -238,7 +239,7 @@ std::vector<int> MyScheduler::GreedyShedule(int time_limit, std::vector<int> &pr
     return done_proposed_schedule;
 }
 
-std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &schedule) {
+std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> &schedule) {
 
     auto get_dist_to_start = [&](uint32_t r, uint32_t t) {
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
@@ -251,7 +252,7 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
         uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         // ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get(source, loc); // Dynamic Heuristic Matrix
+        return get_hm().get(source, loc);// Dynamic Heuristic Matrix
     };
 
     std::vector<int> done_proposed_schedule = schedule;
@@ -285,18 +286,18 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
     {
         int rb = min(free_robots.size(), free_tasks.size());
         // int rb =  min((int)free_robots.size(), 1);;
-        std::vector<std::vector<int>> dist_matrix(rb+1, std::vector<int>(free_tasks.size() + 1, 0));
-        for (int i = 0; i < rb; i++){
-            for (int g = 0; g < free_tasks.size(); g++){
-                dist_matrix[i+1][g+1] =  (int)get_dist(free_robots[i], free_tasks[g]);
+        std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(free_tasks.size() + 1, 0));
+        for (int i = 0; i < rb; i++) {
+            for (int g = 0; g < free_tasks.size(); g++) {
+                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[i], free_tasks[g]);
                 // dist_matrix[i+1][g+1] *= dist_matrix[i+1][g+1];
             }
         }
         auto ans = Hungarian(dist_matrix, rb, free_tasks.size());
-        for (int i = 1; i < ans.size(); i++){
-            if (ans[i] != -1){
-                auto r = free_robots[i-1];
-                auto t = free_tasks[ans[i]-1];
+        for (int i = 1; i < ans.size(); i++) {
+            if (ans[i] != -1) {
+                auto r = free_robots[i - 1];
+                auto t = free_tasks[ans[i] - 1];
                 //std::cout << r << " -> " << t <<  " " << env->task_pool[t].full_distance << " | " << dist_matrix[i][ans[i]] << endl;
                 schedule[r] = t;
                 if (get_dist_to_start(r, t) <= 3) {
@@ -357,8 +358,8 @@ std::vector<int> MyScheduler::OptimizeShedule(int time_limit, std::vector<int> &
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    //return GreedyShedule(time_limit, proposed_schedule);
-    // auto shedule = GreedyShedule(time_limit, proposed_schedule);
-    auto done_proposed_schedule = OptimizeShedule(time_limit, proposed_schedule);
-    return done_proposed_schedule;
+    return GreedySchedule(time_limit, proposed_schedule);
+    // auto shedule = GreedySchedule(time_limit, proposed_schedule);
+    // auto done_proposed_schedule = OptimizeSchedule(time_limit, proposed_schedule);
+    // return done_proposed_schedule;
 }

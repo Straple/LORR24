@@ -14,7 +14,9 @@
 
 EPlanner::EPlanner(SharedEnvironment *env) : env(env) {}
 
-EPlanner::EPlanner() { env = new SharedEnvironment(); }
+EPlanner::EPlanner() {
+    env = new SharedEnvironment();
+}
 
 void EPlanner::initialize(int preprocess_time_limit) {}
 
