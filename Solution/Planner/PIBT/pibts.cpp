@@ -7,7 +7,7 @@ bool PIBTS::validate_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
     uint32_t node = robots[r].node;
-    return get_omap().get_poses_path(node, desires[r])[0] > 0;
+    return get_omap().get_poses_path(node, desired)[0] > 0;
 }
 
 bool PIBTS::is_free_path(uint32_t r) const {
@@ -109,6 +109,7 @@ uint32_t PIBTS::get_used(uint32_t r) const {
 
 uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
+    ASSERT(validate_path(r, desired), "invalid path");
     uint32_t node = robots[r].node;
     auto &path = get_operations()[desired];
     uint32_t answer = -1;
@@ -153,6 +154,7 @@ void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, in
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
     cur_score += sign * diff * power;
+    //double power = (max_weight - weight[r]) * 1.0 / max_weight;
 }
 
 void PIBTS::add_path(uint32_t r) {
@@ -364,14 +366,12 @@ bool PIBTS::try_build_state(uint32_t r, Randomizer &rnd) {
 }
 
 uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
-    if (counter == -1 ||                 //
-        (counter > 500 && depth > 6) ||  //
-        (counter > 1'000 && depth > 3) ||//
-        (counter > 2'000) ||             //
+    if (counter == -1 ||//
+        counter > 400 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
         counter = -1;
-        return false;
+        return 2;
     }
 
     visited[r] = visited_counter;
@@ -398,10 +398,6 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
     for (auto [_, desired]: steps) {
         desires[r] = desired;
 
-        //if (rnd.get_d() < 0.1) {
-        //    continue;
-        //}
-
         if (is_free_path(r)) {
             // отлично! там никого нет
             add_path(r);
@@ -417,6 +413,10 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
             }
         } else {
             // о нет! там кто-то есть
+
+            if (counter > 200 && depth >= 6) {
+                continue;
+            }
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
@@ -459,10 +459,8 @@ bool PIBTS::try_build(uint32_t r) {
 }
 
 bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
-    if (counter == -1 ||                  //
-        (counter > 3'000 && depth > 6) || //
-        (counter > 10'000 && depth > 3) ||//
-        (counter > 30'000) ||             //
+    if (counter == -1 ||//
+        //counter > 3'000 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
         counter = -1;
@@ -503,9 +501,14 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         } else {
             // о нет! там кто-то есть
 
+            if (counter > 2000 && depth >= 6) {
+                continue;
+            }
+
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             ASSERT(desires[to_r] == 0, "invalid desires");
+
             remove_path(to_r);
             add_path(r);
 
@@ -533,7 +536,96 @@ bool PIBTS::build(uint32_t r) {
     }
 }
 
-PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
+bool PIBTS::build_state(uint32_t r, uint32_t depth, uint32_t &counter, State &state) {
+    if (counter == -1 ||  //
+        counter > 5'000 ||//
+        (counter % 256 == 0 && get_now() >= end_time)) {
+
+        counter = -1;
+        return false;
+    }
+
+    // (priority, desired)
+    std::vector<std::pair<int64_t, uint32_t>> steps;
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+        state.desires[r] = desired;
+        if (!validate_path(r, desired) || get_used(r, state) == -2) {
+            continue;
+        }
+
+        auto path = get_path(r, desired);
+
+        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+
+        steps.emplace_back(priority, desired);
+    }
+
+    std::stable_sort(steps.begin(), steps.end());
+
+    for (auto [_, desired]: steps) {
+        state.desires[r] = desired;
+
+        if (is_free_path(r, state)) {
+            add_path(r, state);
+            return true;
+        } else {
+            uint32_t to_r = get_used(r, state);
+            ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
+            uint32_t to_desired = state.desires.count(to_r) ? state.desires[to_r] : desires[to_r];
+            if (to_desired != 0) {
+                continue;
+            }
+            remove_path(to_r, state);
+            add_path(r, state);
+
+            if (try_build_state(to_r, state, ++counter, rnd)) {
+                return true;
+            }
+
+            remove_path(r, state);
+            add_path(to_r, state);
+        }
+    }
+
+    state.desires.erase(r);
+    return false;
+}
+
+bool PIBTS::build_state(uint32_t r) {
+    ASSERT(false, "TODO");
+    return true;
+    /*State best_state;
+    best_state.cur_score = cur_score;
+
+    State start;
+    start.cur_score = cur_score;
+    remove_path(r, start);
+
+    for (uint32_t depth = 0; depth < 10; depth++) {
+        auto s = start;
+        uint32_t counter = 0;
+        if (build_state(r, 0, counter, s)) {
+            double best = best_state.cur_score * 100 - best_state.desires.size();
+            double cur = s.cur_score * 100 - s.desires.size();
+            if (best < cur) {
+                best_state = s;
+            }
+        }
+    }
+
+    flush_state(best_state);
+    return true;
+
+    if (best_state.cur_score > cur_score) {
+        flush_state(best_state);
+        return true;
+    } else {
+        return false;
+    }*/
+}
+
+PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
+    : robots(robots), end_time(end_time), rnd(seed) {
 
     visited.resize(robots.size());
     desires.resize(robots.size());
@@ -552,34 +644,38 @@ PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
         });
 
         weight.resize(robots.size());
-        for (uint32_t i = 0; i < robots.size(); i++) {
-            weight[order[i]] = i;
+
+        uint32_t prev = 0;
+        uint32_t w = 0;
+        for (uint32_t r: order) {
+            if (prev != robots[r].priority) {
+                w++;
+            }
+            weight[r] = w;
+            prev = robots[r].priority;
         }
+        max_weight = w + 1;
+
+        /*for (uint32_t i = 0; i < robots.size(); i++) {
+            weight[order[i]] = i;
+        }*/
     }
 
-    for (uint32_t r = 0; r < this->robots.size(); r++) {
+    for (uint32_t r = 0; r < robots.size(); r++) {
         add_path(r);
     }
 }
 
-std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
-    this->end_time = end_time;
-    rnd = Randomizer(seed);
-
-    auto p = order;
-    if (seed % 2 == 0) {
-        std::shuffle(p.begin(), p.end(), rnd.generator);
-    }
-    for (uint32_t r: p) {
-        if (desires[r] == 0) {
-            if (get_now() >= end_time) {
-                break;
-            }
-            build(r);
+void PIBTS::simulate_pibt() {
+    // PIBT
+    for (uint32_t r: order) {
+        if (desires[r] != 0) {
+            continue;
         }
+        build(r);
     }
 
-    uint32_t cnt_try = 0;
+    /*uint32_t cnt_try = 0;
     uint32_t cnt_accept = 0;
     for (uint32_t step = 0; step < PIBTS_STEPS; step++) {
         if constexpr (PIBTS_STEPS == -1) {
@@ -592,18 +688,24 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
         cnt_accept += try_build(r);
         cnt_try++;
         temp *= 0.99;
-    }
+    }*/
 
     //Printer() << "PIBTS: " << cnt_accept << "/" << cnt_try << '\n';
-
-    std::vector<Action> answer(robots.size());
-
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        answer[r] = get_operations()[desires[r]][0];
-    }
-    return answer;
 }
 
 double PIBTS::get_score() const {
     return cur_score;
+}
+
+void PIBTS::simulate_step() {
+    uint32_t r = rnd.get(0, robots.size() - 1);
+    try_build(r);
+}
+
+std::vector<Action> PIBTS::get_actions() const {
+    std::vector<Action> answer(robots.size());
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        answer[r] = get_operations()[desires[r]][0];
+    }
+    return answer;
 }

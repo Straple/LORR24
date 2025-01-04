@@ -10,7 +10,7 @@ uint32_t call(const std::string &test, uint32_t test_id) {
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     int ret_code = std::system(
-            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 300 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 20000 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
@@ -163,4 +163,13 @@ call(3): 4099, 72.9627s
 call(4): 3329, 110.47s
 call(5): 2885, 144.093s
 total: 21710
+
+depth mode in PIBTS
+call(0): 2520, 19.0242s
+call(1): 4328, 34.278s
+call(2): 5090, 44.1954s
+call(3): 4239, 80.3587s
+call(4): 3213, 142.93s
+call(5): 2712, 242.823s
+total: 22102
 */
