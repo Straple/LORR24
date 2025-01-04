@@ -289,7 +289,7 @@ void PIBTS::flush_state(const State &state) {
     }
 }
 
-bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &rnd) const {
+bool PIBTS::try_build_state(uint32_t r, State &state, uint32_t &counter, Randomizer &rnd) const {
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
     for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
@@ -333,7 +333,7 @@ bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &r
             remove_path(to_r, state);
             add_path(r, state);
 
-            if (try_build(to_r, state, ++counter, rnd)) {
+            if (try_build_state(to_r, state, ++counter, rnd)) {
                 return true;
             }
 
@@ -346,12 +346,12 @@ bool PIBTS::try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &r
     return false;
 }
 
-bool PIBTS::try_build(uint32_t r, Randomizer &rnd) {
+bool PIBTS::try_build_state(uint32_t r, Randomizer &rnd) {
     State state;
     state.cur_score = cur_score;
     remove_path(r, state);
     uint32_t counter = 0;
-    if (!try_build(r, state, counter, rnd)) {
+    if (!try_build_state(r, state, counter, rnd)) {
         return false;
     }
 
@@ -363,7 +363,17 @@ bool PIBTS::try_build(uint32_t r, Randomizer &rnd) {
     return false;
 }
 
-uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, double old_score) {
+uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
+    if (counter == -1 ||                 //
+        (counter > 500 && depth > 6) ||  //
+        (counter > 1'000 && depth > 3) ||//
+        (counter > 2'000) ||             //
+        (counter % 256 == 0 && get_now() >= end_time)) {
+
+        counter = -1;
+        return false;
+    }
+
     visited[r] = visited_counter;
 
     // (priority, desired)
@@ -375,7 +385,7 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
             continue;
         }
         uint32_t to_r = get_used(r);
-        if (to_r == -2) {
+        if (to_r == -2 || (to_r != -1 && visited[to_r] == visited_counter)) {
             continue;
         }
         const auto &path = get_path(r, desired);
@@ -408,19 +418,14 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
         } else {
             // о нет! там кто-то есть
 
-            if (counter > 1'000) {
-                continue;
-            }
-
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            if (visited[to_r] == visited_counter) {
-                continue;
-            }
+            ASSERT(visited[to_r] != visited_counter, "already visited");
+
             remove_path(to_r);
             add_path(r);
 
-            uint32_t res = try_build2(to_r, ++counter, rnd, old_score);
+            uint32_t res = try_build(to_r, ++counter, depth + 1);
             if (res == 1) {
                 return res;
             } else if (res == 2) {
@@ -440,11 +445,12 @@ uint32_t PIBTS::try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, doubl
     return 0;
 }
 
-bool PIBTS::try_build2(uint32_t r, Randomizer &rnd) {
-    double old_score = cur_score;
+bool PIBTS::try_build(uint32_t r) {
+    ++visited_counter;
+    old_score = cur_score;
     remove_path(r);
     uint32_t counter = 0;
-    uint32_t res = try_build2(r, counter, rnd, old_score);
+    uint32_t res = try_build(r, counter, 0);
     if (res == 0 || res == 2) {
         add_path(r);
         return false;
@@ -453,7 +459,12 @@ bool PIBTS::try_build2(uint32_t r, Randomizer &rnd) {
 }
 
 bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
-    if (counter == -1 || (counter % 256 == 0 && get_now() >= end_time)) {
+    if (counter == -1 ||                  //
+        (counter > 3'000 && depth > 6) || //
+        (counter > 10'000 && depth > 3) ||//
+        (counter > 30'000) ||             //
+        (counter % 256 == 0 && get_now() >= end_time)) {
+
         counter = -1;
         return false;
     }
@@ -491,14 +502,6 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             return true;
         } else {
             // о нет! там кто-то есть
-
-            if (counter > 3'000 && depth > 6) {
-                continue;
-            } else if (counter > 10'000 && depth > 3) {
-                continue;
-            } else if (counter > 30'000) {
-                continue;
-            }
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
@@ -561,11 +564,13 @@ PIBTS::PIBTS(const std::vector<Robot> &robots) : robots(robots) {
 
 std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     this->end_time = end_time;
-    Randomizer rnd(seed);
+    rnd = Randomizer(seed);
 
-    //auto p = order;
-    //std::shuffle(p.begin(), p.end(), rnd.generator);
-    for (uint32_t r: order) {
+    auto p = order;
+    if (seed % 2 == 0) {
+        std::shuffle(p.begin(), p.end(), rnd.generator);
+    }
+    for (uint32_t r: p) {
         if (desires[r] == 0) {
             if (get_now() >= end_time) {
                 break;
@@ -577,15 +582,14 @@ std::vector<Action> PIBTS::solve(TimePoint end_time, uint64_t seed) {
     uint32_t cnt_try = 0;
     uint32_t cnt_accept = 0;
     for (uint32_t step = 0; step < PIBTS_STEPS; step++) {
-        if (PIBTS_STEPS == -1) {
+        if constexpr (PIBTS_STEPS == -1) {
             if (get_now() >= end_time) {
                 break;
             }
         }
         uint32_t r = rnd.get(0, robots.size() - 1);
-        visited_counter++;
 
-        cnt_accept += try_build2(r, rnd);
+        cnt_accept += try_build(r);
         cnt_try++;
         temp *= 0.99;
     }

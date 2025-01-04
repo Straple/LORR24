@@ -70,6 +70,10 @@ class PIBTS {
     std::vector<uint32_t> visited;
     uint32_t visited_counter = 1;
 
+    Randomizer rnd;
+
+    double old_score = 0;
+
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
 
     [[nodiscard]] bool is_free_path(uint32_t r) const;
@@ -94,16 +98,16 @@ class PIBTS {
 
     void flush_state(const State &state);
 
-    bool try_build(uint32_t r, State &state, uint32_t &counter, Randomizer &rnd) const;
+    bool try_build_state(uint32_t r, State &state, uint32_t &counter, Randomizer &rnd) const;
 
-    bool try_build(uint32_t r, Randomizer &rnd);
+    bool try_build_state(uint32_t r, Randomizer &rnd);
 
     // return 0, if failed
     // return 1, if success+accepted
     // return 2, if success+not accepted
-    uint32_t try_build2(uint32_t r, uint32_t &counter, Randomizer &rnd, double old_score);
+    uint32_t try_build(uint32_t r, uint32_t &counter, uint32_t depth);
 
-    bool try_build2(uint32_t r, Randomizer &rnd);
+    bool try_build(uint32_t r);
 
     bool build(uint32_t r, uint32_t depth, uint32_t &counter);
 
