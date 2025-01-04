@@ -14,9 +14,9 @@ void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
 void calc_full_distance(Task& task){
-    if (task.full_distance != -1){
+    /*if (task.full_distance != -1){
         return;
-    }
+    }*/
     auto& hm = get_hm();
     int dist_sum = 0;
     for (size_t i = 0; i + 1 < task.locations.size(); ++i){
@@ -24,7 +24,7 @@ void calc_full_distance(Task& task){
         uint32_t to = task.locations[i+1] + 1;
         dist_sum += hm.get(from, to);
     }
-    task.full_distance = dist_sum;
+    //task.full_distance = dist_sum;
 }
 
 const int INF = 1000000;
