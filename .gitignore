@@ -10,5 +10,7 @@ python/__pycache__
 output.json
 .idea
 .cache
+venv
 Tmp
 CMakePresets.json
+printer
