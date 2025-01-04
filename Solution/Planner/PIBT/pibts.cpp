@@ -683,7 +683,7 @@ void PIBTS::simulate_pibt() {
     // PIBT
     for (uint32_t r: order) {
         if (desires[r] != 0) {
-            continue;
+            //continue;
         }
         build(r);
     }

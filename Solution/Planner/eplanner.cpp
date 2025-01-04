@@ -121,15 +121,21 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     double best_score = -1e300;
     std::sort(results.begin(), results.end(), std::greater<>());
 
-    //Printer() << "RESULTS: ";
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "RESULTS: ";
+#endif
     for (const auto &[score, time, actions]: results) {
-        //Printer() << "(" << score << ", " << time << ") ";
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "(" << score << ", " << time << ") ";
+#endif
         if (best_score < score) {
             best_score = score;
             plan = actions;
         }
     }
-    //Printer() << "\nbest: " << best_score << '\n';
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "\nbest: " << best_score << '\n';
+#endif
 
     // (score, actions)
     /*std::vector<std::pair<double, std::vector<Action>>> results(THREADS);
