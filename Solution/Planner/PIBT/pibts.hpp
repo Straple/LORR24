@@ -92,7 +92,10 @@ class PIBTS {
 
     bool try_build(uint32_t r);
 
-    bool build(uint32_t r, uint32_t depth, uint32_t &counter);
+    // return 0, if failed
+    // return 1, if success+accepted
+    // return 2, if success+not accepted
+    uint32_t build(uint32_t r, uint32_t depth, uint32_t &counter);
 
     bool build(uint32_t r);
 
@@ -107,8 +110,6 @@ public:
     void simulate_pibt();
 
     [[nodiscard]] double get_score() const;
-
-    void simulate_step();
 
     [[nodiscard]] std::vector<Action> get_actions() const;
 };

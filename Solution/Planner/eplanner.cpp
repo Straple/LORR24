@@ -99,20 +99,14 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif*/
 
     // [depth] = { (score, time, plan) }
-    std::vector<std::vector<std::tuple<double, double, std::vector<Action>>>> results(100);
-
-    std::mutex mutex;
+    std::vector<std::tuple<double, double, std::vector<Action>>> results(THREADS);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
-        Randomizer rnd(seed);
         Timer timer;
-        PIBTS pibt(get_robots_handler().get_robots(), end_time, rnd.get());
+        PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
         pibt.simulate_pibt();
         double time = timer.get_ms();
-        {
-            std::unique_lock locker(mutex);
-            results[0].emplace_back(pibt.get_score(), time, pibt.get_actions());
-        }
+        results[thr] = {pibt.get_score(), time, pibt.get_actions()};
     };
 
     static Randomizer rnd;
@@ -124,26 +118,18 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         threads[thr].join();
     }
 
-    Printer() << "RESULTS: \n";
     double best_score = -1e300;
-    for (uint32_t depth = 0; depth < results.size(); depth++) {
-        if (results[depth].empty()) {
-            continue;
-        }
-        Printer() << depth << ": ";
-        std::sort(results[depth].begin(), results[depth].end(), std::greater<>());
-        for (const auto &[score, time, actions]: results[depth]) {
-            Printer() << "(" << score << ", " << time << ") ";
-        }
-        Printer() << '\n';
-        const auto &[score, time, actions] = results[depth][0];
+    std::sort(results.begin(), results.end(), std::greater<>());
+
+    //Printer() << "RESULTS: ";
+    for (const auto &[score, time, actions]: results) {
+        //Printer() << "(" << score << ", " << time << ") ";
         if (best_score < score) {
             best_score = score;
             plan = actions;
         }
     }
-
-    Printer() << "best: " << best_score << '\n';
+    //Printer() << "\nbest: " << best_score << '\n';
 
     // (score, actions)
     /*std::vector<std::pair<double, std::vector<Action>>> results(THREADS);

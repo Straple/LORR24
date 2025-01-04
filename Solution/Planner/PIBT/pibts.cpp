@@ -397,9 +397,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
 
     for (auto [_, desired]: steps) {
         desires[r] = desired;
-
         if (is_free_path(r)) {
-            // отлично! там никого нет
             add_path(r);
             if (old_score <= cur_score
                 // old_score > cur_score
@@ -412,8 +410,6 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
-            // о нет! там кто-то есть
-
             if (counter > 200 && depth >= 6) {
                 continue;
             }
@@ -458,20 +454,20 @@ bool PIBTS::try_build(uint32_t r) {
     return true;
 }
 
-bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
+uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 ||//
         //counter > 3'000 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
         counter = -1;
-        return false;
+        return 2;
     }
 
     uint32_t old_desired = desires[r];
 
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
-    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+    for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
         desires[r] = desired;
         if (!validate_path(r, desires[r])) {
             continue;
@@ -481,39 +477,54 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             continue;
         }
         if (to_r != -1 && desires[to_r] != 0) {
-            continue;
+            //continue;
         }
         const auto &path = get_path(r, desires[r]);
-
         int64_t priority = get_dhm().get(path.back(), robots[r].target);
         steps.emplace_back(priority, desired);
     }
 
     std::stable_sort(steps.begin(), steps.end());
-    //std::reverse(steps.begin(), steps.end());
 
     for (auto [priority, desired]: steps) {
         desires[r] = desired;
         if (is_free_path(r)) {
             // отлично! там никого нет
             add_path(r);
-            return true;
+            if (old_score <= cur_score
+                // old_score > cur_score
+                // || rnd.get_d() < 1.0 / (old_score - cur_score + 10) * temp
+            ) {
+                return 1;// accepted
+            } else {
+                remove_path(r);
+                desires[r] = old_desired;
+                return 2;// not accepted
+            }
         } else {
-            // о нет! там кто-то есть
-
             if (counter > 2000 && depth >= 6) {
                 continue;
             }
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            ASSERT(desires[to_r] == 0, "invalid desires");
+            //ASSERT(desires[to_r] == 0, "invalid desires");
+
+            if (desires[to_r] != 0 && rnd.get_d() < 0.8) {
+                continue;
+            }
 
             remove_path(to_r);
             add_path(r);
 
-            if (build(to_r, depth + 1, ++counter)) {
-                return true;
+            uint32_t res = build(to_r, depth + 1, ++counter);
+            if (res == 1) {
+                return res;
+            } else if (res == 2) {
+                remove_path(r);
+                add_path(to_r);
+                desires[r] = old_desired;
+                return res;
             }
 
             remove_path(r);
@@ -526,14 +537,16 @@ bool PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 }
 
 bool PIBTS::build(uint32_t r) {
+    ++visited_counter;
+    old_score = cur_score;
     remove_path(r);
     uint32_t counter = 0;
-    if (!build(r, 0, counter)) {
+    uint32_t res = build(r, 0, counter);
+    if (res == 0 || res == 2) {
         add_path(r);
         return false;
-    } else {
-        return true;
     }
+    return true;
 }
 
 bool PIBTS::build_state(uint32_t r, uint32_t depth, uint32_t &counter, State &state) {
@@ -675,31 +688,14 @@ void PIBTS::simulate_pibt() {
         build(r);
     }
 
-    /*uint32_t cnt_try = 0;
-    uint32_t cnt_accept = 0;
-    for (uint32_t step = 0; step < PIBTS_STEPS; step++) {
-        if constexpr (PIBTS_STEPS == -1) {
-            if (get_now() >= end_time) {
-                break;
-            }
-        }
+    for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
-
-        cnt_accept += try_build(r);
-        cnt_try++;
-        temp *= 0.99;
-    }*/
-
-    //Printer() << "PIBTS: " << cnt_accept << "/" << cnt_try << '\n';
+        try_build(r);
+    }
 }
 
 double PIBTS::get_score() const {
     return cur_score;
-}
-
-void PIBTS::simulate_step() {
-    uint32_t r = rnd.get(0, robots.size() - 1);
-    try_build(r);
 }
 
 std::vector<Action> PIBTS::get_actions() const {
