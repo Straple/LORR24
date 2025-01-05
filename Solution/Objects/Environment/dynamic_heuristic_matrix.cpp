@@ -70,9 +70,10 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
             uint32_t to = get_graph().get_to_node(node, action);
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
-                uint64_t to_dist = queue_dist + 1;
-                if (action == 0) {// if forward
-                    to_dist += (used[get_graph().get_pos(to).get_pos()] == timestep);
+                uint64_t to_dist = queue_dist + 5;
+                uint32_t p = get_graph().get_pos(to).get_pos();
+                if (action == 0 && used[p] == timestep) {
+                    to_dist += weight[p];
                 }
                 if (dists[to] > to_dist) {
                     dists[to] = to_dist;
@@ -83,10 +84,20 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
     }
 }
 
+void DynamicHeuristicMatrix::update_pos(uint32_t pos, uint32_t w, uint32_t timestep) {
+    if (used[pos] == timestep) {
+        weight[pos] += w;
+    } else {
+        used[pos] = timestep;
+        weight[pos] = w;
+    }
+}
+
 DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map) {
     matrix.resize(map.get_size());
     timestep_updated.resize(map.get_size());
     used.resize(map.get_size(), -1);
+    weight.resize(map.get_size(), 0);
     for (uint32_t pos = 1; pos < matrix.size(); pos++) {
         if (Position(pos, 0).is_valid()) {
             //matrix[pos].assign(get_graph().get_nodes_size(), -1);
@@ -98,10 +109,22 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 #ifdef ENABLE_DHM
     Timer timer;
 
+    double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
+    uint32_t power = workload * 12;
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "workload: " << workload << '\n';
+    Printer() << "power: " << power << '\n';
+#endif
+
     for (auto robot: get_robots_handler().get_robots()) {
         ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
-        //robots_pos.insert(get_graph().get_pos(robot.node).get_pos());
-        used[get_graph().get_pos(robot.node).get_pos()] = env.curr_timestep;
+        Position p = get_graph().get_pos(robot.node);
+        update_pos(p.get_pos(), power, env.curr_timestep);
+        for (uint32_t dir = 0; dir < 4; dir++) {
+            auto s = Position(p.get_x(), p.get_y(), dir);
+            update_pos(s.get_pos(), power, env.curr_timestep);
+        }
     }
 
     // (timestep updated, target pos)

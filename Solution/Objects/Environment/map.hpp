@@ -12,16 +12,22 @@ class Map {
 
     std::vector<bool> map;
 
+    uint32_t cnt_free = 0;
+
 public:
     Map() = default;
+
     explicit Map(const SharedEnvironment &env);
-    explicit Map(const std::vector<bool>& mp,  size_t cols, size_t rows);
+
+    Map(const std::vector<bool> &mp, size_t cols, size_t rows);
 
     [[nodiscard]] uint32_t get_rows() const;
 
     [[nodiscard]] uint32_t get_cols() const;
 
     [[nodiscard]] uint32_t get_size() const;
+
+    [[nodiscard]] uint32_t get_count_free() const;
 
     [[nodiscard]] bool is_free(uint32_t pos) const;
 };

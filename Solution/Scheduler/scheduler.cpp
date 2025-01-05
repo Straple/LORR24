@@ -477,8 +477,6 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    //return GreedyShedule(time_limit, proposed_schedule);
-    // auto shedule = GreedyShedule(time_limit, proposed_schedule);
-    auto done_proposed_schedule = OptimizeSchedule(time_limit, proposed_schedule);
-    return done_proposed_schedule;
+    return GreedySchedule(time_limit, proposed_schedule);
+    //return OptimizeSchedule(time_limit, proposed_schedule);
 }

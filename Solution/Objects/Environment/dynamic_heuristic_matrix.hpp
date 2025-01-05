@@ -18,7 +18,11 @@ class DynamicHeuristicMatrix {
     // used[pos] = timestep when robot in this pos
     std::vector<uint32_t> used;
 
+    std::vector<uint32_t> weight;
+
     void rebuild(uint32_t source, uint32_t timestep);
+
+    void update_pos(uint32_t pos, uint32_t w, uint32_t timestep);
 
 public:
     DynamicHeuristicMatrix() = default;
