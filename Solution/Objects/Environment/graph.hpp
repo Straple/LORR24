@@ -42,6 +42,9 @@ public:
     // Position -> graph node
     [[nodiscard]] uint32_t get_node(const Position &pos) const;
 
+    [[nodiscard]] uint32_t get_node(const uint32_t pos, const uint32_t dir) const;
+
+
     // graph node + action -> graph node
     [[nodiscard]] uint32_t get_to_node(uint32_t node, uint32_t action) const;
 
