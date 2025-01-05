@@ -13,6 +13,7 @@
 void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
+<<<<<<< HEAD
 void calc_full_distance(Task &task) {
     /*if (task.full_distance != -1){
         return;
@@ -28,6 +29,8 @@ void calc_full_distance(Task &task) {
     //task.full_distance = dist_sum;
 }
 
+=======
+>>>>>>> a2277ee (parallel hungarian)
 const int INF = 1000000;
 
 std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m) {
@@ -239,127 +242,249 @@ std::vector<int> MyScheduler::GreedySchedule(int time_limit, std::vector<int> &p
     return done_proposed_schedule;
 }
 
+int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
+    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+    //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    uint32_t loc = env->task_pool[t].locations[0] + 1;
+    return get_hm().get(source, loc);
+};
+
+int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
+    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+    // ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    uint32_t loc = env->task_pool[t].locations[0] + 1;
+    return get_hm().get(source, loc); // Dynamic Heuristic Matrix
+};
+
 std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> &schedule) {
 
-    auto get_dist_to_start = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-        uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get(source, loc);
-    };
-
-    auto get_dist = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        // ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-        uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get(source, loc);// Dynamic Heuristic Matrix
-    };
+    Timer timer;
 
     std::vector<int> done_proposed_schedule = schedule;
 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
-    std::unordered_map<int, size_t> task_to_robot;
 
-    // int current_sum_dist = 0;
-    // for (size_t i = 0; i < schedule.size(); i++) {
-    //     if (schedule[i] >= 0) {
-    //         task_to_robot[schedule[i]] = i;
-    //         current_sum_dist += get_dist(i, schedule[i]);
-    //     }
-    // }
+
 
     std::vector<uint32_t> free_robots, free_tasks;
+
+    struct Entity{
+        uint32_t cordinate;
+        size_t index;
+        bool is_robot;
+        bool operator<(const Entity& other) const {
+            return std::tie(cordinate, index, is_robot) < std::tie(other.cordinate, other.index, other.is_robot);
+        }
+    };
+
+    std::vector<Entity> xs;
+    std::vector<Entity> ys;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         uint32_t t = env->curr_task_schedule[r];
         if (t == -1) {
+            auto pos = Position(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(), free_robots.size(), true});
+            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(), free_robots.size(), true});
             free_robots.push_back(r);
         }
     }
     for (auto &[t, task]: env->task_pool) {
         if (task.agent_assigned == -1) {
-            calc_full_distance(task);
+            xs.push_back({Position(env->task_pool[t].locations[0] + 1, 0).get_x(), free_tasks.size(), false});
+            ys.push_back({Position(env->task_pool[t].locations[0] + 1, 0).get_y(), free_tasks.size(), false});
             free_tasks.push_back(t);
         }
     }
 
-    // RUN HUNGARY
+    int THREADS_TO_USE = THREADS;
+    if (free_robots.size()*free_robots.size()*free_tasks.size() < 40'000'000){
+        THREADS_TO_USE = 1;
+    }
+    int DEVIDE_Y = sqrt(THREADS_TO_USE);
+    int DEVIDE_X = DEVIDE_Y;
+
+    #ifdef ENABLE_PRINT_LOG
+        Printer() << "free robots: " << free_robots.size() << '\n';
+        Printer() << "free tasks: " << free_tasks.size() << '\n';
+    #endif
+
+
+    std::sort(xs.begin(), xs.end());
+    std::sort(ys.begin(), ys.end());
+
+    std::vector<std::pair<size_t, size_t>>robot_distrib(free_robots.size());
+    std::vector<std::pair<size_t, size_t>>task_distrib(free_tasks.size());
+
     {
-        int rb = min(free_robots.size(), free_tasks.size());
-        // int rb =  min((int)free_robots.size(), 1);;
-        std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(free_tasks.size() + 1, 0));
-        for (int i = 0; i < rb; i++) {
-            for (int g = 0; g < free_tasks.size(); g++) {
-                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[i], free_tasks[g]);
-                // dist_matrix[i+1][g+1] *= dist_matrix[i+1][g+1];
+        const size_t Y_PART_SIZE = (free_robots.size()+DEVIDE_Y-1)/DEVIDE_Y;
+        size_t curr_size = 0;
+        size_t curr_part = 0;
+        for (size_t i = 0; i < ys.size(); i++){
+            if (ys[i].is_robot){
+                curr_size++;
+            }
+            if (curr_size > Y_PART_SIZE){
+                curr_size = 0;
+                curr_part++;
+                assert(curr_part < DEVIDE_Y);
+            }
+
+            if (ys[i].is_robot){
+                robot_distrib[ys[i].index].first = curr_part;
+            } else {
+                task_distrib[ys[i].index].first = curr_part;
             }
         }
-        auto ans = Hungarian(dist_matrix, rb, free_tasks.size());
-        for (int i = 1; i < ans.size(); i++) {
-            if (ans[i] != -1) {
-                auto r = free_robots[i - 1];
-                auto t = free_tasks[ans[i] - 1];
-                //std::cout << r << " -> " << t <<  " " << env->task_pool[t].full_distance << " | " << dist_matrix[i][ans[i]] << endl;
+    }
+
+
+    {
+        const size_t X_PART_SIZE = (free_robots.size()+DEVIDE_X-1)/DEVIDE_X;
+        size_t curr_size = 0;
+        size_t curr_part = 0;
+        for (size_t i = 0; i < xs.size(); i++){
+            if (xs[i].is_robot){
+                curr_size++;
+            }
+            if (curr_size > X_PART_SIZE){
+                curr_size = 0;
+                curr_part++;
+                assert(curr_part < DEVIDE_X);
+            }
+
+            if (xs[i].is_robot){
+                robot_distrib[xs[i].index].second = curr_part;
+            } else {
+                task_distrib[xs[i].index].second = curr_part;
+            }
+        }
+    }
+
+
+    // {
+    //     const size_t Y_PART_SIZE = (ys.size()+DEVIDE_Y-1)/DEVIDE_Y;
+    //     for (size_t part = 0; part < DEVIDE_Y; ++part){
+    //         #ifdef ENABLE_PRINT_LOG
+    //             int i = part*Y_PART_SIZE;
+    //             if (i < ys.size()){
+    //                 std::cout << "y sep number: " << part << " value: " << ys[i].cordinate << std::endl;
+    //             }
+    //         #endif ENABLE_PRINT_LOG
+
+    //         for (size_t i = part*Y_PART_SIZE; i < std::min(ys.size(), (part+1)*Y_PART_SIZE); ++i){
+    //             if (ys[i].is_robot){
+    //                 robot_distrib[ys[i].index].first = part;
+    //             } else {
+    //                 task_distrib[ys[i].index].first = part;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // {
+    //     const size_t X_PART_SIZE = (ys.size()+DEVIDE_X-1)/DEVIDE_X;
+    //     for (size_t part = 0; part < DEVIDE_X; ++part){
+    //         #ifdef ENABLE_PRINT_LOG
+    //             int i = part*X_PART_SIZE;
+    //             if (i < ys.size()){
+    //                 std::cout << "x sep number: " << part << " value: " << xs[i].cordinate << std::endl;
+    //             }
+    //         #endif ENABLE_PRINT_LOG
+    //         for (size_t i = part*X_PART_SIZE; i < std::min(xs.size(), (part+1)*X_PART_SIZE); ++i){
+    //             if (xs[i].is_robot){
+    //                 robot_distrib[xs[i].index].second = part;
+    //             } else {
+    //                 task_distrib[xs[i].index].second = part;
+    //             }
+    //         }
+    //     }
+    // }
+
+
+
+    std::vector devided_robots(DEVIDE_Y, std::vector(DEVIDE_X, std::vector<int>()));
+    std::vector devided_tasks(DEVIDE_Y, std::vector(DEVIDE_X,std::vector<int>()));
+
+    for (size_t i = 0; i < robot_distrib.size(); ++i) {
+        devided_robots[robot_distrib[i].first][robot_distrib[i].second].push_back(i);
+    }
+
+    for (size_t i = 0; i < task_distrib.size(); ++i) {
+        assert(task_distrib[i].first != -1);
+        assert(task_distrib[i].second != -1);
+        devided_tasks[task_distrib[i].first][task_distrib[i].second].push_back(i);
+    }
+
+    #ifdef ENABLE_PRINT_LOG
+
+    for (size_t y = 0; y < DEVIDE_Y; y++){
+        for (size_t x = 0; x < DEVIDE_X; x++){
+            std::cout << std::endl;
+            std::cout << "Quarant: y: " << y << " x: " << x << std::endl;
+            size_t r_s = devided_robots[y][x].size();
+            size_t t_s = devided_tasks[y][x].size();
+            std::cout << "Robots: " <<  r_s << " (" << ((float)r_s)/(free_robots.size())*100 << "%)" << std::endl;
+            std::cout << "Tasks:  " << t_s << " (" << ((float)t_s)/(free_tasks.size())*100 << "%)" << std::endl;
+        }
+    }
+
+    #endif
+    
+
+    auto RunHungary = [&](size_t y, size_t x) {
+        const auto& tasks = devided_tasks[y][x];
+        const auto& robots = devided_robots[y][x];
+
+        int rb = min(tasks.size(), robots.size());
+
+        std::vector<std::vector<int>> dist_matrix(rb+1, std::vector<int>(tasks.size() + 1, 0));
+        for (int i = 0; i < rb; i++){
+            for (int g = 0; g < tasks.size(); g++){
+                dist_matrix[i+1][g+1] =  (int)get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env);
+            }
+        }
+        auto ans = Hungarian(dist_matrix, rb, tasks.size());
+
+        for (int i = 1; i < ans.size(); i++){
+            if (ans[i] != -1){
+                auto r = free_robots[robots[i-1]];
+                auto t = free_tasks[tasks[ans[i]-1]];
                 schedule[r] = t;
-                if (get_dist_to_start(r, t) <= 3) {
-                    done_proposed_schedule[r] = t;
-                }
             }
         }
-        return done_proposed_schedule;
-    }
+    };
 
-    if (free_robots.empty() || free_tasks.empty()) {
-        return done_proposed_schedule;
-    }
 
-    std::vector<int> closeset_task(free_robots.size(), -1);
-    std::vector<int> distance_to_closest_task(free_robots.size(), -1);
-    ;
-    for (size_t r_i = 0; r_i < free_robots.size(); r_i++) {
-        for (size_t t_i = 0; t_i < free_tasks.size(); t_i++) {
-            if (closeset_task[r_i] == -1 || distance_to_closest_task[r_i] > get_dist_to_start(free_robots[r_i], free_tasks[t_i])) {
-                closeset_task[r_i] = free_tasks[t_i];
-                distance_to_closest_task[r_i] = get_dist_to_start(free_robots[r_i], free_tasks[t_i]);
-            }
+    std::vector<std::thread> threads;
+    for (size_t y = 0; y < DEVIDE_Y; y++){
+        for (size_t x = 0; x < DEVIDE_X; x++){
+            threads.push_back(std::thread(RunHungary, y, x));
         }
     }
 
-    // stores r_i
-    std::vector<size_t> not_assigned_to_nearest;
-    for (size_t r_i = 0; r_i < free_robots.size(); ++r_i) {
-        if (closeset_task[r_i] != schedule[free_robots[r_i]]) {
-            if (schedule[free_robots[r_i]] >= 0) {
-                not_assigned_to_nearest.push_back(r_i);
+    for (auto& thr: threads) {
+        thr.join();
+    }
+
+    for (size_t r = 0; r < schedule.size(); r++){
+        int task_id = schedule[r];
+        if (task_id != -1){
+            if (get_dist_to_start(r, task_id, env) <= 3) {
+                done_proposed_schedule[r] = task_id;
             }
         }
     }
-    for (const auto &flip_r_i: not_assigned_to_nearest) {
-        auto flip = free_robots[flip_r_i];
-        assert(closeset_task[flip_r_i] != -1);
-        auto task_to_flip_with = closeset_task[flip_r_i];
-        if (task_to_robot.find(task_to_flip_with) == task_to_robot.end()) {
-            // std::cout << "TASK << " << task_to_flip_with << " IS EMPTY: SETTING " << flip << " for it " << endl;
-            schedule[flip] = task_to_flip_with;
-            continue;
-        }
-        assert(task_to_robot.find(task_to_flip_with) != task_to_robot.end());
-        auto robot_to_flip_with = task_to_robot[task_to_flip_with];
 
+    #ifdef ENABLE_PRINT_LOG
+        Printer() << "Scheduler: " << timer << '\n';
+    #endif
 
-        auto distance_was = get_dist_to_start(robot_to_flip_with, task_to_flip_with) + get_dist_to_start(flip, schedule[flip]);
-        auto distance_new = get_dist_to_start(robot_to_flip_with, schedule[flip]) + get_dist_to_start(flip, task_to_flip_with);
-
-        if (distance_was > distance_new) {
-            // std::cout << "PERFORM SWAP" << std::endl;
-            std::swap(schedule[flip], schedule[robot_to_flip_with]);
-        }
-    }
     return done_proposed_schedule;
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    return GreedySchedule(time_limit, proposed_schedule);
-    // auto shedule = GreedySchedule(time_limit, proposed_schedule);
-    // auto done_proposed_schedule = OptimizeSchedule(time_limit, proposed_schedule);
-    // return done_proposed_schedule;
+    //return GreedyShedule(time_limit, proposed_schedule);
+    // auto shedule = GreedyShedule(time_limit, proposed_schedule);
+    auto done_proposed_schedule = OptimizeSchedule(time_limit, proposed_schedule);
+    return done_proposed_schedule;
 }

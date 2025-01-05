@@ -67,6 +67,13 @@ uint32_t Graph::get_node(const Position &pos) const {
     return pos_to_node[pos.get_pos()][pos.get_dir()];
 }
 
+uint32_t Graph::get_node(const uint32_t pos, const uint32_t dir) const {
+    ASSERT(0 <= pos && pos < pos_to_node.size(), "invalid pos: " + std::to_string(pos.get_pos()) + "/" + std::to_string(pos_to_node.size()));
+    ASSERT(0 <= dir && dir < 4, "invalid dir");
+    return pos_to_node[pos][dir];
+}
+
+
 uint32_t Graph::get_to_node(uint32_t node, uint32_t action) const {
     ASSERT(0 < node && node < to_node.size(), "invalid node");
     ASSERT(action < 4, "invalid action");
