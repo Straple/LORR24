@@ -456,7 +456,7 @@ bool PIBTS::try_build(uint32_t r) {
 
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 ||//
-        //counter > 3'000 ||//
+        counter > 10'000 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
         counter = -1;
