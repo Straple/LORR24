@@ -110,7 +110,16 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     Timer timer;
 
     double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
-    uint32_t power = workload * 12;
+    uint32_t power = workload * 20;
+    if (power == 0) {
+        power = 1;
+    }
+
+    //13832 296.636s
+    //14123 394.169s
+    //
+    //without smart DHM
+    //13680 412.395s
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "workload: " << workload << '\n';
@@ -120,10 +129,13 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     for (auto robot: get_robots_handler().get_robots()) {
         ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
         Position p = get_graph().get_pos(robot.node);
-        update_pos(p.get_pos(), power, env.curr_timestep);
+        update_pos(p.get_pos(), 2 * power, env.curr_timestep);
         for (uint32_t dir = 0; dir < 4; dir++) {
             auto s = Position(p.get_x(), p.get_y(), dir);
-            update_pos(s.get_pos(), power, env.curr_timestep);
+            s = s.move_forward();
+            if (s.is_valid()) {
+                update_pos(s.get_pos(), power, env.curr_timestep);
+            }
         }
     }
 
@@ -159,7 +171,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     }
 
 #ifdef ENABLE_PRINT_LOG
-    Printer() << "total rebuild: " << total_rebuild << '\n';
+    Printer() << "total rebuild: " << total_rebuild << '/' << pool.size() << '\n';
     Printer() << "rebuild time: " << timer << '\n';
 #endif
 
