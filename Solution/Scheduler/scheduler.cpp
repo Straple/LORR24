@@ -13,7 +13,6 @@
 void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
-<<<<<<< HEAD
 void calc_full_distance(Task &task) {
     /*if (task.full_distance != -1){
         return;
@@ -29,8 +28,6 @@ void calc_full_distance(Task &task) {
     //task.full_distance = dist_sum;
 }
 
-=======
->>>>>>> a2277ee (parallel hungarian)
 const int INF = 1000000;
 
 std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m) {
@@ -253,7 +250,7 @@ int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
     uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
     // ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
     uint32_t loc = env->task_pool[t].locations[0] + 1;
-    return get_hm().get(source, loc); // Dynamic Heuristic Matrix
+    return get_hm().get(source, loc);// Dynamic Heuristic Matrix
 };
 
 std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> &schedule) {
@@ -265,14 +262,13 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
     TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
 
 
-
     std::vector<uint32_t> free_robots, free_tasks;
 
-    struct Entity{
+    struct Entity {
         uint32_t cordinate;
         size_t index;
         bool is_robot;
-        bool operator<(const Entity& other) const {
+        bool operator<(const Entity &other) const {
             return std::tie(cordinate, index, is_robot) < std::tie(other.cordinate, other.index, other.is_robot);
         }
     };
@@ -297,39 +293,39 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
     }
 
     int THREADS_TO_USE = THREADS;
-    if (free_robots.size()*free_robots.size()*free_tasks.size() < 40'000'000){
+    if (free_robots.size() * free_robots.size() * free_tasks.size() < 40'000'000) {
         THREADS_TO_USE = 1;
     }
     int DEVIDE_Y = sqrt(THREADS_TO_USE);
     int DEVIDE_X = DEVIDE_Y;
 
-    #ifdef ENABLE_PRINT_LOG
-        Printer() << "free robots: " << free_robots.size() << '\n';
-        Printer() << "free tasks: " << free_tasks.size() << '\n';
-    #endif
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "free robots: " << free_robots.size() << '\n';
+    Printer() << "free tasks: " << free_tasks.size() << '\n';
+#endif
 
 
     std::sort(xs.begin(), xs.end());
     std::sort(ys.begin(), ys.end());
 
-    std::vector<std::pair<size_t, size_t>>robot_distrib(free_robots.size());
-    std::vector<std::pair<size_t, size_t>>task_distrib(free_tasks.size());
+    std::vector<std::pair<size_t, size_t>> robot_distrib(free_robots.size());
+    std::vector<std::pair<size_t, size_t>> task_distrib(free_tasks.size());
 
     {
-        const size_t Y_PART_SIZE = (free_robots.size()+DEVIDE_Y-1)/DEVIDE_Y;
+        const size_t Y_PART_SIZE = (free_robots.size() + DEVIDE_Y - 1) / DEVIDE_Y;
         size_t curr_size = 0;
         size_t curr_part = 0;
-        for (size_t i = 0; i < ys.size(); i++){
-            if (ys[i].is_robot){
+        for (size_t i = 0; i < ys.size(); i++) {
+            if (ys[i].is_robot) {
                 curr_size++;
             }
-            if (curr_size > Y_PART_SIZE){
+            if (curr_size > Y_PART_SIZE) {
                 curr_size = 0;
                 curr_part++;
                 assert(curr_part < DEVIDE_Y);
             }
 
-            if (ys[i].is_robot){
+            if (ys[i].is_robot) {
                 robot_distrib[ys[i].index].first = curr_part;
             } else {
                 task_distrib[ys[i].index].first = curr_part;
@@ -339,20 +335,20 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
 
 
     {
-        const size_t X_PART_SIZE = (free_robots.size()+DEVIDE_X-1)/DEVIDE_X;
+        const size_t X_PART_SIZE = (free_robots.size() + DEVIDE_X - 1) / DEVIDE_X;
         size_t curr_size = 0;
         size_t curr_part = 0;
-        for (size_t i = 0; i < xs.size(); i++){
-            if (xs[i].is_robot){
+        for (size_t i = 0; i < xs.size(); i++) {
+            if (xs[i].is_robot) {
                 curr_size++;
             }
-            if (curr_size > X_PART_SIZE){
+            if (curr_size > X_PART_SIZE) {
                 curr_size = 0;
                 curr_part++;
                 assert(curr_part < DEVIDE_X);
             }
 
-            if (xs[i].is_robot){
+            if (xs[i].is_robot) {
                 robot_distrib[xs[i].index].second = curr_part;
             } else {
                 task_distrib[xs[i].index].second = curr_part;
@@ -401,9 +397,8 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
     // }
 
 
-
     std::vector devided_robots(DEVIDE_Y, std::vector(DEVIDE_X, std::vector<int>()));
-    std::vector devided_tasks(DEVIDE_Y, std::vector(DEVIDE_X,std::vector<int>()));
+    std::vector devided_tasks(DEVIDE_Y, std::vector(DEVIDE_X, std::vector<int>()));
 
     for (size_t i = 0; i < robot_distrib.size(); ++i) {
         devided_robots[robot_distrib[i].first][robot_distrib[i].second].push_back(i);
@@ -415,40 +410,39 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
         devided_tasks[task_distrib[i].first][task_distrib[i].second].push_back(i);
     }
 
-    #ifdef ENABLE_PRINT_LOG
+#ifdef ENABLE_PRINT_LOG
 
-    for (size_t y = 0; y < DEVIDE_Y; y++){
-        for (size_t x = 0; x < DEVIDE_X; x++){
-            std::cout << std::endl;
-            std::cout << "Quarant: y: " << y << " x: " << x << std::endl;
+    for (size_t y = 0; y < DEVIDE_Y; y++) {
+        for (size_t x = 0; x < DEVIDE_X; x++) {
+            Printer() << "Quarant: y: " << y << " x: " << x << '\n';
             size_t r_s = devided_robots[y][x].size();
             size_t t_s = devided_tasks[y][x].size();
-            std::cout << "Robots: " <<  r_s << " (" << ((float)r_s)/(free_robots.size())*100 << "%)" << std::endl;
-            std::cout << "Tasks:  " << t_s << " (" << ((float)t_s)/(free_tasks.size())*100 << "%)" << std::endl;
+            Printer() << "Robots: " << r_s << " (" << ((float) r_s) / (free_robots.size()) * 100 << "%)" << '\n';
+            Printer() << "Tasks:  " << t_s << " (" << ((float) t_s) / (free_tasks.size()) * 100 << "%)" << '\n';
         }
     }
 
-    #endif
-    
+#endif
+
 
     auto RunHungary = [&](size_t y, size_t x) {
-        const auto& tasks = devided_tasks[y][x];
-        const auto& robots = devided_robots[y][x];
+        const auto &tasks = devided_tasks[y][x];
+        const auto &robots = devided_robots[y][x];
 
         int rb = min(tasks.size(), robots.size());
 
-        std::vector<std::vector<int>> dist_matrix(rb+1, std::vector<int>(tasks.size() + 1, 0));
-        for (int i = 0; i < rb; i++){
-            for (int g = 0; g < tasks.size(); g++){
-                dist_matrix[i+1][g+1] =  (int)get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env);
+        std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(tasks.size() + 1, 0));
+        for (int i = 0; i < rb; i++) {
+            for (int g = 0; g < tasks.size(); g++) {
+                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env);
             }
         }
         auto ans = Hungarian(dist_matrix, rb, tasks.size());
 
-        for (int i = 1; i < ans.size(); i++){
-            if (ans[i] != -1){
-                auto r = free_robots[robots[i-1]];
-                auto t = free_tasks[tasks[ans[i]-1]];
+        for (int i = 1; i < ans.size(); i++) {
+            if (ans[i] != -1) {
+                auto r = free_robots[robots[i - 1]];
+                auto t = free_tasks[tasks[ans[i] - 1]];
                 schedule[r] = t;
             }
         }
@@ -456,28 +450,28 @@ std::vector<int> MyScheduler::OptimizeSchedule(int time_limit, std::vector<int> 
 
 
     std::vector<std::thread> threads;
-    for (size_t y = 0; y < DEVIDE_Y; y++){
-        for (size_t x = 0; x < DEVIDE_X; x++){
+    for (size_t y = 0; y < DEVIDE_Y; y++) {
+        for (size_t x = 0; x < DEVIDE_X; x++) {
             threads.push_back(std::thread(RunHungary, y, x));
         }
     }
 
-    for (auto& thr: threads) {
+    for (auto &thr: threads) {
         thr.join();
     }
 
-    for (size_t r = 0; r < schedule.size(); r++){
+    for (size_t r = 0; r < schedule.size(); r++) {
         int task_id = schedule[r];
-        if (task_id != -1){
+        if (task_id != -1) {
             if (get_dist_to_start(r, task_id, env) <= 3) {
                 done_proposed_schedule[r] = task_id;
             }
         }
     }
 
-    #ifdef ENABLE_PRINT_LOG
-        Printer() << "Scheduler: " << timer << '\n';
-    #endif
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "Scheduler: " << timer << '\n';
+#endif
 
     return done_proposed_schedule;
 }

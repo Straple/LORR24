@@ -109,7 +109,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         results[thr] = {pibt.get_score(), time, pibt.get_actions()};
     };
 
-    static Randomizer rnd;
+    static Randomizer rnd(228);
     std::vector<std::thread> threads(THREADS);
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr] = std::thread(do_work, thr, rnd.get());
