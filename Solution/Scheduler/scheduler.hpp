@@ -17,7 +17,9 @@ public:
 
     std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
 
-    std::vector<int> GreedySchedule(int time_limit, std::vector<int> &proposed_schedule);
+    std::vector<int> greedy_schedule(int time_limit, std::vector<int> &proposed_schedule);
 
-    std::vector<int> OptimizeSchedule(int time_limit, std::vector<int> &schedule);
+    std::vector<int> greedy_schedule_double(int time_limit, std::vector<int> &proposed_schedule);
+
+    std::vector<int> artem_schedule(int time_limit, std::vector<int> &proposed_schedule);
 };
