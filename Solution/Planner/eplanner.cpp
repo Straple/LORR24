@@ -20,7 +20,7 @@ EPlanner::EPlanner() {
 void EPlanner::initialize(int preprocess_time_limit) {}
 
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
-    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
+    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 20);
     Timer timer;
 
     plan.assign(env->num_of_agents, Action::W);
@@ -188,8 +188,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Planner: " << timer << '\n';
-    if (timer.get_ms() > 300) {
-        Printer() << "TIMEOUT\n";
-    }
+    //if (timer.get_ms() > 300) {
+    //    Printer() << "TIMEOUT\n";
+    //}
 #endif
 }

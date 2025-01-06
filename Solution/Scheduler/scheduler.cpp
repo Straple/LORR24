@@ -75,7 +75,7 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
 
     Timer timer;
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
+    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
 
     std::vector<uint32_t> free_robots, free_tasks;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
@@ -89,7 +89,6 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
             free_tasks.push_back(t);
         }
     }
-
 
     if (free_robots.empty() || free_tasks.empty()) {
         return proposed_schedule;
@@ -154,7 +153,6 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
         }
     }
 
-
 #ifdef ENABLE_PRINT_LOG
     Printer() << "free robots: " << free_robots.size() << '\n';
     Printer() << "free tasks: " << free_tasks.size() << '\n';
@@ -199,7 +197,10 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
 
             proposed_schedule[r] = task_id;
             used_task_t[task_id] = launch_num;
-            if (get_dist_to_start(r, task_id) <= 1) {
+            if (get_dist_to_start(r, task_id) <= 1 ||
+                // слишком много свободных роботов сейчас
+                free_robots.size() > 600
+                ) {
                 done_proposed_schedule[r] = task_id;
             }
         }
@@ -217,7 +218,7 @@ std::vector<int> MyScheduler::greedy_schedule_double(int time_limit, std::vector
 
     Timer timer;
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
+    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
 
     std::vector<uint32_t> free_robots, free_tasks;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
@@ -394,7 +395,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 
     std::vector<int> done_proposed_schedule = schedule;
 
-    TimePoint end_time = env->plan_start_time + std::chrono::milliseconds(time_limit);
+    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
 
 
     std::vector<uint32_t> free_robots, free_tasks;
