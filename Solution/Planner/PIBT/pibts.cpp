@@ -4,6 +4,8 @@
 #include <Objects/Containers/dsu.hpp>
 #include <Objects/Environment/environment.hpp>
 
+#include <thread>
+
 bool PIBTS::validate_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
@@ -38,13 +40,12 @@ bool PIBTS::is_free_path(uint32_t r, const State &state) const {
     ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
     ASSERT(validate_path(r, desires[r]), "invalid path");
 
-    uint32_t node = robots[r].node;
-    auto &path = get_operations()[desired];
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desired);
+    auto &edges_path = get_omap().get_edges_path(source, desired);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
         uint32_t used_edge_value = state.used_edge[depth].count(to_edge) ? state.used_edge[depth].at(to_edge)
                                                                          : used_edge[depth][to_edge];
@@ -53,16 +54,14 @@ bool PIBTS::is_free_path(uint32_t r, const State &state) const {
                                                                       : used_pos[depth][to_pos];
 
         if (used_edge_value != -1) {
-            ASSERT(used_edge_value != r, "invalid used_edge");
+            ASSERT(used_edge_value != r || state.version != version, "invalid used_edge");
             return false;
         }
 
         if (used_pos_value != -1) {
-            ASSERT(used_pos_value != r, "invalid used_node");
+            ASSERT(used_pos_value != r || state.version != version, "invalid used_node");
             return false;
         }
-
-        node = to_node;
     }
     return true;
 }
@@ -117,14 +116,14 @@ uint32_t PIBTS::get_used(uint32_t r) const {
 uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
     ASSERT(validate_path(r, desired), "invalid path");
-    uint32_t node = robots[r].node;
-    auto &path = get_operations()[desired];
+
     uint32_t answer = -1;
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desired);
+    auto &edges_path = get_omap().get_edges_path(source, desired);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
         uint32_t used_edge_value = state.used_edge[depth].count(to_edge) ? state.used_edge[depth].at(to_edge)
                                                                          : used_edge[depth][to_edge];
@@ -149,8 +148,6 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
                 break;
             }
         }
-
-        node = to_node;
     }
     return answer;
 }
@@ -166,7 +163,7 @@ void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, in
 
 void PIBTS::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired: " + std::to_string(desires[r]) + " " + std::to_string(get_operations().size()));
+    ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
 
     uint32_t source = robots[r].node;
     auto &poses_path = get_omap().get_poses_path(source, desires[r]);
@@ -191,18 +188,15 @@ void PIBTS::add_path(uint32_t r) {
 void PIBTS::add_path(uint32_t r, State &state) const {
     uint32_t desired = state.desires.count(r) ? state.desires.at(r) : desires[r];
     ASSERT(0 <= r && r < robots.size(), "invalid r");
-    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired: " + std::to_string(desired) + " " + std::to_string(get_operations().size()));
+    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
 
-    uint32_t node = robots[r].node;
-    ASSERT(node != 0, "invalid start node");
-    auto &path = get_operations()[desired];
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desired);
+    auto &edges_path = get_omap().get_edges_path(source, desired);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
-        ASSERT(to_node, "invalid to_node");
         ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
         ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
 
@@ -212,16 +206,14 @@ void PIBTS::add_path(uint32_t r, State &state) const {
         uint32_t used_pos_value = state.used_pos[depth].count(to_pos) ? state.used_pos[depth].at(to_pos)
                                                                       : used_pos[depth][to_pos];
 
-        ASSERT(used_edge_value == -1, "already used");
+        ASSERT(used_edge_value == -1 || state.version != version, "already used");
         state.used_edge[depth][to_edge] = r;
 
-        ASSERT(used_pos_value == -1, "already used");
+        ASSERT(used_pos_value == -1 || state.version != version, "already used");
         state.used_pos[depth][to_pos] = r;
-
-        node = to_node;
     }
 
-    update_score(r, node, state.cur_score, +1);
+    update_score(r, get_omap().get_nodes_path(source, desired).back(), state.cur_score, +1);
 }
 
 void PIBTS::remove_path(uint32_t r) {
@@ -253,15 +245,13 @@ void PIBTS::remove_path(uint32_t r, State &state) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
 
-    uint32_t node = robots[r].node;
-    auto &path = get_operations()[desired];
+    uint32_t source = robots[r].node;
+    auto &poses_path = get_omap().get_poses_path(source, desired);
+    auto &edges_path = get_omap().get_edges_path(source, desired);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        auto action = path[depth];
-        uint32_t to_node = get_graph().get_to_node(node, action);
-        uint32_t to_edge = get_graph().get_to_edge(node, action);
-        uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+        uint32_t to_edge = edges_path[depth];
+        uint32_t to_pos = poses_path[depth];
 
-        ASSERT(to_node, "invalid to_node");
         ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
         ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
 
@@ -271,16 +261,14 @@ void PIBTS::remove_path(uint32_t r, State &state) const {
         uint32_t used_pos_value = state.used_pos[depth].count(to_pos) ? state.used_pos[depth].at(to_pos)
                                                                       : used_pos[depth][to_pos];
 
-        ASSERT(used_edge_value == r, "invalid edge");
+        ASSERT(used_edge_value == r || state.version != version, "invalid edge");
         state.used_edge[depth][to_edge] = -1;
 
-        ASSERT(used_pos_value == r, "invalid node");
+        ASSERT(used_pos_value == r || state.version != version, "invalid node");
         state.used_pos[depth][to_pos] = -1;
-
-        node = to_node;
     }
 
-    update_score(r, node, state.cur_score, -1);
+    update_score(r, get_omap().get_nodes_path(source, desired).back(), state.cur_score, -1);
 }
 
 void PIBTS::flush_state(const State &state) {
@@ -484,7 +472,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             continue;
         }
         if (to_r != -1 && desires[to_r] != 0) {
-            //continue;
+            continue;
         }
         const auto &path = get_path(r, desires[r]);
         int64_t priority = get_dhm().get(path.back(), robots[r].target);
@@ -515,9 +503,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            //ASSERT(desires[to_r] == 0, "invalid desires");
+            ASSERT(desires[to_r] == 0, "invalid desires");
 
-            if (desires[to_r] != 0 && rnd.get_d() < 0.8) {
+            if (desires[to_r] != 0// && rnd.get_d() < 0.8
+            ) {
                 continue;
             }
 
@@ -598,7 +587,7 @@ bool PIBTS::build_state(uint32_t r, uint32_t depth, uint32_t &counter, State &st
             remove_path(to_r, state);
             add_path(r, state);
 
-            if (try_build_state(to_r, state, ++counter, rnd)) {
+            if (build_state(to_r, depth + 1, ++counter, state)) {
                 return true;
             }
 
@@ -762,6 +751,107 @@ void PIBTS::build_clusters() {
     }*/
 }
 
+uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, State &state) const {
+    if (state.version != version) {
+        return 2;// new version
+    }
+    if (counter == -1 || counter > 5'000) {
+        return 2;
+    }
+    if (get_now() >= end_time) {
+        counter = -1;
+        return 2;
+    }
+    // (priority, desired)
+    std::vector<std::pair<int64_t, uint32_t>> steps;
+    for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+        state.desires[r] = desired;
+        if (!validate_path(r, desired) || get_used(r, state) == -2) {
+            continue;
+        }
+
+        auto path = get_path(r, desired);
+        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+        steps.emplace_back(priority, desired);
+    }
+
+    std::stable_sort(steps.begin(), steps.end());
+
+    for (auto [_, desired]: steps) {
+        state.desires[r] = desired;
+
+        if (is_free_path(r, state)) {
+            add_path(r, state);
+            return 1;
+        } else {
+            if (counter > 3'000 && depth >= 6) {
+                continue;
+            }
+            uint32_t to_r = get_used(r, state);
+            if (state.version != version) {
+                return 2;
+            }
+            ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
+            if (state.desires.count(to_r)) {
+                continue;
+            }
+            remove_path(to_r, state);
+            add_path(r, state);
+
+            uint32_t res = parallel_build(to_r, depth + 1, ++counter, state);
+            if (res != 0) {
+                return res;
+            }
+
+            remove_path(r, state);
+            add_path(to_r, state);
+        }
+    }
+
+    state.desires.erase(r);
+    return 0;
+}
+
+bool PIBTS::parallel_build(uint32_t r) {
+    State s;
+    s.version = version;
+    if (s.version & 1) {
+        return false;
+    }
+    s.cur_score = cur_score;
+    remove_path(r, s);
+    uint32_t counter = 0;
+    uint32_t res = parallel_build(r, 0, counter, s);
+    if (res == 0 || res == 2) {
+        return false;
+    }
+    double old_score = cur_score;
+
+    if (s.cur_score <= old_score + 1e-9) {
+        return false;
+    }
+
+    if (!version.compare_exchange_strong(s.version, s.version + 1)) {
+        return false;
+    }
+    flush_state(s);
+    Printer() << "->" << cur_score;
+    ++version;
+
+    return true;
+}
+
+void PIBTS::do_work(uint32_t thr) {
+    Randomizer rnd(this->rnd.get() + thr * 1283);
+    for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
+        // waiting for other thread flush state
+        while (version & 1) {}
+
+        uint32_t r = rnd.get(0, robots.size() - 1);
+        parallel_build(r);
+    }
+}
+
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
     : robots(robots), end_time(end_time), rnd(seed) {
 
@@ -808,8 +898,34 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
 
 void PIBTS::simulate_pibt() {
     // PIBT
-    const bool skip_with_init_desired = rnd.get_d() < 0.5;
+
+    /*const bool skip_with_init_desired = true;//rnd.get_d() < 0.5;
     for (uint32_t r: order) {
+        if (get_now() >= end_time) {
+            break;
+        }
+        if (desires[r] != 0 && skip_with_init_desired) {
+            //continue;
+        }
+        build(r);
+    }
+
+    Printer() << "PIBTS: " << cur_score;
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(
+                [&](uint32_t thr) {
+                    do_work(thr);
+                },
+                thr);
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+    Printer() << '\n';*/
+
+    const bool skip_with_init_desired = rnd.get_d() < 0.5;
+     for (uint32_t r: order) {
         if (get_now() >= end_time) {
             break;
         }

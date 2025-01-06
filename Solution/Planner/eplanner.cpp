@@ -97,7 +97,12 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     Printer() << '\n';
 #endif*/
 
-    // [depth] = { (score, time, plan) }
+    /*static Randomizer rnd(228);
+    PIBTS pibt(get_robots_handler().get_robots(), end_time, rnd.get());
+    pibt.simulate_pibt();
+    plan = pibt.get_actions();*/
+
+    // [thr] = { (score, time, plan) }
     std::vector<std::tuple<double, double, std::vector<Action>>> results(THREADS);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
@@ -136,60 +141,14 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     Printer() << "\nbest: " << best_score << '\n';
 #endif
 
-    // (score, actions)
-    /*std::vector<std::pair<double, std::vector<Action>>> results(THREADS);
 
-    auto do_work = [&](uint32_t thr, uint64_t seed) {
-        Randomizer rnd(seed);
-        std::vector<PIBTS> pibts;
-        for (uint32_t pibt_depth = thr; pibt_depth < 20 && get_now() < end_time; pibt_depth += THREADS) {
-            Timer timer;
-            PIBTS pibt(get_robots_handler().get_robots(), end_time, rnd.get());
-            pibt.pibt_depth = pibt_depth;
-            pibt.simulate_pibt();
-            pibts.emplace_back(std::move(pibt));
-        }
-        if (pibts.empty()) {
-            return;
-        }
-
-        //while (get_now() < end_time) {
-        for(uint32_t step = 0; step < PIBTS_STEPS * pibts.size(); step++){
-            auto& pibt = rnd.get(pibts);
-            pibt.simulate_step();
-        }
-
-        // merge
-        results[thr].first = -1e300;
-        for (auto &pibt: pibts) {
-            if (pibt.get_score() > results[thr].first) {
-                results[thr] = {pibt.get_score(), pibt.get_actions()};
-            }
-        }
-    };
-
-    static Randomizer rnd;
-    std::vector<std::thread> threads(THREADS);
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        threads[thr] = std::thread(do_work, thr, rnd.get());
-    }
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        threads[thr].join();
-    }
-    double best = -1e300;
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
-        if (best < results[thr].first) {
-            best = results[thr].first;
-            plan = results[thr].second;
-        }
-    }*/
 
 #endif
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Planner: " << timer << '\n';
-    //if (timer.get_ms() > 300) {
-    //    Printer() << "TIMEOUT\n";
-    //}
+    if (timer.get_ms() > 300) {
+        Printer() << "TIMEOUT\n";
+    }
 #endif
 }

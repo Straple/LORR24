@@ -9,8 +9,9 @@ uint32_t call(const std::string &test, uint32_t test_id) {
     Timer timer;
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
+    // std::system("mkdir Tmp");
     int ret_code = std::system(
-            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 1000000 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 10000 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
@@ -189,4 +190,31 @@ call(3): 5272, 43.8822s
 call(4): 4321, 62.9133s
 call(5): 3485, 97.3295s
 total: 24861
+
+PIBTS_STEPS = 500
+call(0): 2520, 17.0641s
+call(1): 4171, 24.8905s
+call(2): 5060, 32.5171s
+call(3): 5292, 35.2482s
+call(4): 4399, 56.4403s
+call(5): 3408, 94.0458s
+total: 24850
+
+PIBTS_STEPS = 0
+call(0): 2334, 9.62642s
+call(1): 3660, 19.5243s
+call(2): 4123, 36.5378s
+call(3): 3822, 34.6181s
+call(4): 3384, 53.9861s
+call(5): 2627, 83.8888s
+total: 19950
+
+32 threads PIBTS
+call(0): 2505, 130.993s
+call(1): 4179, 131.167s
+call(2): 5139, 131.314s
+call(3): 5488, 131.506s
+call(4): 4254, 131.796s
+call(5): 3368, 132.011s
+total: 24933
 */

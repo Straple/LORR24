@@ -2,6 +2,10 @@
 
 #include <Objects/Basic/randomizer.hpp>
 #include <Planner/PIBT/pibt2.hpp>
+
+#include <atomic>
+#include <map>
+#include <unordered_map>
 #include <unordered_set>
 
 // Priority Inheritance with BackTracking
@@ -25,6 +29,8 @@ class PIBTS {
     std::vector<uint32_t> desires;
 
     struct State {
+        uint32_t version = 0;
+
         double cur_score = 0;
 
         // used_edge[depth][edge] = robot id
@@ -98,6 +104,14 @@ class PIBTS {
     bool build_state(uint32_t r);
 
     void build_clusters();
+
+    std::atomic<uint32_t> version = 0;
+
+    uint32_t parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, State &state) const;
+
+    bool parallel_build(uint32_t r);
+
+    void do_work(uint32_t thr);
 
 public:
     explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed);
