@@ -405,7 +405,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
-            if (counter > 500 && depth >= 6) {
+            if (counter > 200 && depth >= 6) {
                 continue;
             }
 
@@ -472,7 +472,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             continue;
         }
         if (to_r != -1 && desires[to_r] != 0) {
-            continue;
+            //continue;
         }
         const auto &path = get_path(r, desires[r]);
         int64_t priority = get_dhm().get(path.back(), robots[r].target);
@@ -497,16 +497,15 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 return 2;// not accepted
             }
         } else {
-            if (counter > 3000 && depth >= 6) {
+            if (counter > 2000 && depth >= 6) {
                 continue;
             }
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            ASSERT(desires[to_r] == 0, "invalid desires");
+            //ASSERT(desires[to_r] == 0, "invalid desires");
 
-            if (desires[to_r] != 0// && rnd.get_d() < 0.8
-            ) {
+            if (desires[to_r] != 0 && rnd.get_d() < 0.8) {
                 continue;
             }
 
@@ -898,7 +897,6 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
 
 void PIBTS::simulate_pibt() {
     // PIBT
-
     /*const bool skip_with_init_desired = true;//rnd.get_d() < 0.5;
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
@@ -925,7 +923,7 @@ void PIBTS::simulate_pibt() {
     Printer() << '\n';*/
 
     const bool skip_with_init_desired = rnd.get_d() < 0.5;
-     for (uint32_t r: order) {
+    for (uint32_t r: order) {
         if (get_now() >= end_time) {
             break;
         }

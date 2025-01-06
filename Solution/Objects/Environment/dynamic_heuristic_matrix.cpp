@@ -24,10 +24,6 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
     auto update_queue = [&]() {
         while (!queue.empty() && queue[0].empty()) {
             queue.erase(queue.begin());
-            /*for (uint32_t i = 0; i + 1 < queue.size(); i++) {
-                std::swap(queue[i], queue[i + 1]);
-            }
-            queue.back().clear();// safe space for future usage*/
             queue_dist++;
         }
     };
@@ -123,13 +119,6 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
         ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
         Position p = get_graph().get_pos(robot.node);
         update_pos(p.get_pos(), power, env.curr_timestep);
-        /*for (uint32_t dir = 0; dir < 4; dir++) {
-            auto s = Position(p.get_x(), p.get_y(), dir);
-            s = s.move_forward();
-            if (s.is_valid()) {
-                update_pos(s.get_pos(), 2 * power, env.curr_timestep);
-            }
-        }*/
     }
 
     // (timestep updated, target pos)

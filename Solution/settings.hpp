@@ -51,7 +51,7 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_TIMELIMIT = 400;
+static constexpr uint32_t DHM_TIMELIMIT = 200;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
