@@ -5,7 +5,7 @@
 using json = nlohmann::json;
 
 uint32_t call(const std::string &test, uint32_t test_id) {
-    std::cout << "call(" +std::to_string(test_id) + "): " << std::flush;
+    std::cout << "call(" + std::to_string(test_id) + "): " << std::flush;
     Timer timer;
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
@@ -173,11 +173,20 @@ call(4): 3472, 117.993s
 call(5): 3030, 155.069s
 total: 22776
 
-call(0): 2493, 13.1584s
-call(1): 4306, 22.5442s
-call(2): 5197, 37.6146s
-call(3): 5273, 49.243s
-call(4): 4282, 81.5329s
-call(5): 3463, 130.762s
-total: 25014
+call(0): 2500, 13.713s
+call(1): 4156, 22.5615s
+call(2): 5031, 36.1933s
+call(3): 5235, 47.8588s
+call(4): 4342, 70.1563s
+call(5): 3452, 115.241s
+total: 24716
+
+
+call(0): 2517, 15.1908s
+call(1): 4185, 22.887s
+call(2): 5081, 35.1256s
+call(3): 5272, 43.8822s
+call(4): 4321, 62.9133s
+call(5): 3485, 97.3295s
+total: 24861
 */

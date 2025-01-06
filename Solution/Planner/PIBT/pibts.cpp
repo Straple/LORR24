@@ -373,8 +373,8 @@ bool PIBTS::try_build_state(uint32_t r, Randomizer &rnd) {
 }
 
 uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
-    if (counter == -1 ||//
-        counter > 400 ||//
+    if (counter == -1 || //
+        counter > 1000 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
         counter = -1;
@@ -417,7 +417,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
-            if (counter > 200 && depth >= 6) {
+            if (counter > 500 && depth >= 6) {
                 continue;
             }
 
@@ -462,8 +462,8 @@ bool PIBTS::try_build(uint32_t r) {
 }
 
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
-    if (counter == -1 ||   //
-        counter > 10'000 ||//
+    if (counter == -1 ||//
+        //counter > 30'000 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
         counter = -1;
@@ -509,7 +509,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 return 2;// not accepted
             }
         } else {
-            if (counter > 2000 && depth >= 6) {
+            if (counter > 3000 && depth >= 6) {
                 continue;
             }
 
@@ -808,9 +808,13 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
 
 void PIBTS::simulate_pibt() {
     // PIBT
+    const bool skip_with_init_desired = rnd.get_d() < 0.5;
     for (uint32_t r: order) {
-        if (desires[r] != 0) {
-            //continue;
+        if (get_now() >= end_time) {
+            break;
+        }
+        if (desires[r] != 0 && skip_with_init_desired) {
+            continue;
         }
         build(r);
     }

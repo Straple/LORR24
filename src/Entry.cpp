@@ -64,7 +64,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     std::vector<int> done_proposed_schedule =
 #endif
             //call the task scheduler to assign tasks to agents
-            scheduler->plan(time_limit * 0.7, proposed_schedule);
+            scheduler->plan(time_limit * 0.3, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
