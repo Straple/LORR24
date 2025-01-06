@@ -6,6 +6,9 @@
 #include <fstream>
 
 bool verify_lol(const Operation &op) {
+    if(op.back() == Action::CR || op.back() == Action::CCR){
+        return false;
+    }
     return true;
 }
 
@@ -15,7 +18,7 @@ void OperationsGenerator::generate(Operation &op, uint32_t i) {
             pool.push_back(op);
         }
     } else {
-        for (int32_t action = 3; action >= 0; action--) {
+        for (int32_t action = 0; action < 4; action++) {
             op[i] = static_cast<Action>(action);
             generate(op, i + 1);
         }
@@ -31,14 +34,43 @@ std::vector<Operation> OperationsGenerator::get() {
     {
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
-                //call(0): 2507, 12.8034s
-                //call(1): 4158, 28.504s
-                //call(2): 4983, 35.0189s
-                //call(3): 4871, 41.6751s
-                //call(4): 3980, 63.2765s
-                //call(5): 3183, 99.1406s
-                //total: 23682
-                "16\nFWW CFW FFW FFF FCF RFC RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF"// 4983
+
+                "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
+                
+/*
+FFF
+FFW
+FWF
+FWW
+WFF
+WFW
+WWF
+
+FCF
+FRF
+
+RFF
+CFF
+
+RFW
+CFW
+
+RRF
+
+RWF
+CWF
+*/
+
+                //call(0): 2505, 9.90557s
+                //call(1): 4171, 16.969s
+                //call(2): 5053, 22.3834s
+                //call(3): 5265, 32.6415s
+                //call(4): 4331, 44.9154s
+                //call(5): 3636, 68.7139s
+                //total: 24961
+                //"16\nFWW CFW FFW FFF FCF RFC RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF"// 5053
+
+                //"16\nFWW CFW FFW FFF FCF RFW RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF"
 
                 //call(0): 2527, 12.9228s
                 //call(1): 4160, 24.5252s
@@ -91,9 +123,9 @@ std::vector<Operation> OperationsGenerator::get() {
         pool.insert(pool.begin(), op);
     }
 
-    std::vector<Operation> result = pool;
+    std::vector<Operation> result;// = pool;
 
-    /*std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
+    std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
     for (auto operation: pool) {
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
         Position p;
@@ -101,12 +133,12 @@ std::vector<Operation> OperationsGenerator::get() {
             p = p.simulate_action(operation[d]);
             positions[d] = {p.get_x(), p.get_y()};
         }
-        std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>> kek = {p.get_dir(), positions};
+        std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>> kek = {0, positions};
         if (!visited.count(kek)) {
             visited.insert(kek);
             result.push_back(operation);
         }
-    }*/
+    }
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Operation: " << result.size() << '\n';

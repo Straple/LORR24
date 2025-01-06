@@ -69,7 +69,9 @@ class PIBTS {
 
     [[nodiscard]] uint32_t get_used(uint32_t r, const State &state) const;
 
-    void update_score(uint32_t r, uint32_t finish_node, double &cur_score, int sign) const;
+    [[nodiscard]] int64_t get_smart_dist(uint32_t r, uint32_t desired) const;
+
+    void update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const;
 
     void add_path(uint32_t r);
 

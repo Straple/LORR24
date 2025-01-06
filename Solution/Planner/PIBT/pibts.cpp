@@ -152,9 +152,46 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
     return answer;
 }
 
-void PIBTS::update_score(uint32_t r, uint32_t finish_node, double &cur_score, int sign) const {
+int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
+    //call(0): 2530, 12.1877s
+    //call(1): 4235, 22.6803s
+    //call(2): 5172, 34.0847s
+    //call(3): 5323, 44.6342s
+    //call(4): 4402, 74.317s
+    //call(5): 3537, 133.899s
+    //total: 25199
+
+    int64_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
+
+    const auto &op = get_operations()[desired];
+    const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
+    if (op.back() == Action::W) {
+        uint32_t node = path[path.size() - 2];
+        for (uint32_t action = 1; action <= 2; action++) {
+            uint32_t to = get_graph().get_to_node(node, action);
+            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+        }
+
+        if (op[op.size() - 2] == Action::W) {
+            node = get_graph().get_to_node(node, 1);
+            node = get_graph().get_to_node(node, 1);
+            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(node, robots[r].target)));
+            /*node = path[path.size() - 3];
+            for (uint32_t action1 = 1; action1 <= 2; action1++) {
+                for (uint32_t action2 = 1; action2 <= 2; action2++) {
+                    uint32_t to = get_graph().get_to_node(node, action1);
+                    to = get_graph().get_to_node(to, action2);
+                    dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+                }
+            }*/
+        }
+    }
+    return dist;
+}
+
+void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
     int64_t old_dist = get_dhm().get(robots[r].node, robots[r].target);
-    int64_t cur_dist = get_dhm().get(finish_node, robots[r].target);
+    int64_t cur_dist = get_smart_dist(r, desired);
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
     cur_score += sign * diff * power;
@@ -182,7 +219,7 @@ void PIBTS::add_path(uint32_t r) {
         used_pos[depth][to_pos] = r;
     }
 
-    update_score(r, get_omap().get_nodes_path(source, desires[r]).back(), cur_score, +1);
+    update_score(r, desires[r], cur_score, +1);
 }
 
 void PIBTS::add_path(uint32_t r, State &state) const {
@@ -213,7 +250,7 @@ void PIBTS::add_path(uint32_t r, State &state) const {
         state.used_pos[depth][to_pos] = r;
     }
 
-    update_score(r, get_omap().get_nodes_path(source, desired).back(), state.cur_score, +1);
+    update_score(r, desired, state.cur_score, +1);
 }
 
 void PIBTS::remove_path(uint32_t r) {
@@ -237,7 +274,7 @@ void PIBTS::remove_path(uint32_t r) {
         used_pos[depth][to_pos] = -1;
     }
 
-    update_score(r, get_omap().get_nodes_path(source, desires[r]).back(), cur_score, -1);
+    update_score(r, desires[r], cur_score, -1);
 }
 
 void PIBTS::remove_path(uint32_t r, State &state) const {
@@ -268,7 +305,7 @@ void PIBTS::remove_path(uint32_t r, State &state) const {
         state.used_pos[depth][to_pos] = -1;
     }
 
-    update_score(r, get_omap().get_nodes_path(source, desired).back(), state.cur_score, -1);
+    update_score(r, desired, state.cur_score, -1);
 }
 
 void PIBTS::flush_state(const State &state) {
@@ -383,8 +420,9 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         if (to_r == -2 || (to_r != -1 && visited[to_r] == visited_counter)) {
             continue;
         }
-        const auto &path = get_path(r, desired);
-        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+        //const auto &path = get_path(r, desired);
+        int64_t priority = get_smart_dist(r, desired);
+        //get_dhm().get(path.back(), robots[r].target);
         steps.emplace_back(priority, desired);
     }
 
@@ -474,8 +512,8 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (to_r != -1 && desires[to_r] != 0) {
             //continue;
         }
-        const auto &path = get_path(r, desires[r]);
-        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+        //const auto &path = get_path(r, desires[r]);
+        int64_t priority = get_smart_dist(r, desired);//get_dhm().get(path.back(), robots[r].target);
         steps.emplace_back(priority, desired);
     }
 
