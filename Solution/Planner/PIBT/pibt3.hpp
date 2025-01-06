@@ -4,8 +4,6 @@
 #include <Objects/Basic/time.hpp>
 #include <Planner/PIBT/pibt2.hpp>
 
-// 5658 -> 16694 -> 18253 -> 18944 -> 19507 -> 19910 -> 19985 -> 20348 -> 20680 -> 20988 -> 21993 -> 22509
-
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 // CLuster mod

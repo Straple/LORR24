@@ -1,6 +1,7 @@
 #include <Planner/PIBT/pibts.hpp>
 
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Containers/dsu.hpp>
 #include <Objects/Environment/environment.hpp>
 
 bool PIBTS::validate_path(uint32_t r, uint32_t desired) const {
@@ -76,15 +77,21 @@ EPath PIBTS::get_path(uint32_t r, uint32_t desired) const {
 }
 
 uint32_t PIBTS::get_used(uint32_t r) const {
-    uint32_t node = robots[r].node;
     uint32_t answer = -1;
 
     uint32_t source = robots[r].node;
     auto &poses_path = get_omap().get_poses_path(source, desires[r]);
     auto &edges_path = get_omap().get_edges_path(source, desires[r]);
+
+    //uint32_t start_pos = get_graph().get_pos(source).get_pos();
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         uint32_t to_edge = edges_path[depth];
         uint32_t to_pos = poses_path[depth];
+
+        //if (cluster_id[to_pos] != cluster_id[start_pos]) {
+        //    answer = -2;
+        //    break;
+        //}
 
         if (used_edge[depth][to_edge] != -1) {
             if (answer == -1) {
@@ -455,7 +462,7 @@ bool PIBTS::try_build(uint32_t r) {
 }
 
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
-    if (counter == -1 ||//
+    if (counter == -1 ||   //
         counter > 10'000 ||//
         (counter % 256 == 0 && get_now() >= end_time)) {
 
@@ -637,6 +644,124 @@ bool PIBTS::build_state(uint32_t r) {
     }*/
 }
 
+void PIBTS::build_clusters() {
+    static Randomizer rnd;
+
+    std::vector<uint32_t> order(robots.size());
+    std::iota(order.begin(), order.end(), 0);
+    //std::shuffle(order.begin(), order.end(), rnd.generator);
+    std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
+    });
+
+    DSU dsu(get_map().get_size());
+
+    constexpr uint32_t CLUSTER_SIZE = 150;
+
+    // (priority, desired, r)
+    std::vector<std::tuple<int64_t, uint32_t, uint32_t>> pool;
+
+    for (uint32_t r: order) {
+        Position start = get_graph().get_pos(robots[r].node);
+
+        for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+            if (validate_path(r, desired)) {
+                auto path = get_path(r, desired);
+
+                int64_t priority = get_dhm().get(path.back(), robots[r].target);
+                pool.emplace_back(priority, desired, r);
+            }
+        }
+    }
+    //std::stable_sort(pool.begin(), pool.end());
+    std::shuffle(pool.begin(), pool.end(), rnd.generator);
+
+    {
+        for (auto [_, desired, r]: pool) {
+            auto operation = get_operations()[desired];
+            bool ok = true;
+            Position start = get_graph().get_pos(robots[r].node);
+            Position p = start;
+            std::set<std::pair<uint32_t, uint32_t>> S;
+            for (auto action: operation) {
+                p = p.simulate_action(action);
+                if (!p.is_valid()) {
+                    ok = false;
+                    break;
+                }
+                if (dsu.get(p.get_pos()) != dsu.get(start.get_pos())) {
+                    S.insert({p.get_pos(), dsu.get_size(p.get_pos())});
+                }
+            }
+            uint32_t total_size = dsu.get_size(start.get_pos());
+            for (auto [_, size]: S) {
+                total_size += size;
+            }
+            if (total_size > CLUSTER_SIZE) {
+                continue;
+            }
+
+            if (ok) {
+                Position p = start;
+                for (auto action: operation) {
+                    p = p.simulate_action(action);
+                    dsu.uni(p.get_pos(), start.get_pos());
+                }
+            }
+        }
+    }
+    std::set<std::pair<uint32_t, uint32_t>> S;
+    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
+        if (get_map().is_free(pos)) {
+            S.insert({dsu.get_size(pos), dsu.get(pos)});
+        }
+    }
+    while (S.size() >= 2 && S.begin()->first + (++S.begin())->first <= CLUSTER_SIZE) {
+        auto a = *S.begin();
+        S.erase(S.begin());
+        auto b = *S.begin();
+        S.erase(S.begin());
+        dsu.uni(a.second, b.second);
+        S.insert({dsu.get_size(a.second), dsu.get(a.second)});
+    }
+    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
+        if (!get_map().is_free(pos)) {
+            dsu.uni(0, pos);
+        }
+    }
+
+    cluster_id.resize(get_map().get_size());
+    for (uint32_t pos = 1; pos < cluster_id.size(); pos++) {
+        cluster_id[pos] = dsu.get(pos);
+    }
+
+    /*{
+        static uint32_t id = 0;
+        std::ofstream output("Clusters/cluster" + std::to_string(id) + ".txt");
+        id++;
+        output << get_map().get_rows() << ' ' << get_map().get_cols() << '\n';
+        std::unordered_map<uint32_t, uint32_t> kek;
+        for (uint32_t pos = 0; pos < cluster_id.size(); pos++) {
+            if(!kek.count(cluster_id[pos])){
+                kek[dsu.get(pos)] = kek.size();
+            }
+        }
+        for (uint32_t x = 0; x < get_map().get_rows(); x++) {
+            for (uint32_t y = 0; y < get_map().get_cols(); y++) {
+                if (y != 0) {
+                    output << ' ';
+                }
+                uint32_t val = kek[cluster_id[x * get_map().get_cols() + y + 1]];
+                if (val != 0) {
+                    val += 3;
+                }
+                output << val;
+            }
+            output << '\n';
+        }
+    }*/
+}
+
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
     : robots(robots), end_time(end_time), rnd(seed) {
 
@@ -677,6 +802,8 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
     for (uint32_t r = 0; r < robots.size(); r++) {
         add_path(r);
     }
+
+    //build_clusters();
 }
 
 void PIBTS::simulate_pibt() {

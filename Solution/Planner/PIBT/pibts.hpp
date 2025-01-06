@@ -4,14 +4,6 @@
 #include <Planner/PIBT/pibt2.hpp>
 #include <unordered_set>
 
-// -i ./example_problems/random.domain/random_32_32_20_300.json -o test.json -s 1000 -t 10000 -p 100000000
-// score: 4659    -> 4848     -> 4985     -> 4997     -> 5061
-// time: 28.7632s -> 47.1892s -> 75.1781s -> 83.6319s -> 50.3118s
-
-// -i ./example_problems/random.domain/random_32_32_20_400.json -o test.json -s 1000 -t 10000 -p 100000000
-// score: 4135
-// time: 111.495s
-
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 // Solver mode
@@ -56,6 +48,8 @@ class PIBTS {
     Randomizer rnd;
 
     double old_score = 0;
+
+    std::vector<uint32_t> cluster_id;
 
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
 
@@ -103,8 +97,9 @@ class PIBTS {
 
     bool build_state(uint32_t r);
 
-public:
+    void build_clusters();
 
+public:
     explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed);
 
     void simulate_pibt();

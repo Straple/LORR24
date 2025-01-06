@@ -239,9 +239,10 @@ bool PIBT3::build(uint32_t r, uint32_t depth, uint32_t& counter) {
 }
 
 void PIBT3::build_clusters() {
+    static Randomizer rnd;
+
     std::vector<uint32_t> order(robots.size());
     std::iota(order.begin(), order.end(), 0);
-    static Randomizer rnd;
     //std::shuffle(order.begin(), order.end(), rnd.generator);
     std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
         return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;

@@ -70,7 +70,7 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
             uint32_t to = get_graph().get_to_node(node, action);
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
-                uint64_t to_dist = queue_dist + 5;
+                uint64_t to_dist = queue_dist + 1;
                 uint32_t p = get_graph().get_pos(to).get_pos();
                 if (action == 0 && used[p] == timestep) {
                     to_dist += weight[p];
@@ -84,7 +84,7 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
     }
 }
 
-void DynamicHeuristicMatrix::update_pos(uint32_t pos, uint32_t w, uint32_t timestep) {
+void DynamicHeuristicMatrix::update_pos(uint32_t pos, int32_t w, uint32_t timestep) {
     if (used[pos] == timestep) {
         weight[pos] += w;
     } else {
@@ -110,33 +110,26 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     Timer timer;
 
     double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
-    uint32_t power = workload * 20;
-    if (power == 0) {
-        power = 1;
-    }
-
-    //13832 296.636s
-    //14123 394.169s
-    //
-    //without smart DHM
-    //13680 412.395s
+    double power = workload * 14;
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "workload: " << workload << '\n';
     Printer() << "power: " << power << '\n';
 #endif
 
+    power = std::max(1.0, power);
+
     for (auto robot: get_robots_handler().get_robots()) {
         ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
         Position p = get_graph().get_pos(robot.node);
-        update_pos(p.get_pos(), 2 * power, env.curr_timestep);
-        for (uint32_t dir = 0; dir < 4; dir++) {
+        update_pos(p.get_pos(), power, env.curr_timestep);
+        /*for (uint32_t dir = 0; dir < 4; dir++) {
             auto s = Position(p.get_x(), p.get_y(), dir);
             s = s.move_forward();
             if (s.is_valid()) {
-                update_pos(s.get_pos(), power, env.curr_timestep);
+                update_pos(s.get_pos(), 2 * power, env.curr_timestep);
             }
-        }
+        }*/
     }
 
     // (timestep updated, target pos)
