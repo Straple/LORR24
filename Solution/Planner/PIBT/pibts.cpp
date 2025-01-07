@@ -432,7 +432,8 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         desires[r] = desired;
         if (is_free_path(r)) {
             add_path(r);
-            if (old_score <= cur_score
+            if (old_score// - 1e-9
+                <= cur_score
                 // old_score > cur_score
                 // || rnd.get_d() < 1.0 / (old_score - cur_score + 10) * temp
             ) {
@@ -524,7 +525,8 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (is_free_path(r)) {
             // отлично! там никого нет
             add_path(r);
-            if (old_score <= cur_score
+            if (old_score// - 1e-9
+                <= cur_score
                 // old_score > cur_score
                 // || rnd.get_d() < 1.0 / (old_score - cur_score + 10) * temp
             ) {
