@@ -3,7 +3,65 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/position.hpp>
 
-GraphGuidance::GraphGuidance(const Map &map) {
+void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint16_t value) {
+    for (int32_t x = x0; x <= x1; x++) {
+        for (int32_t y = y0; y <= y1; y++) {
+            int32_t pos = x * rows + y + 1;
+            ASSERT(0 < pos && pos < graph.size(), "invalid pos");
+            ASSERT(dir < 4, "invalid dir");
+            ASSERT(action < 4, "invalid action");
+            graph[pos][dir][action] = value;
+        }
+    }
+}
+
+void GraphGuidance::set_warehouse() {
+    for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            uint32_t pos = x * cols + y + 1;
+
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                for (uint32_t action = 0; action < 4; action++) {
+                    graph[pos][dir][action] = 2;
+
+                    if (action != 0) {
+                        continue;
+                    }
+
+                    if (x % 2 == 0) {
+                        if (dir == 0) {
+                            // east ->
+                            graph[pos][dir][action] = 3;
+                        } else if (dir == 2) {
+                            // west <-
+                            //graph[pos][dir][action] = 1;
+                        }
+                    } else {
+                        if (dir == 2) {
+                            // west <-
+                            graph[pos][dir][action] = 3;
+                        } else if (dir == 0) {
+                            // east ->
+                            //graph[pos][dir][action] = 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /*int kek = 0;
+    for (uint32_t x = 0; x < rows; x++) {
+        if (kek == 0) {
+            kek = 1;
+            set(x, 0, x, cols - 1, 0, 0, 3);
+        } else {
+            kek = 0;
+            set(x, 0, x, cols - 1, 2, 0, 3);
+        }
+    }*/
+}
+
+GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.get_rows()), cols(map.get_cols()) {
     // without GG + without DHM
     //call(0): 2476, 13.3796s
     //call(1): 4067, 24.655s
@@ -21,7 +79,6 @@ GraphGuidance::GraphGuidance(const Map &map) {
     //call(4): 4427, 108.857s
     //call(5): 3509, 166.195s
     //total: 25790
-
     //call(0): 2459, 21.4121s
     //call(1): 4277, 45.2602s
     //call(2): 5237, 38.4895s
@@ -30,27 +87,44 @@ GraphGuidance::GraphGuidance(const Map &map) {
     //call(5): 3712, 168.167s
     //total: 25820
 
+    //13637 -> 16349
+
     graph.resize(map.get_size());
-    for (uint32_t pos = 1; pos < graph.size(); pos++) {
+
+
+    /*for (uint32_t pos = 1; pos < graph.size(); pos++) {
         for (uint32_t dir = 0; dir < 4; dir++) {
             for (uint32_t action = 0; action < 4; action++) {
                 graph[pos][dir][action] = 2;
-
-                /*Position p(pos, dir);
-                if (p.get_x() % 2 == 0) {
-                    if (dir == 0) {
-                        // east ->
-                        graph[pos][dir][action] = 3;
-                    }
-                } else {
-                    if (dir == 2) {
-                        // west <-
-                        graph[pos][dir][action] = 3;
-                    }
-                }*/
             }
         }
+    }*/
+
+    if (env.map_name == "warehouse_large.map") {
+        set_warehouse();
+    } else {
+        std::exit(1);
     }
+    /*Position p(pos, dir);
+    if (p.get_x() % 2 == 0) {
+        if (dir == 0) {
+            // east ->
+            graph[pos][dir][action] = 3;
+        }
+        else if(dir == 2){
+            // west <-
+            //graph[pos][dir][action] = 1;
+        }
+    } else {
+        if (dir == 2) {
+            // west <-
+            graph[pos][dir][action] = 3;
+        }
+        else if(dir == 0){
+            // east ->
+            //graph[pos][dir][action] = 1;
+        }
+    }*/
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {

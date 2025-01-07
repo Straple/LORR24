@@ -14,7 +14,7 @@
 // This is an offline step, after it completes then evaluation begins.
 void Entry::initialize(int preprocess_time_limit) {
     get_map() = Map(*env);
-    get_gg() = GraphGuidance(get_map());
+    get_gg() = GraphGuidance(*env, get_map());
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map());

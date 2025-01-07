@@ -5,16 +5,25 @@
 #include <iostream>
 #include <vector>
 
+#include <SharedEnv.h>
+
 #include <Objects/Environment/map.hpp>
 
 struct GraphGuidance {
     // weight[pos][dir][action]
     std::vector<std::array<std::array<uint16_t, 4>, 4>> graph;
 
+    uint32_t rows = 0;
+    uint32_t cols = 0;
+
+    void set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint16_t value);
+
+    void set_warehouse();
+
 public:
     GraphGuidance() = default;
 
-    explicit GraphGuidance(const Map &map);
+    explicit GraphGuidance(SharedEnvironment &env, const Map &map);
 
     [[nodiscard]] uint32_t get(uint32_t pos, uint32_t dir, uint32_t action) const;
 
