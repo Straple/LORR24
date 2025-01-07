@@ -106,7 +106,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     Timer timer;
 
     double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
-    double power = workload * 14;
+    double power = std::max(1.0, workload * 14 - 1);
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "workload: " << workload << '\n';
