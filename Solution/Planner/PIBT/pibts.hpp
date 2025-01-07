@@ -55,6 +55,8 @@ class PIBTS {
 
     double old_score = 0;
 
+    double temp = 1;
+
     std::vector<uint32_t> cluster_id;
 
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;

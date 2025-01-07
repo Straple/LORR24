@@ -146,30 +146,13 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 
     double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
 
-    //call(0): 2502, 13.7732s
-    //call(1): 4414, 19.8218s
-    //call(2): 5373, 29.291s
-    //call(3): 4953, 52.5899s
-    //call(4): 4262, 86.1083s
-    //call(5): 3483, 133.206s
-    //total: 24987
-
-
-    //call(0): 2501, 12.8947s
-    //call(1): 4354, 21.8307s
-    //call(2): 5243, 35.577s
-    //call(3): 5315, 44.7553s
-    //call(4): 4196, 82.5127s
-    //call(5): 3652, 128.721s
-    //total: 25261
-
-    //call(0): 2536, 13.242s
-    //call(1): 4355, 20.4494s
-    //call(2): 5190, 63.6492s
-    //call(3): 5362, 65.8169s
-    //call(4): 4226, 98.0548s
-    //call(5): 3446, 169.017s
-    //total: 25115
+    //call(0): 2540, 12.7575s
+    //call(1): 4332, 19.743s
+    //call(2): 5194, 28.2415s
+    //call(3): 5285, 38.8171s
+    //call(4): 4541, 64.0062s
+    //call(5): 3594, 131.139s
+    //total: 25486
     double power = std::max(1.0, workload * 14 - 1);
 
     // ACTION WEIGHT = 2

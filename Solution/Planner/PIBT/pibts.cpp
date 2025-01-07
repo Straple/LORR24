@@ -432,11 +432,9 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         desires[r] = desired;
         if (is_free_path(r)) {
             add_path(r);
-            if (old_score// - 1e-9
-                <= cur_score
+            if (old_score - 1e-9 <= cur_score
                 // old_score > cur_score
-                // || rnd.get_d() < 1.0 / (old_score - cur_score + 10) * temp
-            ) {
+                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -525,11 +523,9 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (is_free_path(r)) {
             // отлично! там никого нет
             add_path(r);
-            if (old_score// - 1e-9
-                <= cur_score
+            if (old_score - 1e-9 <= cur_score
                 // old_score > cur_score
-                // || rnd.get_d() < 1.0 / (old_score - cur_score + 10) * temp
-            ) {
+                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -976,6 +972,7 @@ void PIBTS::simulate_pibt() {
     for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
         try_build(r);
+        temp *= 0.99;
     }
 }
 
