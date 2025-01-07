@@ -153,7 +153,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     //call(4): 4541, 64.0062s
     //call(5): 3594, 131.139s
     //total: 25486
-    double power = std::max(1.0, workload * 14 - 1);
+    double power = std::max(1.0, workload * 14 * 2 - 2);
 
     // ACTION WEIGHT = 2
 

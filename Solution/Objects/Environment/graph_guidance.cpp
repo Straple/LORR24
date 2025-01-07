@@ -22,22 +22,30 @@ GraphGuidance::GraphGuidance(const Map &map) {
     //call(5): 3509, 166.195s
     //total: 25790
 
+    //call(0): 2459, 21.4121s
+    //call(1): 4277, 45.2602s
+    //call(2): 5237, 38.4895s
+    //call(3): 5483, 56.0016s
+    //call(4): 4652, 95.0316s
+    //call(5): 3712, 168.167s
+    //total: 25820
+
     graph.resize(map.get_size());
     for (uint32_t pos = 1; pos < graph.size(); pos++) {
         for (uint32_t dir = 0; dir < 4; dir++) {
             for (uint32_t action = 0; action < 4; action++) {
-                graph[pos][dir][action] = 1;
+                graph[pos][dir][action] = 2;
 
                 /*Position p(pos, dir);
                 if (p.get_x() % 2 == 0) {
                     if (dir == 0) {
                         // east ->
-                        graph[pos][dir][action] = 2;
+                        graph[pos][dir][action] = 3;
                     }
                 } else {
                     if (dir == 2) {
                         // west <-
-                        graph[pos][dir][action] = 2;
+                        graph[pos][dir][action] = 3;
                     }
                 }*/
             }
