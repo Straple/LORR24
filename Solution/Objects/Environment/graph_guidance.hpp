@@ -20,6 +20,8 @@ struct GraphGuidance {
 
     void set_warehouse();
 
+    void set_sortation();
+
 public:
     GraphGuidance() = default;
 

@@ -28,29 +28,73 @@ void GraphGuidance::set_warehouse() {
                         continue;
                     }
 
+                    if (y % 2 == 0) {
+                        if (dir == 1) {
+                            graph[pos][dir][action] = 3;
+                        }
+                    } else {
+                        if (dir == 3) {
+                            graph[pos][dir][action] = 3;
+                        }
+                    }
+
                     if (x % 2 == 0) {
                         if (dir == 0) {
-                            // east ->
                             graph[pos][dir][action] = 3;
-                        } else if (dir == 2) {
-                            // west <-
-                            //graph[pos][dir][action] = 1;
                         }
                     } else {
                         if (dir == 2) {
-                            // west <-
                             graph[pos][dir][action] = 3;
-                        } else if (dir == 0) {
-                            // east ->
-                            //graph[pos][dir][action] = 1;
                         }
                     }
                 }
             }
         }
     }
-    /*int kek = 0;
+
+    int kek = 0;
+    for (uint32_t y = 3; y < cols; y += 4) {
+        if (kek == 0) {
+            kek = 1;
+            set(0, y, rows - 1, y, 1, 0, 3);
+        } else {
+            kek = 0;
+            set(0, y, rows - 1, y, 3, 0, 3);
+        }
+    }
+}
+
+void GraphGuidance::set_sortation() {
+    // without 7150
+
     for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            uint32_t pos = x * cols + y + 1;
+
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                for (uint32_t action = 0; action < 4; action++) {
+                    graph[pos][dir][action] = 2;
+
+                    if (action != 0) {
+                        continue;
+                    }
+
+                    if (x % 2 == 0) {
+                        if (dir == 0) {
+                            graph[pos][dir][action] = 3;
+                        }
+                    } else {
+                        if (dir == 2) {
+                            graph[pos][dir][action] = 3;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    int kek = 0;
+    for (uint32_t x = 1; x < rows; x += 2) {
         if (kek == 0) {
             kek = 1;
             set(x, 0, x, cols - 1, 0, 0, 3);
@@ -58,7 +102,7 @@ void GraphGuidance::set_warehouse() {
             kek = 0;
             set(x, 0, x, cols - 1, 2, 0, 3);
         }
-    }*/
+    }
 }
 
 GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.get_rows()), cols(map.get_cols()) {
@@ -87,44 +131,52 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.
     //call(5): 3712, 168.167s
     //total: 25820
 
-    //13637 -> 16349
-
     graph.resize(map.get_size());
-
-
-    /*for (uint32_t pos = 1; pos < graph.size(); pos++) {
-        for (uint32_t dir = 0; dir < 4; dir++) {
-            for (uint32_t action = 0; action < 4; action++) {
-                graph[pos][dir][action] = 2;
-            }
-        }
-    }*/
-
     if (env.map_name == "warehouse_large.map") {
         set_warehouse();
+    } else if (env.map_name == "sortation_large.map") {
+        set_sortation();
     } else {
-        std::exit(1);
+        //call(0): 2447, 22.4206s
+        //call(1): 4277, 33.5626s
+        //call(2): 5237, 38.6736s
+        //call(3): 5483, 64.9126s
+        //call(4): 4652, 94.374s
+        //call(5): 3712, 173.274s
+        //total: 25808
+
+        for (uint32_t x = 0; x < rows; x++) {
+            for (uint32_t y = 0; y < cols; y++) {
+                uint32_t pos = x * cols + y + 1;
+                for (uint32_t dir = 0; dir < 4; dir++) {
+                    for (uint32_t action = 0; action < 4; action++) {
+                        graph[pos][dir][action] = 2;
+
+                        //call(0): 2445, 19.5942s
+                        //call(1): 4252, 37.1019s
+                        //call(2): 5217, 42.1685s
+                        //call(3): 5477, 63.4884s
+                        //call(4): 4507, 106.052s
+                        //call(5): 3811, 156.128s
+                        //total: 25709
+                        /*if (action != 0) {
+                            continue;
+                        }
+
+                        if (x % 2 == 0) {
+                            if (dir == 0) {
+                                graph[pos][dir][action] = 3;
+                            }
+                        } else {
+                            if (dir == 2) {
+                                graph[pos][dir][action] = 3;
+                            }
+                        }*/
+                    }
+                }
+            }
+        }
     }
-    /*Position p(pos, dir);
-    if (p.get_x() % 2 == 0) {
-        if (dir == 0) {
-            // east ->
-            graph[pos][dir][action] = 3;
-        }
-        else if(dir == 2){
-            // west <-
-            //graph[pos][dir][action] = 1;
-        }
-    } else {
-        if (dir == 2) {
-            // west <-
-            graph[pos][dir][action] = 3;
-        }
-        else if(dir == 0){
-            // east ->
-            //graph[pos][dir][action] = 1;
-        }
-    }*/
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {
