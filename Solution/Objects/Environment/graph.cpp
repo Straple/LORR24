@@ -2,7 +2,7 @@
 
 #include <Objects/Basic/assert.hpp>
 
-Graph::Graph(const Map &map) {
+Graph::Graph(const Map &map, const GraphGuidance &gg) {
     pos_to_node.resize(map.get_size());
     node_to_pos.resize(1);
     for (uint32_t pos = 1; pos < map.get_size(); pos++) {
@@ -19,6 +19,7 @@ Graph::Graph(const Map &map) {
 
     to_node.resize(node_to_pos.size());
     to_edge.resize(node_to_pos.size());
+    weight.resize(node_to_pos.size());
 
     std::map<std::pair<uint32_t, uint32_t>, uint32_t> edges;
     for (uint32_t node = 1; node < node_to_pos.size(); node++) {
@@ -30,6 +31,7 @@ Graph::Graph(const Map &map) {
             }
 
             to_node[node][action] = get_node(to);
+            weight[node][action] = gg.get(p.get_pos(), p.get_dir(), action);
 
             uint32_t a = p.get_pos();
             uint32_t b = to.get_pos();
@@ -83,6 +85,12 @@ uint32_t Graph::get_to_edge(uint32_t node, uint32_t action) const {
     ASSERT(0 < node && node < to_edge.size(), "invalid node");
     ASSERT(action < 4, "invalid action");
     return to_edge[node][action];
+}
+
+uint32_t Graph::get_weight(uint32_t node, uint32_t action) const {
+    ASSERT(0 < node && node < to_edge.size(), "invalid node");
+    ASSERT(action < 4, "invalid action");
+    return weight[node][action];
 }
 
 Graph &get_graph() {

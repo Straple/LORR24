@@ -14,7 +14,8 @@
 // This is an offline step, after it completes then evaluation begins.
 void Entry::initialize(int preprocess_time_limit) {
     get_map() = Map(*env);
-    get_graph() = Graph(get_map());
+    get_gg() = GraphGuidance(get_map());
+    get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map());
     get_operations() = OperationsGenerator().get();
@@ -24,6 +25,7 @@ void Entry::initialize(int preprocess_time_limit) {
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
 
+    // generate random agents
     /*Randomizer rnd(5340000);
     std::ofstream output("agents.txt");
     std::set<uint32_t> S;

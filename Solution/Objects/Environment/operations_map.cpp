@@ -48,7 +48,6 @@ OperationsMap::OperationsMap(const Graph &graph, const std::vector<Operation> &o
     map_edges.resize(graph.get_nodes_size());
     map_poses.resize(graph.get_nodes_size());
 
-    // TODO: multithreading
     for (uint32_t node = 0; node < graph.get_nodes_size(); node++) {
         build(node, operations);
     }

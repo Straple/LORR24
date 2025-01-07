@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Objects/Basic/position.hpp>
+#include <Objects/Environment/graph_guidance.hpp>
 #include <Objects/Environment/map.hpp>
 
 #include <array>
@@ -25,12 +26,15 @@ class Graph {
     // to_edge[node][action] = to edge
     std::vector<std::array<uint32_t, 4>> to_edge;
 
+    // to_weight[node][action] = weight
+    std::vector<std::array<uint32_t, 4>> weight;
+
     uint32_t edges_size = 0;
 
 public:
     Graph() = default;
 
-    explicit Graph(const Map &map);
+    explicit Graph(const Map &map, const GraphGuidance &gg);
 
     [[nodiscard]] uint32_t get_nodes_size() const;
 
@@ -50,6 +54,9 @@ public:
 
     // graph node + action -> graph edge
     [[nodiscard]] uint32_t get_to_edge(uint32_t node, uint32_t action) const;
+
+    // graph node + action -> edge weight from GraphGuidance
+    [[nodiscard]] uint32_t get_weight(uint32_t node, uint32_t action) const;
 };
 
 Graph &get_graph();

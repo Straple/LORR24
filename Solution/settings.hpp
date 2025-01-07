@@ -28,7 +28,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -39,19 +39,19 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 // при завершении программы вызывает tools::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 // -i ./example_problems/game.domain/brc202d_500.json -o test.json -s 1000 -t 10000 -p 100000000
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 4;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
-static constexpr uint32_t DHM_TIMELIMIT = 200;
+static constexpr uint32_t DHM_TIMELIMIT = 10000;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
@@ -83,3 +83,21 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
+
+//PIBTS_STEPS = 500
+//call(0): 2545, 13.7082s
+//call(1): 4367, 29.2802s
+//call(2): 5235, 35.5224s
+//call(3): 5180, 46.8324s
+//call(4): 4255, 70.5182s
+//call(5): 3456, 111.651s
+//total: 25038
+//
+//PIBTS_STEPS = 1000
+//call(0): 2537, 26.0555s
+//call(1): 4398, 35.2493s
+//call(2): 5337, 42.8796s
+//call(3): 5574, 57.9827s
+//call(4): 4427, 104.332s
+//call(5): 3509, 170.459s
+//total: 25782

@@ -105,7 +105,7 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
             uint32_t to = get_graph().get_to_node(node, action);
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
-                uint64_t to_dist = queue_dist + 1;
+                uint64_t to_dist = queue_dist + get_graph().get_weight(node, action);
                 uint32_t p = get_graph().get_pos(to).get_pos();
                 if (action == 0 && used[p] == timestep) {
                     to_dist += weight[p];

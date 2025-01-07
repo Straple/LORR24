@@ -17,7 +17,7 @@ BusynessMap::BusynessMap(const Map& full_map, int32_t compress_factor_): compres
             }
         }
         mp = Map(compressed, cols_compressed, rows_compressed);
-        Graph graph(mp);
+        Graph graph(mp, get_gg());
         hm = HeuristicMatrix(graph);
 }
 
