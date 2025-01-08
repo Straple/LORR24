@@ -59,16 +59,50 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
     });
 }
 
+bool SchedulerSolver::try_smart(Randomizer &rnd) {
+    double old_score = cur_score;
+
+    uint32_t r = rnd.get(free_robots);
+    //uint32_t new_t = rnd.get(free_tasks);
+    uint32_t new_t = free_tasks[0];
+    for (uint32_t t: free_tasks) {
+        if (get_dist(r, new_t) > get_dist(r, t)) {
+            new_t = t;
+        }
+    }
+
+    uint32_t old_t = desires[r];
+    uint32_t other_r = task_to_robot[new_t];
+    if (other_r != -1) {
+        set(other_r, -1);
+        set(r, new_t);
+        set(other_r, old_t);
+    } else {
+        set(r, new_t);
+    }
+    validate();
+
+    return consider(old_score, rnd, [&]() {
+        if (other_r != -1) {
+            set(r, -1);
+            set(other_r, new_t);
+            set(r, old_t);
+        } else {
+            set(r, old_t);
+        }
+        validate();
+    });
+}
+
 void SchedulerSolver::validate() {
-    return;
-    std::set<uint32_t> S;
+    /*std::set<uint32_t> S;
     for (uint32_t r = 0; r < desires.size(); r++) {
         if (desires[r] != -1) {
             ASSERT(!S.count(desires[r]), "already contains");
             S.insert(desires[r]);
             ASSERT(task_to_robot[desires[r]] == r, "invalid task to robot");
         }
-    }
+    }*/
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
@@ -102,13 +136,18 @@ void SchedulerSolver::update() {
         //}
         //desires[r] = -1;
 
-        if(desires[r] != -1 && !env->task_pool.count(desires[r])){
+        if (desires[r] != -1 && !env->task_pool.count(desires[r])) {
             desires[r] = -1;
         }
 
         cur_score += get_dist(r, desires[r]);
     }
     validate();
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "free robots: " << free_robots.size() << '\n';
+    Printer() << "free tasks: " << free_tasks.size() << '\n';
+#endif
 }
 
 void SchedulerSolver::solve(TimePoint end_time) {
@@ -117,10 +156,13 @@ void SchedulerSolver::solve(TimePoint end_time) {
     }
     static Randomizer rnd;
     temp = 1;
-    for (uint32_t step = 0; step < 100'000; step++) {
+    Timer timer;
+    for (uint32_t step = 0; step < 1'000'000; step++) {
         try_peek_task(rnd);
+        //try_smart(rnd);
         temp *= 0.9999;
     }
+    Printer() << "SchedulerSolver: " << timer << ", " << get_score() << '\n';
 }
 
 std::vector<int> SchedulerSolver::get_schedule() const {

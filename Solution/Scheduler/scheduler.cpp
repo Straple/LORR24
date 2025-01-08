@@ -185,6 +185,13 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     Printer() << "free tasks: " << free_tasks.size() << '\n';
 #endif
 
+
+    double workload = env->num_of_agents * 1.0 / get_map().get_count_free();
+    uint32_t done_weight = 5;
+    if (workload > 0.4) {
+        done_weight = 1;
+    }
+
     auto done_proposed_schedule = proposed_schedule;
     {
         static std::vector<uint32_t> used_task_t(500'000);// max task available
@@ -224,18 +231,19 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
 
             proposed_schedule[r] = task_id;
             used_task_t[task_id] = launch_num;
-            if (get_dist_to_start(r, task_id) <= 1 ||
+            if (//get_dist_to_start(r, task_id) <= 1 ||
+                    get_dist_to_start(r, task_id) <= done_weight ||
                 // слишком много свободных роботов сейчас
                 free_robots.size() > 600
-                    ) {
+            ) {
                 done_proposed_schedule[r] = task_id;
             }
         }
     }
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "Scheduler: " << timer << '\n';
-#endif
+//#ifdef ENABLE_PRINT_LOG
+//    Printer() << "Scheduler: " << timer << '\n';
+//#endif
     return done_proposed_schedule;
 }
 
@@ -647,12 +655,12 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     Timer timer;
     auto old_schedule = proposed_schedule;
-    auto res = solver_schedule(time_limit, proposed_schedule); // 5324
-    //auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
+    //auto res = solver_schedule(time_limit, proposed_schedule); // 5324
+    auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
     // auto res = greedy_schedule_double(time_limit, proposed_schedule);
     // auto res = artem_schedule(time_limit, proposed_schedule);
 
-    {
+    /*{
         std::vector<int> greedy_ans = old_schedule;
         greedy_schedule(time_limit, greedy_ans);
         double greedy_score = 0;
@@ -671,7 +679,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         if (std::abs(greedy_score - solver.get_score()) > 1e-9) {
             Printer() << "diff solver scores!\n";
         }
-    }
+    }*/
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Scheduler: " << timer << '\n';
 #endif

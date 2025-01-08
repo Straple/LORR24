@@ -7,6 +7,8 @@
 #include <vector>
 #include <cstdint>
 
+//-i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 1000 -p 100000000
+
 //call(0): 2550, 52.9529s
 //call(1): 4374, 66.2482s
 //call(2): 5305, 83.7859s
@@ -51,6 +53,8 @@ class SchedulerSolver {
     void set(uint32_t r, uint32_t t);
 
     bool try_peek_task(Randomizer &rnd);
+
+    bool try_smart(Randomizer &rnd);
 
     void validate();
 
