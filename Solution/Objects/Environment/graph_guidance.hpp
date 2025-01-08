@@ -22,6 +22,8 @@ struct GraphGuidance {
 
     void set_sortation();
 
+    void set_game();
+
 public:
     GraphGuidance() = default;
 
