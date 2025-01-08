@@ -69,6 +69,31 @@ std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m)
     return ans;
 }
 
+std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
+    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
+    solver.update();
+    solver.solve(end_time);
+    auto done_proposed_schedule = proposed_schedule;
+    proposed_schedule = solver.get_schedule();
+
+    double workload = env->num_of_agents * 1.0 / get_map().get_count_free();
+    uint32_t done_weight = 5;
+    if (workload > 0.4) {
+        done_weight = 1;
+    }
+    for (uint32_t r = 0; r < proposed_schedule.size(); r++) {
+        int t = proposed_schedule[r];
+        uint32_t source = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        if (t != -1 && //env->curr_states[r].location == env->task_pool[t].get_next_loc()
+            get_hm().get(source, env->task_pool[t].get_next_loc() + 1) <= done_weight
+                ) {
+            done_proposed_schedule[r] = t;
+        }
+    }
+    return done_proposed_schedule;
+}
+
 std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &proposed_schedule) {
     static uint32_t launch_num = 0;
     launch_num++;
@@ -103,14 +128,16 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     constexpr static uint32_t MAX_SCORE = -1;
 
     auto get_dist_to_start = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        uint32_t source = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
         return get_hm().get(source, loc);// Heuristic Matrix
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        uint32_t source = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
         uint32_t loc = env->task_pool[t].locations[0] + 1;
         return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
@@ -200,7 +227,7 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
             if (get_dist_to_start(r, task_id) <= 1 ||
                 // слишком много свободных роботов сейчас
                 free_robots.size() > 600
-                ) {
+                    ) {
                 done_proposed_schedule[r] = task_id;
             }
         }
@@ -249,7 +276,8 @@ std::vector<int> MyScheduler::greedy_schedule_double(int time_limit, std::vector
         ASSERT(env->task_pool[t1].idx_next_loc == 0, "invalid idx next loc");
         ASSERT(env->task_pool[t2].idx_next_loc == 0, "invalid idx next loc");
 
-        uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        uint32_t source = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         uint32_t loc = env->task_pool.at(t1).locations[0] + 1;
         return get_hm().get(source, loc);
     };
@@ -258,7 +286,8 @@ std::vector<int> MyScheduler::greedy_schedule_double(int time_limit, std::vector
         ASSERT(env->task_pool[t1].idx_next_loc == 0, "invalid idx next loc");
         ASSERT(env->task_pool[t2].idx_next_loc == 0, "invalid idx next loc");
 
-        uint32_t node = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        uint32_t node = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
         uint32_t res = 0;
         for (int loc: env->task_pool[t1].locations) {
             res += get_dhm().get(node, loc + 1);
@@ -279,7 +308,7 @@ std::vector<int> MyScheduler::greedy_schedule_double(int time_limit, std::vector
 
         for (uint32_t t1: free_tasks) {
             for (uint32_t t2: free_tasks) {
-                if(t1 != t2) {
+                if (t1 != t2) {
                     dp[r].emplace_back(get_dist(r, t1, t2), t1, t2);
                 }
             }
@@ -377,16 +406,16 @@ std::vector<int> MyScheduler::greedy_schedule_double(int time_limit, std::vector
 
 int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
     uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-    //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
     uint32_t loc = env->task_pool[t].locations[0] + 1;
     return get_hm().get(source, loc);
 }
 
 int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
     uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-    // ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
     uint32_t loc = env->task_pool[t].locations[0] + 1;
-    return get_hm().get(source, loc);// Dynamic Heuristic Matrix
+    return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
 }
 
 std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
@@ -404,6 +433,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         uint32_t cordinate;
         size_t index;
         bool is_robot;
+
         bool operator<(const Entity &other) const {
             return std::tie(cordinate, index, is_robot) < std::tie(other.cordinate, other.index, other.is_robot);
         }
@@ -415,8 +445,10 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         uint32_t t = env->curr_task_schedule[r];
         if (t == -1) {
             auto pos = Position(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(), free_robots.size(), true});
-            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(), free_robots.size(), true});
+            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(),
+                          free_robots.size(), true});
+            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(),
+                          free_robots.size(), true});
             free_robots.push_back(r);
         }
     }
@@ -613,7 +645,35 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    return greedy_schedule(time_limit, proposed_schedule);
-    // return greedy_schedule_double(time_limit, proposed_schedule);
-    // return artem_schedule(time_limit, proposed_schedule);
+    Timer timer;
+    auto old_schedule = proposed_schedule;
+    auto res = solver_schedule(time_limit, proposed_schedule); // 5324
+    //auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
+    // auto res = greedy_schedule_double(time_limit, proposed_schedule);
+    // auto res = artem_schedule(time_limit, proposed_schedule);
+
+    {
+        std::vector<int> greedy_ans = old_schedule;
+        greedy_schedule(time_limit, greedy_ans);
+        double greedy_score = 0;
+        for (uint32_t r = 0; r < greedy_ans.size(); r++) {
+            if (old_schedule[r] != -1) {
+                continue;
+            }
+            if (greedy_ans[r] != -1) {
+                greedy_score += get_dist(r, greedy_ans[r], env);
+            } else {
+                greedy_score += 1e6;
+            }
+        }
+        Printer() << "solver score: " << solver.get_score() << '\n';
+        Printer() << "greedy score: " << greedy_score << '\n';
+        if (std::abs(greedy_score - solver.get_score()) > 1e-9) {
+            Printer() << "diff solver scores!\n";
+        }
+    }
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "Scheduler: " << timer << '\n';
+#endif
+    return res;
 }

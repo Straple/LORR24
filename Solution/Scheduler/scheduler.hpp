@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Scheduler/scheduler_solver.hpp>
+
 #include <SharedEnv.h>
 #include <Tasks.h>
 
@@ -7,7 +9,9 @@ class MyScheduler {
 public:
     SharedEnvironment *env;
 
-    explicit MyScheduler(SharedEnvironment *env) : env(env){};
+    SchedulerSolver solver;
+
+    explicit MyScheduler(SharedEnvironment *env) : env(env), solver(env) {};
 
     MyScheduler() { env = new SharedEnvironment(); };
 
@@ -16,6 +20,8 @@ public:
     void initialize(int preprocess_time_limit);
 
     std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
+
+    std::vector<int> solver_schedule(int time_limit, std::vector<int> &proposed_schedule);
 
     std::vector<int> greedy_schedule(int time_limit, std::vector<int> &proposed_schedule);
 
