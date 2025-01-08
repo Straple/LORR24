@@ -122,6 +122,8 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     // dp[r] = отсортированный вектор (dist, task_id)
     static std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp(env->num_of_agents);
 
+    bool map_is_big = env->map_name != "random-32-32-20.map";
+
     // для свободного робота будем поддерживать расстояния от него до всех задач
     // и будем постепенно обновлять это множество
 
@@ -136,11 +138,27 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(
-                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-        uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
+        if (map_is_big) {
+            uint32_t dist = 0;
+            uint32_t source = get_graph().get_node(
+                    Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+            for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
+                int loc = env->task_pool[t].locations[i];
+                if (i == 0) {
+                    dist += get_dhm().get(source, loc + 1);
+                } else {
+                    dist += get_hm().get(source, loc + 1);
+                }
+                source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
+            }
+            return dist;
+        } else {
+            uint32_t source = get_graph().get_node(
+                    Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+            ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+            uint32_t loc = env->task_pool[t].locations[0] + 1;
+            return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
+        }
     };
 
     static std::vector<int> timestep_updated(free_robots.size(), -1);
@@ -233,9 +251,9 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
             used_task_t[task_id] = launch_num;
             if (//get_dist_to_start(r, task_id) <= 1 ||
                     get_dist_to_start(r, task_id) <= done_weight ||
-                // слишком много свободных роботов сейчас
-                free_robots.size() > 600
-            ) {
+                    // слишком много свободных роботов сейчас
+                    free_robots.size() > 600
+                    ) {
                 done_proposed_schedule[r] = task_id;
             }
         }
