@@ -138,7 +138,7 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     };
 
     auto get_dist = [&](uint32_t r, uint32_t t) {
-        if (map_is_big) {
+        //if (map_is_big) {
             uint32_t dist = 0;
             uint32_t source = get_graph().get_node(
                     Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
@@ -152,13 +152,13 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
                 source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
             }
             return dist;
-        } else {
+        /*} else {
             uint32_t source = get_graph().get_node(
                     Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
             ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
             uint32_t loc = env->task_pool[t].locations[0] + 1;
             return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
-        }
+        }*/
     };
 
     static std::vector<int> timestep_updated(free_robots.size(), -1);
