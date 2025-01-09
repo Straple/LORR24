@@ -1,4 +1,5 @@
 #include "Entry.h"
+#include "Scheduler/journey_graph.hpp"
 #include "Tasks.h"
 #include "heuristics.h"
 #include "utils.h"
@@ -18,6 +19,7 @@ void Entry::initialize(int preprocess_time_limit) {
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
+    get_jg() = JG::JourneyGraph(env);
     get_operations() = OperationsGenerator().get();
     get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());

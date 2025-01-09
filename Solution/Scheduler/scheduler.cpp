@@ -9,65 +9,12 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include "hungarian.hpp"
 
 void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
-void calc_full_distance(Task &task) {
-    /*if (task.full_distance != -1){
-        return;
-    }*/
-    auto &hm = get_hm();
-    int dist_sum = 0;
-    for (size_t i = 0; i + 1 < task.locations.size(); ++i) {
-        uint32_t from = task.locations[i] + 1;
-        uint32_t to = task.locations[i + 1] + 1;
-        ASSERT(false, "from must be graph node (INCORRECT), to must be map node (CORRECT)");
-        dist_sum += hm.get(from, to);
-    }
-    //task.full_distance = dist_sum;
-}
-
 const int INF = 1000000;
-
-std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m) {
-    vector<int> u(n + 1), v(m + 1), p(m + 1), way(m + 1);
-    for (int i = 1; i <= n; ++i) {
-        p[0] = i;
-        int j0 = 0;
-        vector<int> minv(m + 1, INF);
-        vector<char> used(m + 1, false);
-        do {
-            used[j0] = true;
-            int i0 = p[j0], delta = INF, j1;
-            for (int j = 1; j <= m; ++j)
-                if (!used[j]) {
-                    int cur = a[i0][j] - u[i0] - v[j];
-                    if (cur < minv[j])
-                        minv[j] = cur, way[j] = j0;
-                    if (minv[j] < delta)
-                        delta = minv[j], j1 = j;
-                }
-            for (int j = 0; j <= m; ++j)
-                if (used[j])
-                    u[p[j]] += delta, v[j] -= delta;
-                else
-                    minv[j] -= delta;
-            j0 = j1;
-        } while (p[j0] != 0);
-        do {
-            int j1 = way[j0];
-            p[j0] = p[j1];
-            j0 = j1;
-        } while (j0);
-    }
-
-    vector<int> ans(n + 1, -1);
-    for (int j = 1; j <= m; ++j)
-        ans[p[j]] = j;
-
-    return ans;
-}
 
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
     TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
@@ -631,7 +578,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
                 dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env);
             }
         }
-        auto ans = Hungarian(dist_matrix, rb, tasks.size());
+        auto ans = Hungarian::DoHungarian(dist_matrix);
 
         for (int i = 1; i < ans.size(); i++) {
             if (ans[i] != -1) {
