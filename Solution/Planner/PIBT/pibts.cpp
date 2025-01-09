@@ -533,7 +533,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 return 2;// not accepted
             }
         } else {
-            if (counter > 2000 && depth >= 6) {
+            if (counter > 3000 && depth >= 6) {
                 continue;
             }
 
@@ -972,7 +972,7 @@ void PIBTS::simulate_pibt() {
     for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
         try_build(r);
-        temp *= 0.99;
+        temp *= 0.999;
     }
 }
 
