@@ -36,7 +36,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 #define ENABLE_DHM
 
-// при завершении программы вызывает tools::build_meta_info в driver.cpp
+// при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
 //#define ENABLE_PRINT_LOG
@@ -84,20 +84,31 @@ Printer operator<<(Printer printer, const T &value) {
     return printer;
 }
 
-//PIBTS_STEPS = 500
-//call(0): 2545, 13.7082s
-//call(1): 4367, 29.2802s
-//call(2): 5235, 35.5224s
-//call(3): 5180, 46.8324s
-//call(4): 4255, 70.5182s
-//call(5): 3456, 111.651s
-//total: 25038
-//
-//PIBTS_STEPS = 1000
-//call(0): 2537, 26.0555s
-//call(1): 4398, 35.2493s
-//call(2): 5337, 42.8796s
-//call(3): 5574, 57.9827s
-//call(4): 4427, 104.332s
-//call(5): 3509, 170.459s
-//total: 25782
+/*
+DHM
+call(0): 2407, 13.9454s
+call(1): 4184, 21.6022s
+call(2): 5168, 26.6417s
+call(3): 5325, 49.4565s
+call(4): 4557, 67.1475s
+call(5): 3678, 104.547s
+total: 25319
+
+new DHM
+call(0): 2415, 50.557s
+call(1): 4194, 42.81s
+call(2): 5280, 34.3922s
+call(3): 5702, 57.9102s
+call(4): 4835, 101.92s
+call(5): 4113, 180.863s
+total: 26539
+
+without DHM
+call(0): 2362, 9.07632s
+call(1): 3880, 14.8847s
+call(2): 4068, 35.6515s
+call(3): 3366, 79.524s
+call(4): 2971, 130.35s
+call(5): 2690, 215.291s
+total: 19337
+*/

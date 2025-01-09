@@ -17,7 +17,7 @@ void Entry::initialize(int preprocess_time_limit) {
     get_gg() = GraphGuidance(*env, get_map());
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
-    get_dhm() = DynamicHeuristicMatrix(get_map());
+    get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
     get_operations() = OperationsGenerator().get();
     get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());

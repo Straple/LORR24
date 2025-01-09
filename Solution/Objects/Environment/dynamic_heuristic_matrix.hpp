@@ -2,6 +2,7 @@
 
 #include <Objects/Basic/time.hpp>
 #include <Objects/Environment/map.hpp>
+#include <Objects/Environment/graph.hpp>
 
 #include <SharedEnv.h>
 
@@ -15,19 +16,20 @@ class DynamicHeuristicMatrix {
     // timestep_updated[pos]
     std::vector<uint32_t> timestep_updated;
 
-    // used[pos] = timestep when robot in this pos
-    std::vector<uint32_t> used;
+    // weights[node][action] = addition weight for (pos, dir) -> action
+    std::vector<std::array<int32_t, 4>> weights;
 
-    std::vector<int32_t> weight;
+    constexpr static inline uint32_t ROBOT_PATH_DEPTH = 4;
+
+    // robot_paths[r]
+    std::vector<std::array<uint32_t, ROBOT_PATH_DEPTH>> robot_paths;
 
     void rebuild(uint32_t source, uint32_t timestep);
-
-    void update_pos(uint32_t pos, int32_t w, uint32_t timestep);
 
 public:
     DynamicHeuristicMatrix() = default;
 
-    explicit DynamicHeuristicMatrix(const Map &map);
+    explicit DynamicHeuristicMatrix(const Map &map, const Graph &graph);
 
     void update(SharedEnvironment &env, TimePoint end_time);
 

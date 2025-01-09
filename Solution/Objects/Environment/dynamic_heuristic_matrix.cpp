@@ -105,11 +105,9 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
             uint32_t to = get_graph().get_to_node(node, action);
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
-                uint64_t to_dist = queue_dist + get_graph().get_weight(node, action);
-                uint32_t p = get_graph().get_pos(to).get_pos();
-                if (action == 0 && used[p] == timestep) {
-                    to_dist += weight[p];
-                }
+                uint32_t to_dist = queue_dist;
+                to_dist += std::max(0,
+                                    static_cast<int32_t>(get_graph().get_weight(node, action)) + weights[node][action]);
                 if (dists[to] > to_dist) {
                     dists[to] = to_dist;
                     push_queue(to_dist, to);
@@ -119,25 +117,10 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
     }
 }
 
-void DynamicHeuristicMatrix::update_pos(uint32_t pos, int32_t w, uint32_t timestep) {
-    if (used[pos] == timestep) {
-        weight[pos] += w;
-    } else {
-        used[pos] = timestep;
-        weight[pos] = w;
-    }
-}
-
-DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map) {
+DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map, const Graph &graph) {
     matrix.resize(map.get_size());
     timestep_updated.resize(map.get_size());
-    used.resize(map.get_size(), -1);
-    weight.resize(map.get_size(), 0);
-    for (uint32_t pos = 1; pos < matrix.size(); pos++) {
-        if (Position(pos, 0).is_valid()) {
-            //matrix[pos].assign(get_graph().get_nodes_size(), -1);
-        }
-    }
+    weights.resize(graph.get_nodes_size());
 }
 
 void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) {
@@ -145,77 +128,66 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     Timer timer;
 
     double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
-
-    //call(0): 2540, 12.7575s
-    //call(1): 4332, 19.743s
-    //call(2): 5194, 28.2415s
-    //call(3): 5285, 38.8171s
-    //call(4): 4541, 64.0062s
-    //call(5): 3594, 131.139s
-    //total: 25486
     double power = std::max(1.0, workload * 14 * 2 - 2);
-
-    // ACTION WEIGHT = 2
-
-    // workload * 20
-    //call(0): 2542, 11.349s
-    //call(1): 4332, 19.7347s
-    //call(2): 5291, 30.8083s
-    //call(3): 4908, 48.2055s
-    //call(4): 4328, 73.3719s
-    //call(5): 3573, 127.418s
-    //total: 24974
-
-    // workload * 21
-    //call(0): 2523, 11.2241s
-    //call(1): 4320, 18.959s
-    //call(2): 5291, 27.6536s
-    //call(3): 5285, 37.3194s
-    //call(4): 4328, 68.0979s
-    //call(5): 3438, 127.48s
-    //total: 25185
-
-    // workload * 22
-    //call(0): 2525, 16.3123s
-    //call(1): 4320, 22.2663s
-    //call(2): 5194, 31.0398s
-    //call(3): 5285, 39.3911s
-    //call(4): 4278, 72.043s
-    //call(5): 3699, 112.033s
-    //total: 25301
-
-    //workload*23
-    //call(0): 2532, 10.7565s
-    //call(1): 4320, 21.6136s
-    //call(2): 5194, 27.443s
-    //call(3): 5007, 45.6257s
-    //call(4): 4541, 67.2073s
-    //call(5): 3699, 114.081s
-    //total: 25293
-
-    //workload*24
-    //call(0): 2534, 11.7868s
-    //call(1): 4320, 20.1953s
-    //call(2): 5194, 29.5569s
-    //call(3): 5007, 44.5165s
-    //call(4): 4541, 67.0642s
-    //call(5): 3603, 126.385s
-    //total: 25199
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "workload: " << workload << '\n';
     Printer() << "power: " << power << '\n';
 #endif
 
-    for (auto robot: get_robots_handler().get_robots()) {
-        ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
-        Position p = get_graph().get_pos(robot.node);
-        update_pos(p.get_pos(), power, env.curr_timestep);
+    // set weights
+    {
+        robot_paths.resize(get_robots_handler().size());
+
+        for (auto &weight: weights) {
+            for (uint32_t action = 0; action < 4; action++) {
+                weight[action] = 0;
+            }
+        }
+
+        const auto &robots = get_robots_handler().get_robots();
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            const auto &robot = robots[r];
+            ASSERT(0 < robot.node && robot.node < get_graph().get_nodes_size(), "invalid node");
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                Position p(get_graph().get_pos(robot.node));
+                p = Position(p.get_x(), p.get_y(), dir);
+                p = p.move_forward();
+                if (p.is_valid()) {
+                    p = p.rotate().rotate();
+                    uint32_t node = get_graph().get_node(p);
+                    weights[node][0] += power;
+                }
+                weights[robot.node][dir] += power;
+            }
+            /*for (uint32_t action = 0; action < 4; action++) {
+                uint32_t to = get_graph().get_to_node(robot.node, action);
+                weights[robot.node][action] += power;
+            }*/
+
+            /*for (int32_t i = ROBOT_PATH_DEPTH - 1; i > 0; i--) {
+                std::swap(robot_paths[r][i], robot_paths[r][i - 1]);
+            }
+            robot_paths[r][0] = robot.node;
+
+            for (uint32_t i = 0; i + 1 < ROBOT_PATH_DEPTH; i++) {
+                uint32_t from = robot_paths[r][i + 1];
+                uint32_t to = robot_paths[r][i];
+                if (!from || !to) {
+                    break;
+                }
+
+                for (uint32_t action = 0; action < 4; action++) {
+                    if (get_graph().get_to_node(from, action) == to) {
+                        //weights[from][action] -= 1;
+                    }
+                }
+            }*/
+        }
     }
 
     // (timestep updated, target pos)
     std::vector<std::pair<uint32_t, uint32_t>> pool;
-
     for (auto &[t, task]: env.task_pool) {
         uint32_t target = task.get_next_loc() + 1;
         ASSERT(0 < target && target < get_map().get_size(), "invalid target");
