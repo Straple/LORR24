@@ -3,19 +3,58 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
+#include <thread>
+
+void SchedulerSolver::rebuild_dp(uint32_t r) {
+    dp[r].clear();
+    for (uint32_t t: free_tasks) {
+        dp[r].emplace_back(get_dist(r, t), t);
+    }
+    std::sort(dp[r].begin(), dp[r].end());
+    timestep_updated[r] = env->curr_timestep;
+}
+
+void SchedulerSolver::rebuild_dp(TimePoint end_time) {
+    std::vector<uint32_t> order = free_robots;
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return timestep_updated[lhs] < timestep_updated[rhs];
+    });
+
+    auto do_work = [&](uint32_t thr) {
+        for (uint32_t i = thr; i < order.size() && get_now() < end_time; i += THREADS) {
+            rebuild_dp(order[i]);
+        }
+    };
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr);
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+}
+
 bool SchedulerSolver::compare(double cur_score, double old_score, Randomizer &rnd) const {
     return cur_score <= old_score || rnd.get_d() < std::exp((old_score - cur_score) / temp);
 }
 
-double SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
+uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     if (t == -1) {
         return 1e6;
     }
+    uint32_t dist = 0;
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-    //ASSERT(std::find(free_tasks.begin(), free_tasks.end(), t) != free_tasks.end(), "task is not contains");
-    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-    uint32_t loc = env->task_pool[t].locations[0] + 1;
-    return get_dhm().get(source, loc);
+    for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
+        int loc = env->task_pool[t].locations[i];
+        if (i == 0) {
+            dist += get_dhm().get(source, loc + 1);
+        } else {
+            dist += get_hm().get(source, loc + 1);
+        }
+        source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
+    }
+    return dist;
 }
 
 void SchedulerSolver::set(uint32_t r, uint32_t t) {
@@ -34,7 +73,16 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
     double old_score = cur_score;
 
     uint32_t r = rnd.get(free_robots);
-    uint32_t new_t = rnd.get(free_tasks);
+    uint32_t new_t = -1;
+
+    if (dp[r].empty() || rnd.get_d() < 0.2) {
+        new_t = rnd.get(free_tasks);
+    } else {
+        new_t = dp[r][rnd.get(0, std::min(dp[r].size(), static_cast<size_t>(dp[r].size() * 0.2 + 1)))].second;
+        if(!env->task_pool.count(new_t) || env->task_pool[new_t].agent_assigned != -1){
+            new_t = rnd.get(free_tasks);
+        }
+    }
 
     uint32_t old_t = desires[r];
     uint32_t other_r = task_to_robot[new_t];
@@ -110,9 +158,10 @@ SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
 }
 
 void SchedulerSolver::update() {
-    if (desires.size() != env->num_of_agents) {
-        desires.resize(env->num_of_agents, -1);
-    }
+    desires.resize(env->num_of_agents, -1);
+    timestep_updated.resize(desires.size());
+    dp.resize(desires.size());
+
     free_robots.clear();
     free_tasks.clear();
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
@@ -150,17 +199,63 @@ void SchedulerSolver::update() {
 #endif
 }
 
+void SchedulerSolver::triv_solve() {
+    for (uint32_t r: free_robots) {
+        if (desires[r] != -1) {
+            set(r, -1);
+        }
+    }
+    // (dist, r, index)
+    std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
+    for (uint32_t r: free_robots) {
+        if (!dp[r].empty()) {
+            Heap.push({dp[r][0].first, r, 0});
+        }
+    }
+
+    std::unordered_set<uint32_t> used_task;
+
+    while (!Heap.empty()) {
+        auto [dist, r, index] = Heap.top();
+        Heap.pop();
+
+        uint32_t task_id = dp[r][index].second;
+        ASSERT(dist == dp[r][index].first, "invalid dist");
+
+        // not used in this timestep
+        if (used_task.count(task_id)
+            // this task is available
+            || !env->task_pool.count(task_id)
+            // robot already used this task
+            || env->task_pool[task_id].agent_assigned != -1) {
+
+            if (index + 1 < dp[r].size()) {
+                Heap.push({dp[r][index + 1].first, r, index + 1});
+            }
+
+            continue;
+        }
+
+        ASSERT(env->task_pool.count(task_id), "no contains");
+        ASSERT(env->task_pool[task_id].agent_assigned == -1, "already assigned");
+        ASSERT(!used_task.count(task_id), "already used");
+
+        set(r, task_id);
+        used_task.insert(task_id);
+    }
+}
+
 void SchedulerSolver::solve(TimePoint end_time) {
     if (free_robots.empty() || free_tasks.empty()) {
         return;
     }
     static Randomizer rnd;
-    temp = 1;
+    temp = 0.3;
     Timer timer;
-    for (uint32_t step = 0; step < 1'000'000; step++) {
+    for (uint32_t step = 0; step < 100'000; step++) {
         try_peek_task(rnd);
         //try_smart(rnd);
-        temp *= 0.9999;
+        temp *= 0.999;
     }
     Printer() << "SchedulerSolver: " << timer << ", " << get_score() << '\n';
 }

@@ -31,9 +31,16 @@ class SchedulerSolver {
 
     std::vector<uint32_t> free_tasks;
 
+    // dp[r] = отсортированный вектор (dist, task_id)
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp;
+
+    std::vector<int> timestep_updated;
+
     SharedEnvironment *env = nullptr;
 
     double temp = 1;
+
+    void rebuild_dp(uint32_t r);
 
     [[nodiscard]] bool compare(double cur_score, double old_score, Randomizer &rnd) const;
 
@@ -48,7 +55,7 @@ class SchedulerSolver {
         }
     }
 
-    [[nodiscard]] double get_dist(uint32_t r, uint32_t t) const;
+    [[nodiscard]] uint32_t get_dist(uint32_t r, uint32_t t) const;
 
     void set(uint32_t r, uint32_t t);
 
@@ -62,9 +69,13 @@ public:
 
     SchedulerSolver() = default;
 
-    SchedulerSolver(SharedEnvironment *env);
+    explicit SchedulerSolver(SharedEnvironment *env);
 
     void update();
+
+    void rebuild_dp(TimePoint end_time);
+
+    void triv_solve();
 
     void solve(TimePoint end_time);
 

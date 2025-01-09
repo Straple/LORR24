@@ -10,6 +10,28 @@
 #include <unordered_map>
 #include <unordered_set>
 
+int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
+    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    uint32_t loc = env->task_pool[t].locations[0] + 1;
+    return get_hm().get(source, loc);
+}
+
+int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
+    uint32_t dist = 0;
+    uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+    for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
+        int loc = env->task_pool[t].locations[i];
+        if (i == 0) {
+            dist += get_dhm().get(source, loc + 1);
+        } else {
+            dist += get_hm().get(source, loc + 1);
+        }
+        source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
+    }
+    return dist;
+}
+
 void MyScheduler::initialize(int preprocess_time_limit) {
 }
 
@@ -72,7 +94,9 @@ std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m)
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
     TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
     solver.update();
-    solver.solve(end_time);
+    solver.rebuild_dp(end_time); // TODO: here time
+    solver.triv_solve();
+    solver.solve(end_time); // TODO: here time
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();
 
@@ -122,44 +146,8 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     // dp[r] = отсортированный вектор (dist, task_id)
     static std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp(env->num_of_agents);
 
-    bool map_is_big = env->map_name != "random-32-32-20.map";
-
     // для свободного робота будем поддерживать расстояния от него до всех задач
     // и будем постепенно обновлять это множество
-
-    constexpr static uint32_t MAX_SCORE = -1;
-
-    auto get_dist_to_start = [&](uint32_t r, uint32_t t) {
-        uint32_t source = get_graph().get_node(
-                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-        uint32_t loc = env->task_pool[t].locations[0] + 1;
-        return get_hm().get(source, loc);// Heuristic Matrix
-    };
-
-    auto get_dist = [&](uint32_t r, uint32_t t) {
-        //if (map_is_big) {
-            uint32_t dist = 0;
-            uint32_t source = get_graph().get_node(
-                    Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-            for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
-                int loc = env->task_pool[t].locations[i];
-                if (i == 0) {
-                    dist += get_dhm().get(source, loc + 1);
-                } else {
-                    dist += get_hm().get(source, loc + 1);
-                }
-                source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
-            }
-            return dist;
-        /*} else {
-            uint32_t source = get_graph().get_node(
-                    Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-            ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-            uint32_t loc = env->task_pool[t].locations[0] + 1;
-            return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
-        }*/
-    };
 
     static std::vector<int> timestep_updated(free_robots.size(), -1);
 
@@ -168,7 +156,7 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
         dp[r].clear();
 
         for (uint32_t t: free_tasks) {
-            dp[r].emplace_back(get_dist(r, t), t);
+            dp[r].emplace_back(get_dist(r, t, env), t);
         }
         std::sort(dp[r].begin(), dp[r].end());
         timestep_updated[r] = env->curr_timestep;
@@ -202,7 +190,6 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
     Printer() << "free robots: " << free_robots.size() << '\n';
     Printer() << "free tasks: " << free_tasks.size() << '\n';
 #endif
-
 
     double workload = env->num_of_agents * 1.0 / get_map().get_count_free();
     uint32_t done_weight = 5;
@@ -250,7 +237,7 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
             proposed_schedule[r] = task_id;
             used_task_t[task_id] = launch_num;
             if (//get_dist_to_start(r, task_id) <= 1 ||
-                    get_dist_to_start(r, task_id) <= done_weight ||
+                    get_dist_to_start(r, task_id, env) <= done_weight ||
                     // слишком много свободных роботов сейчас
                     free_robots.size() > 600
                     ) {
@@ -428,20 +415,6 @@ std::vector<int> MyScheduler::greedy_schedule_double(int time_limit, std::vector
     Printer() << "Scheduler: " << timer << '\n';
 #endif
     return done_proposed_schedule;
-}
-
-int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
-    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-    uint32_t loc = env->task_pool[t].locations[0] + 1;
-    return get_hm().get(source, loc);
-}
-
-int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
-    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
-    uint32_t loc = env->task_pool[t].locations[0] + 1;
-    return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
 }
 
 std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
@@ -673,12 +646,12 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     Timer timer;
     auto old_schedule = proposed_schedule;
-    //auto res = solver_schedule(time_limit, proposed_schedule); // 5324
-    auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
+    auto res = solver_schedule(time_limit, proposed_schedule); // 5324
+    //auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
     // auto res = greedy_schedule_double(time_limit, proposed_schedule);
     // auto res = artem_schedule(time_limit, proposed_schedule);
 
-    /*{
+    {
         std::vector<int> greedy_ans = old_schedule;
         greedy_schedule(time_limit, greedy_ans);
         double greedy_score = 0;
@@ -697,7 +670,13 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         if (std::abs(greedy_score - solver.get_score()) > 1e-9) {
             Printer() << "diff solver scores!\n";
         }
-    }*/
+        if (solver.get_score() - 1e-9 > greedy_score) {
+            Printer() << "bad\n";
+        }
+        if (solver.get_score() - 1e-9 < greedy_score) {
+            Printer() << "good\n";
+        }
+    }
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Scheduler: " << timer << '\n';
 #endif
