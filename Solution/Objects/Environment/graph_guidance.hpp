@@ -18,11 +18,15 @@ struct GraphGuidance {
 
     void set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint16_t value);
 
+    void set_grid();
+
     void set_warehouse();
 
     void set_sortation();
 
     void set_game();
+
+    void set_city();
 
 public:
     GraphGuidance() = default;
