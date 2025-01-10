@@ -30,18 +30,19 @@ def read(filename):
 
         return result
 
+
 if __name__ == '__main__':
     data = read('../../graph_guidance')
 
     dirs = ["E", "S", "W", "N"]
     acts = ["FW", "R", "CR", "W"]
 
-    #fig, axes = plt.subplots(4, 4, figsize=(10, 10))
-    #images = []
-    for i in range(16):
+    # fig, axes = plt.subplots(4, 4, figsize=(10, 10))
+    # images = []
+    for i in range(4):
         fig, axes = plt.subplots(1, 1, figsize=(10, 10))
-        dir = i // 4
-        act = i % 4
+        dir = i  # i // 4
+        act = 0  # i % 4
         map = data[dir][act]
         ax = axes
         print("processing:", dir, act)
@@ -49,5 +50,5 @@ if __name__ == '__main__':
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
         plt.tight_layout()
-        #plt.show()
+        # plt.show()
         plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
