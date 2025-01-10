@@ -33,21 +33,21 @@ def read(filename):
 if __name__ == '__main__':
     data = read('../../graph_guidance')
 
-    dirs = ["East", "South", "West", "North"]
+    dirs = ["E", "S", "W", "N"]
+    acts = ["FW", "R", "CR", "W"]
 
-    acts = ["Forward", "Rotate", "C. rotate", "Wait"]
-
-    fig, axes = plt.subplots(4, 4, figsize=(10, 10))
-    images = []
+    #fig, axes = plt.subplots(4, 4, figsize=(10, 10))
+    #images = []
     for i in range(16):
+        fig, axes = plt.subplots(1, 1, figsize=(10, 10))
         dir = i // 4
         act = i % 4
         map = data[dir][act]
-        ax = axes[dir][act]
-        print(dir, act, map)
-        images.append(ax.imshow(map, cmap='viridis'))
+        ax = axes
+        print("processing:", dir, act)
+        ax.imshow(map, cmap='viridis')
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
-
-    plt.tight_layout()
-    plt.show()
+        plt.tight_layout()
+        #plt.show()
+        plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
