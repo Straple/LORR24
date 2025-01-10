@@ -6,8 +6,26 @@
 #include <fstream>
 
 bool verify_lol(const Operation &op) {
-    if(op.back() == Action::CR || op.back() == Action::CCR){
-        return false;
+    for (int32_t i = op.size() - 1; i >= 0; i--) {
+        if (op[i] == Action::FW) {
+            break;
+        }
+        if (op[i] == Action::CCR || op[i] == Action::CR) {
+            return false;
+        }
+    }
+    for (int i = 0; i < op.size(); i++) {
+        for (int j = i + 1; j < op.size(); j++) {
+            if (op[i] == Action::CR && op[j] == Action::CCR) {
+                return false;
+            }
+            if (op[i] == Action::CCR && op[j] == Action::CR) {
+                return false;
+            }
+            if (op[j] == Action::FW) {
+                break;
+            }
+        }
     }
     return true;
 }
@@ -34,57 +52,14 @@ std::vector<Operation> OperationsGenerator::get() {
     {
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
-
+                //call(0): 2415, 17.2015s
+                //call(1): 4194, 36.8581s
+                //call(2): 5280, 65.1133s
+                //call(3): 5702, 55.4142s
+                //call(4): 4835, 89.5953s
+                //call(5): 4113, 175.681s
+                //total: 26539
                 "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
-                
-/*
-FFF
-FFW
-FWF
-FWW
-WFF
-WFW
-WWF
-
-FCF
-FRF
-
-RFF
-CFF
-
-RFW
-CFW
-
-RRF
-
-RWF
-CWF
-*/
-
-                //call(0): 2505, 9.90557s
-                //call(1): 4171, 16.969s
-                //call(2): 5053, 22.3834s
-                //call(3): 5265, 32.6415s
-                //call(4): 4331, 44.9154s
-                //call(5): 3636, 68.7139s
-                //total: 24961
-                //"16\nFWW CFW FFW FFF FCF RFC RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF"// 5053
-
-                //"16\nFWW CFW FFW FFF FCF RFW RFF FWF FRF WFW WWF RWF CWF WFF CCF CFF"
-
-                //call(0): 2527, 12.9228s
-                //call(1): 4160, 24.5252s
-                //call(2): 4960, 34.0016s
-                //call(3): 4885, 47.2288s
-                //call(4): 3990, 64.5576s
-                //call(5): 3115, 96.0962s
-                //total: 23637
-                //"16\nFWW CFW FFW FFF FCF RFC RFF FWF FRF RWF CWF CCF CFF WFW WFF WWF" // 4960
-
-                //"8\nFFR RFW CCF FFC FWW FRW CFC WFW" // 2943
-                //"9\nFWW CFW RFC FRF WFW WWF RWF CWF CCF" // 3438
-
-                //"4\n FWW CFW RFW CCF" // 863
         );
         uint32_t num;
         input >> num;
@@ -109,6 +84,25 @@ CWF
         }
     }
 
+    auto kek = [&](Operation op){
+        int cnt = 0;
+        for(int i = 0; i < op.size(); i++){
+            cnt += op[i] == Action::FW;
+        }
+        return cnt;
+    };
+
+    //call(0): 2391, 15.1243s
+    //call(1): 4116, 25.4063s
+    //call(2): 5165, 45.2252s
+    //call(3): 5766, 58.3878s
+    //call(4): 4479, 100.457s
+    //call(5): 4025, 186.126s
+    //total: 25942
+    //std::stable_sort(pool.begin(), pool.end(), [&](auto lhs, auto rhs){
+    //    return kek(lhs) < kek(rhs);
+    //});
+
     //std::reverse(pool.begin(), pool.end());
 
     // add WWW
@@ -123,9 +117,9 @@ CWF
         pool.insert(pool.begin(), op);
     }
 
-    std::vector<Operation> result;// = pool;
+    std::vector<Operation> result = pool;
 
-    std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
+    /*std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
     for (auto operation: pool) {
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
         Position p;
@@ -138,7 +132,7 @@ CWF
             visited.insert(kek);
             result.push_back(operation);
         }
-    }
+    }*/
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Operation: " << result.size() << '\n';
