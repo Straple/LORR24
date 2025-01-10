@@ -92,11 +92,12 @@ std::vector<int> Hungarian(const std::vector<std::vector<int>> &a, int n, int m)
 }
 
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
-    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
+    //18637
     solver.update();
-    solver.rebuild_dp(end_time); // TODO: here time
-    solver.triv_solve();
-    solver.solve(end_time); // TODO: here time
+    Timer timer;
+    solver.rebuild_dp(get_now() + Milliseconds(200));
+    solver.triv_solve(get_now() + Milliseconds(50));
+    solver.solve(get_now() + Milliseconds(50));
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();
 
@@ -109,9 +110,7 @@ std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &
         int t = proposed_schedule[r];
         uint32_t source = get_graph().get_node(
                 Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        if (t != -1 && //env->curr_states[r].location == env->task_pool[t].get_next_loc()
-            get_hm().get(source, env->task_pool[t].get_next_loc() + 1) <= done_weight
-                ) {
+        if (t != -1 && get_hm().get(source, env->task_pool[t].get_next_loc() + 1) <= done_weight) {
             done_proposed_schedule[r] = t;
         }
     }
@@ -463,7 +462,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
     if (free_robots.size() * free_robots.size() * free_tasks.size() < 40'000'000) {
         THREADS_TO_USE = 1;
     }
-    int DEVIDE_Y = sqrt(THREADS_TO_USE);
+    int DEVIDE_Y = std::sqrt(THREADS_TO_USE);
     int DEVIDE_X = DEVIDE_Y;
 
 #ifdef ENABLE_PRINT_LOG
@@ -619,7 +618,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
     std::vector<std::thread> threads;
     for (size_t y = 0; y < DEVIDE_Y; y++) {
         for (size_t x = 0; x < DEVIDE_X; x++) {
-            threads.push_back(std::thread(RunHungary, y, x));
+            threads.emplace_back(RunHungary, y, x);
         }
     }
 
@@ -646,12 +645,12 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     Timer timer;
     auto old_schedule = proposed_schedule;
-    auto res = solver_schedule(time_limit, proposed_schedule); // 5324
-    //auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
+    auto res = solver_schedule(time_limit, proposed_schedule);
+    //auto res = greedy_schedule(time_limit, proposed_schedule);
     // auto res = greedy_schedule_double(time_limit, proposed_schedule);
     // auto res = artem_schedule(time_limit, proposed_schedule);
 
-    {
+    /*{
         std::vector<int> greedy_ans = old_schedule;
         greedy_schedule(time_limit, greedy_ans);
         double greedy_score = 0;
@@ -676,7 +675,7 @@ std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_sc
         if (solver.get_score() - 1e-9 < greedy_score) {
             Printer() << "good\n";
         }
-    }
+    }*/
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Scheduler: " << timer << '\n';
 #endif

@@ -7,16 +7,6 @@
 #include <vector>
 #include <cstdint>
 
-//-i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 1000 -p 100000000
-
-//call(0): 2550, 52.9529s
-//call(1): 4374, 66.2482s
-//call(2): 5305, 83.7859s
-//call(3): 5529, 98.0126s
-//call(4): 4682, 142.014s
-//call(5): 3702, 221.623s
-//total: 26142
-
 class SchedulerSolver {
 
     double cur_score = 0;
@@ -75,7 +65,7 @@ public:
 
     void rebuild_dp(TimePoint end_time);
 
-    void triv_solve();
+    void triv_solve(TimePoint end_time);
 
     void solve(TimePoint end_time);
 

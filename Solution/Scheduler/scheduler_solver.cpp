@@ -4,6 +4,7 @@
 #include <Objects/Environment/environment.hpp>
 
 #include <thread>
+#include <atomic>
 
 void SchedulerSolver::rebuild_dp(uint32_t r) {
     dp[r].clear();
@@ -15,14 +16,17 @@ void SchedulerSolver::rebuild_dp(uint32_t r) {
 }
 
 void SchedulerSolver::rebuild_dp(TimePoint end_time) {
+    Timer timer;
     std::vector<uint32_t> order = free_robots;
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
         return timestep_updated[lhs] < timestep_updated[rhs];
     });
 
+    std::atomic<uint32_t> counter{};
     auto do_work = [&](uint32_t thr) {
         for (uint32_t i = thr; i < order.size() && get_now() < end_time; i += THREADS) {
             rebuild_dp(order[i]);
+            ++counter;
         }
     };
 
@@ -33,6 +37,9 @@ void SchedulerSolver::rebuild_dp(TimePoint end_time) {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "SchedulerSolver::rebuild_dp: " << counter << "/" << order.size() << ", " << timer << '\n';
+#endif
 }
 
 bool SchedulerSolver::compare(double cur_score, double old_score, Randomizer &rnd) const {
@@ -79,7 +86,7 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
         new_t = rnd.get(free_tasks);
     } else {
         new_t = dp[r][rnd.get(0, std::min(dp[r].size(), static_cast<size_t>(dp[r].size() * 0.2 + 1)))].second;
-        if(!env->task_pool.count(new_t) || env->task_pool[new_t].agent_assigned != -1){
+        if (!env->task_pool.count(new_t) || env->task_pool[new_t].agent_assigned != -1) {
             new_t = rnd.get(free_tasks);
         }
     }
@@ -199,7 +206,8 @@ void SchedulerSolver::update() {
 #endif
 }
 
-void SchedulerSolver::triv_solve() {
+void SchedulerSolver::triv_solve(TimePoint end_time) {
+    Timer timer;
     for (uint32_t r: free_robots) {
         if (desires[r] != -1) {
             set(r, -1);
@@ -215,7 +223,7 @@ void SchedulerSolver::triv_solve() {
 
     std::unordered_set<uint32_t> used_task;
 
-    while (!Heap.empty()) {
+    while (!Heap.empty() && get_now() < end_time) {
         auto [dist, r, index] = Heap.top();
         Heap.pop();
 
@@ -243,6 +251,10 @@ void SchedulerSolver::triv_solve() {
         set(r, task_id);
         used_task.insert(task_id);
     }
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "SchedulerSolver::triv_solve: " << timer << '\n';
+#endif
 }
 
 void SchedulerSolver::solve(TimePoint end_time) {
@@ -250,14 +262,18 @@ void SchedulerSolver::solve(TimePoint end_time) {
         return;
     }
     static Randomizer rnd;
-    temp = 0.3;
+    temp = 0.5;
     Timer timer;
-    for (uint32_t step = 0; step < 100'000; step++) {
+    double old_score = get_score();
+    uint32_t step = 0;
+    for (; get_now() < end_time; step++) {
         try_peek_task(rnd);
         //try_smart(rnd);
         temp *= 0.999;
     }
-    Printer() << "SchedulerSolver: " << timer << ", " << get_score() << '\n';
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << ", " << step << ", " << timer << '\n';
+#endif
 }
 
 std::vector<int> SchedulerSolver::get_schedule() const {
