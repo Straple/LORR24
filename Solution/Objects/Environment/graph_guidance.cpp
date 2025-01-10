@@ -3,6 +3,9 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/position.hpp>
 
+uint16_t PENALTY_WEIGHT = 3;
+uint16_t OK_WEIGHT = 2;
+
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint16_t value) {
     for (int32_t x = x0; x <= x1; x++) {
         for (int32_t y = y0; y <= y1; y++) {
@@ -17,38 +20,21 @@ void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t
 
 void GraphGuidance::set_grid() {
     for (uint32_t x = 0; x < rows; x++) {
-        for (uint32_t y = 0; y < cols; y++) {
-            uint32_t pos = x * cols + y + 1;
-
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                for (uint32_t action = 0; action < 4; action++) {
-                    graph[pos][dir][action] = 2;
-
-                    if (action != 0) {
-                        continue;
-                    }
-
-                    if (y % 2 == 0) {
-                        if (dir == 1) {
-                            graph[pos][dir][action] = 3;
-                        }
-                    } else {
-                        if (dir == 3) {
-                            graph[pos][dir][action] = 3;
-                        }
-                    }
-
-                    if (x % 2 == 0) {
-                        if (dir == 0) {
-                            graph[pos][dir][action] = 3;
-                        }
-                    } else {
-                        if (dir == 2) {
-                            graph[pos][dir][action] = 3;
-                        }
-                    }
-                }
-            }
+        if (x & 1) {
+            set(x, 0, x, cols - 1, 0, 0, PENALTY_WEIGHT);
+            set(x, 0, x, cols - 1, 2, 0, OK_WEIGHT);
+        } else {
+            set(x, 0, x, cols - 1, 2, 0, PENALTY_WEIGHT);
+            set(x, 0, x, cols - 1, 0, 0, OK_WEIGHT);
+        }
+    }
+    for (uint32_t y = 0; y < cols; y++) {
+        if (y & 1) {
+            set(0, y, rows - 1, y, 1, 0, PENALTY_WEIGHT);
+            set(0, y, rows - 1, y, 3, 0, OK_WEIGHT);
+        } else {
+            set(0, y, rows - 1, y, 3, 0, PENALTY_WEIGHT);
+            set(0, y, rows - 1, y, 1, 0, OK_WEIGHT);
         }
     }
 }
@@ -60,11 +46,11 @@ void GraphGuidance::set_warehouse() {
     int bit = 0;
     for (uint32_t y = 0; y < cols; y++) {
         if ((msk >> bit) & 1) {
-            set(0, y, rows - 1, y, 1, 0, 3);
-            set(0, y, rows - 1, y, 3, 0, 2);
+            set(0, y, rows - 1, y, 1, 0, PENALTY_WEIGHT);
+            set(0, y, rows - 1, y, 3, 0, OK_WEIGHT);
         } else {
-            set(0, y, rows - 1, y, 3, 0, 3);
-            set(0, y, rows - 1, y, 1, 0, 2);
+            set(0, y, rows - 1, y, 3, 0, PENALTY_WEIGHT);
+            set(0, y, rows - 1, y, 1, 0, OK_WEIGHT);
         }
         bit = (bit + 1) % 8;
     }
@@ -76,11 +62,11 @@ void GraphGuidance::set_sortation() {
         int bit = 0;
         for (uint32_t x = 0; x < rows; x++) {
             if ((msk >> bit) & 1) {
-                set(x, 0, x, cols - 1, 0, 0, 3);
-                set(x, 0, x, cols - 1, 2, 0, 2);
+                set(x, 0, x, cols - 1, 0, 0, PENALTY_WEIGHT);
+                set(x, 0, x, cols - 1, 2, 0, OK_WEIGHT);
             } else {
-                set(x, 0, x, cols - 1, 2, 0, 3);
-                set(x, 0, x, cols - 1, 0, 0, 2);
+                set(x, 0, x, cols - 1, 2, 0, PENALTY_WEIGHT);
+                set(x, 0, x, cols - 1, 0, 0, OK_WEIGHT);
             }
             bit = (bit + 1) % 4;
         }
@@ -91,11 +77,11 @@ void GraphGuidance::set_sortation() {
         int bit = 0;
         for (uint32_t y = 0; y < cols; y++) {
             if ((msk >> bit) & 1) {
-                set(0, y, rows - 1, y, 1, 0, 3);
-                set(0, y, rows - 1, y, 3, 0, 2);
+                set(0, y, rows - 1, y, 1, 0, PENALTY_WEIGHT);
+                set(0, y, rows - 1, y, 3, 0, OK_WEIGHT);
             } else {
-                set(0, y, rows - 1, y, 3, 0, 3);
-                set(0, y, rows - 1, y, 1, 0, 2);
+                set(0, y, rows - 1, y, 3, 0, PENALTY_WEIGHT);
+                set(0, y, rows - 1, y, 1, 0, OK_WEIGHT);
             }
             bit = (bit + 1) % 4;
         }
@@ -126,16 +112,17 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.
         set_city();
     } else {
         Printer() << "random" << '\n';
-        for (uint32_t x = 0; x < rows; x++) {
+        set_grid();
+        /*for (uint32_t x = 0; x < rows; x++) {
             for (uint32_t y = 0; y < cols; y++) {
                 uint32_t pos = x * cols + y + 1;
                 for (uint32_t dir = 0; dir < 4; dir++) {
                     for (uint32_t action = 0; action < 4; action++) {
-                        graph[pos][dir][action] = 2;
+                        graph[pos][dir][action] = OK_WEIGHT;
                     }
                 }
             }
-        }
+        }*/
     }
     for (uint32_t x = 0; x < rows; x++) {
         for (uint32_t y = 0; y < cols; y++) {
@@ -149,11 +136,11 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.
             }
         }
     }
-    {
+    /*{
         std::ofstream output("graph_guidance");
         output << *this;
     }
-    std::exit(0);
+    std::exit(0);*/
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {
