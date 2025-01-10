@@ -99,19 +99,19 @@ void GraphGuidance::set_city() {
 GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.get_rows()), cols(map.get_cols()) {
     graph.resize(map.get_size());
     if (env.map_name == "warehouse_large.map") {
-        Printer() << "warehouse" << '\n';
+        //Printer() << "warehouse" << '\n';
         set_warehouse();
     } else if (env.map_name == "sortation_large.map") {
-        Printer() << "sortation" << '\n';
+        //Printer() << "sortation" << '\n';
         set_sortation();
     } else if (env.map_name == "brc202d.map") {
-        Printer() << "game" << '\n';
+        //Printer() << "game" << '\n';
         set_game();
     } else if (env.map_name == "Paris_1_256.map") {
-        Printer() << "city" << '\n';
+        //Printer() << "city" << '\n';
         set_city();
     } else {
-        Printer() << "random" << '\n';
+        //Printer() << "random" << '\n';
         set_grid();
         /*for (uint32_t x = 0; x < rows; x++) {
             for (uint32_t y = 0; y < cols; y++) {

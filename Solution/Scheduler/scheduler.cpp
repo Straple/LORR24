@@ -39,11 +39,11 @@ void MyScheduler::initialize(int preprocess_time_limit) {
 const int INF = 1000000;
 
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
+    TimePoint point = get_now();
     solver.update();
-    Timer timer;
-    solver.rebuild_dp(get_now() + Milliseconds(200));
-    solver.triv_solve(get_now() + Milliseconds(50));
-    //solver.solve(get_now() + Milliseconds(50));
+    solver.rebuild_dp(point + Milliseconds(200));
+    solver.triv_solve(point + Milliseconds(300));
+    solver.solve(get_now() + Milliseconds(50));
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();
 
