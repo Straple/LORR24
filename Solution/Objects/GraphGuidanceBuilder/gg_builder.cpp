@@ -4,6 +4,8 @@
 #include <Objects/GraphGuidanceBuilder/graph_guidance_solver.hpp>
 
 int main() {
+    Printer().get() = std::ofstream("gg_log");
+
     /*std::ofstream output("best_gg.txt");
     GraphGuidance gg(32, 32);
     for (uint32_t pos = 0; pos < 32 * 32 + 1; pos++) {
@@ -25,9 +27,17 @@ int main() {
     std::cout << "params: " << params << '\n';*/
 
     GraphGuidance gg;
-    std::ifstream input("best_gg");
-    input >> gg;
+    {
+        std::ifstream input("best_gg");
+        input >> gg;
+    }
 
-    GraphGuidanceSolver ggs(gg);
+    int dhm_power = 500;
+    {
+        std::ifstream input("best_args");
+        input >> dhm_power;
+    }
+
+    GraphGuidanceSolver ggs(gg, dhm_power);
     ggs.solve();
 }

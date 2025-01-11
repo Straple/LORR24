@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
     get_unique_id() = vm["unique_id"].as<uint32_t>();
-    //std::cout << "unique_id: " << UNIQUE_ID << std::endl;
+    Printer() << "unique_id: " << get_unique_id() << '\n';
 
     if (vm.count("help")) {
         std::cout << desc << std::endl;
@@ -178,6 +178,7 @@ int main(int argc, char **argv) {
 #ifdef BUILD_META_INFO
     build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
                     "Tmp/meta" + std::to_string(get_unique_id()));
+    Printer().get().flush();
 #endif
 
     _exit(0);

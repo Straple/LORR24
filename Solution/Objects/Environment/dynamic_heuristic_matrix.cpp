@@ -54,15 +54,55 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
         }
     }*/
 
+    // (dist, node)
+    std::priority_queue<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, uint32_t>>, std::greater<>> heap;
+
+    std::vector<bool> visited(dists.size());
+
+    for (uint32_t dir = 0; dir < 4; dir++) {
+        ASSERT(Position(source, dir).is_valid(), "invalid");
+        uint32_t node = get_graph().get_node(Position(source, dir));
+        heap.push({0, node});
+        dists[node] = 0;
+    }
+
+    while (!heap.empty()) {
+        auto [dist, node] = heap.top();
+        heap.pop();
+
+        ASSERT(0 < node && node < get_graph().get_nodes_size(), "invalid node");
+        ASSERT(node < visited.size(), "invalid node");
+
+        if (visited[node]) {
+            continue;
+        }
+        visited[node] = true;
+        ASSERT(dists[node] == dist, "invalid dist");
+
+        for (uint32_t action = 0; action < 3; action++) {
+            uint32_t to = get_graph().get_to_node(node, action);
+            ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
+            if (to && !visited[to]) {
+                uint32_t to_dist = dist;
+                to_dist += std::max(0,
+                                    static_cast<int32_t>(get_graph().get_weight(node, action)) + weights[node][action]);
+                if (dists[to] > to_dist) {
+                    dists[to] = to_dist;
+                    heap.push({to_dist, to});
+                }
+            }
+        }
+    }
+
     // queue[dist - queue_dist] = { node }
-    std::vector<std::vector<uint32_t>> queue(1);
+    /*std::deque<std::vector<uint32_t>> queue(1);
     uint32_t queue_dist = 0;
 
     std::vector<bool> visited(dists.size());
 
     auto update_queue = [&]() {
-        while (!queue.empty() && queue[0].empty()) {
-            queue.erase(queue.begin());
+        while (!queue.empty() && queue.front().empty()) {
+            queue.pop_front();
             queue_dist++;
         }
     };
@@ -88,9 +128,9 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
         if (queue.empty()) {
             break;
         }
-        ASSERT(!queue[0].empty(), "empty");
-        uint32_t node = queue[0].back();
-        queue[0].pop_back();
+        ASSERT(!queue.front().empty(), "empty");
+        uint32_t node = queue.front().back();
+        queue.front().pop_back();
 
         ASSERT(0 < node && node < get_graph().get_nodes_size(), "invalid node");
         ASSERT(node < visited.size(), "invalid node");
@@ -114,7 +154,7 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
                 }
             }
         }
-    }
+    }*/
 }
 
 DynamicHeuristicMatrix::DynamicHeuristicMatrix(const Map &map, const Graph &graph) {
@@ -127,7 +167,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 #ifdef ENABLE_DHM
     Timer timer;
 
-    auto read_power = [&](){
+    auto read_power = [&]() {
         std::ifstream input("Tmp/args" + std::to_string(get_unique_id()));
         int x;
         input >> x;
@@ -206,7 +246,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     std::atomic<uint32_t> total_rebuild = 0;
 
     auto do_work = [&](uint32_t thr) {
-        for (uint32_t index = thr; index < pool.size() && get_now() < end_time; index += THREADS) {
+        for (uint32_t index = thr; index < pool.size() && get_now() < end_time && index < DHM_REBUILD_COUNT; index += THREADS) {
             auto [_, target] = pool[index];
 
             timestep_updated[target] = env.curr_timestep;

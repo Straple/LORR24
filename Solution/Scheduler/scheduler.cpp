@@ -41,8 +41,8 @@ const int INF = 1000000;
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
     TimePoint point = get_now();
     solver.update();
-    solver.rebuild_dp(point + Milliseconds(200));
-    solver.triv_solve(point + Milliseconds(300));
+    solver.rebuild_dp(point + Milliseconds(10000000));
+    solver.triv_solve(point + Milliseconds(10000000));
     //solver.solve(get_now() + Milliseconds(50));
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();

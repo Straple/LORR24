@@ -31,12 +31,7 @@ def read(filename):
         return result
 
 
-if __name__ == '__main__':
-    data = read('../../graph_guidance')
-
-    dirs = ["E", "S", "W", "N"]
-    acts = ["FW", "R", "CR", "W"]
-
+def build_svgs():
     # fig, axes = plt.subplots(4, 4, figsize=(10, 10))
     # images = []
     for i in range(4):
@@ -52,3 +47,29 @@ if __name__ == '__main__':
         plt.tight_layout()
         # plt.show()
         plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
+
+
+def paint():
+    fig, axes = plt.subplots(4, 4, figsize=(10, 10))
+    images = []
+    for i in range(16):
+        dir = i // 4
+        act = i % 4
+        map = data[dir][act]
+        ax = axes[dir][act]
+        print("processing:", dir, act)
+        ax.imshow(map, cmap='viridis')
+        ax.set_title(dirs[dir] + " & " + acts[act])
+        ax.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+dirs = ["E", "S", "W", "N"]
+acts = ["FW", "R", "CR", "W"]
+
+if __name__ == '__main__':
+    data = read('../../best_gg')
+
+    paint()
+    #build_svgs()

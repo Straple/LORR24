@@ -6,6 +6,6 @@ uint32_t &get_unique_id() {
 }
 
 std::ofstream &Printer::get() const {
-    static std::ofstream output("printer");
+    static std::ofstream output;
     return output;
 }

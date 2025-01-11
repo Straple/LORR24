@@ -9,8 +9,6 @@
 using json = nlohmann::json;
 
 void build_meta_info(const std::string &from, const std::string &to) {
-    std::ofstream output(to);
-    output << get_map().get_rows() << ' ' << get_map().get_cols() << std::endl;
     json data;
     std::ifstream input(from);
     try {
@@ -53,6 +51,8 @@ void build_meta_info(const std::string &from, const std::string &to) {
         id++;
     }
 
+    std::ofstream output(to);
+    output << get_map().get_rows() << ' ' << get_map().get_cols() << std::endl;
     for (uint32_t dir = 0; dir < 5; dir++) {
         for (uint32_t act = 0; act < 5; act++) {
             for (uint32_t pos = 0; pos < get_map().get_size(); pos++) {

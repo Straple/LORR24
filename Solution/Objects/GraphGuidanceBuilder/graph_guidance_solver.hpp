@@ -20,9 +20,9 @@ class GraphGuidanceSolver {
     void simulate_solver(uint32_t thr);
 
 public:
-    explicit GraphGuidanceSolver(const GraphGuidance &gg);
+    GraphGuidanceSolver(const GraphGuidance &gg, int dhm_power);
 
     void solve();
 
-    [[nodiscard]] double get_score(const GraphGuidance &gg, int dhm_power, uint32_t thr) const;
+    [[nodiscard]] double get_score(const GraphGuidance &gg, int dhm_power, uint32_t thr);
 };
