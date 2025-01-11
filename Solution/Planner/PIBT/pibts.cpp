@@ -434,7 +434,10 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
             add_path(r);
             if (old_score - 1e-9 <= cur_score
                 // old_score > cur_score
-                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp) {
+#ifdef ENABLE_PIBTS_ANNEALING
+                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
+#endif
+                    ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -525,7 +528,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             add_path(r);
             if (old_score - 1e-9 <= cur_score
                 // old_score > cur_score
-                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp) {
+#ifdef ENABLE_PIBTS_ANNEALING
+                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
+#endif
+                    ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -888,7 +894,7 @@ void PIBTS::do_work(uint32_t thr) {
 }
 
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
-    : robots(robots), end_time(end_time), rnd(seed) {
+        : robots(robots), end_time(end_time), rnd(seed) {
 
     visited.resize(robots.size());
     desires.resize(robots.size());

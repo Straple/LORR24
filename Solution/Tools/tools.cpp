@@ -1,24 +1,22 @@
 #include <Tools/tools.hpp>
 
 #include <Objects/Basic/assert.hpp>
-#include <Objects/Environment/graph.hpp>
-#include <Objects/Environment/heuristic_matrix.hpp>
+#include <Objects/Basic/position.hpp>
 #include <Objects/Environment/map.hpp>
 
-#include "../../inc/nlohmann/json.hpp"
+#include <../inc/nlohmann/json.hpp>
+
 using json = nlohmann::json;
 
-void build_meta_info(const std::string &filename) {
-    std::ofstream output("output.txt");
+void build_meta_info(const std::string &from, const std::string &to) {
+    std::ofstream output(to);
     output << get_map().get_rows() << ' ' << get_map().get_cols() << std::endl;
     json data;
-    std::ifstream input(filename);
+    std::ifstream input(from);
     try {
         data = json::parse(input);
     } catch (const json::parse_error &error) {
-        std::cerr << "Failed to load " << filename << std::endl;
-        std::cerr << "Message: " << error.what() << std::endl;
-        exit(1);
+        ASSERT(false, "failed to load: " + from + ", " + error.what());
     }
 
     // [pos][dir][action]
@@ -28,7 +26,8 @@ void build_meta_info(const std::string &filename) {
 
     for (auto start: data["start"]) {
         std::string dir = start[2];
-        uint32_t dir_val = dir == "E" ? 0 : (dir == "S" ? 1 : (dir == "W" ? 2 : (dir == "N" ? 3 : (ASSERT(false, "failed"), -1))));
+        uint32_t dir_val =
+                dir == "E" ? 0 : (dir == "S" ? 1 : (dir == "W" ? 2 : (dir == "N" ? 3 : (ASSERT(false, "failed"), -1))));
         Position pos(start[0], start[1], dir_val);
         starts.push_back(pos);
     }
@@ -39,7 +38,7 @@ void build_meta_info(const std::string &filename) {
         Position pos = starts[id];
         for (int i = 0; i < path.size(); i += 2) {
             char c = path[i];
-            if(c != 'F' && c != 'R' && c != 'C' && c != 'W'){
+            if (c != 'F' && c != 'R' && c != 'C' && c != 'W') {
                 std::cout << "invalid action: " << c << std::endl;
             }
             Action act = c == 'F' ? Action::FW : (c == 'R' ? Action::CR : (c == 'C' ? Action::CCR : Action::W));

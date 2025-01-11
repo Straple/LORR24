@@ -121,12 +121,17 @@ ELSE ()
 
     add_executable(lifelong src/driver.cpp ${SOURCES})
 
+    add_executable(GGbuilder
+            Solution/Objects/GraphGuidanceBuilder/gg_builder.cpp
+            Solution/Objects/GraphGuidanceBuilder/graph_guidance_solver.cpp
+            ${SOURCES})
+
     target_link_libraries(lifelong ${Boost_LIBRARIES})
-    #target_link_libraries(build_main ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
 
     target_link_libraries(pibt_main ${Boost_LIBRARIES})
     target_link_libraries(tester ${Boost_LIBRARIES})
+    target_link_libraries(GGbuilder ${Boost_LIBRARIES})
 
 ENDIF ()
 

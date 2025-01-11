@@ -6,7 +6,7 @@
 uint16_t PENALTY_WEIGHT = 4;
 uint16_t OK_WEIGHT = 2;
 
-void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint16_t value) {
+void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
     for (int32_t x = x0; x <= x1; x++) {
         for (int32_t y = y0; y <= y1; y++) {
             int32_t pos = x * cols + y + 1;
@@ -96,8 +96,10 @@ void GraphGuidance::set_city() {
     set_grid();
 }
 
-GraphGuidance::GraphGuidance(SharedEnvironment &env, const Map &map) : rows(map.get_rows()), cols(map.get_cols()) {
-    graph.resize(map.get_size());
+GraphGuidance::GraphGuidance(uint32_t rows, uint32_t cols) : rows(rows), cols(cols), graph(rows * cols + 1) {
+}
+
+GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.cols), graph(env.rows * env.cols + 1) {
     if (env.map_name == "warehouse_large.map") {
         //Printer() << "warehouse" << '\n';
         set_warehouse();
@@ -150,7 +152,7 @@ uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {
     return graph[pos][dir][action];
 }
 
-void GraphGuidance::set(uint32_t pos, uint32_t dir, uint32_t action, uint16_t weight) {
+void GraphGuidance::set(uint32_t pos, uint32_t dir, uint32_t action, uint32_t weight) {
     ASSERT(pos < graph.size(), "invalid pos");
     ASSERT(dir < 4, "invalid dir");
     ASSERT(action < 4, "invalid action");
@@ -158,17 +160,13 @@ void GraphGuidance::set(uint32_t pos, uint32_t dir, uint32_t action, uint16_t we
 }
 
 std::istream &operator>>(std::istream &input, GraphGuidance &gg) {
-    uint32_t size;
-    input >> size;
-    gg.graph.resize(size);
-    ASSERT(false, "outdated");
+    uint32_t rows, cols;
+    input >> rows >> cols;
+    gg = GraphGuidance(rows, cols);
     for (uint32_t dir = 0; dir < 4; dir++) {
         for (uint32_t action = 0; action < 4; action++) {
-            for (uint32_t x = 0; x < gg.rows; x++) {
-                for (uint32_t y = 0; y < gg.cols; y++) {
-                    uint32_t pos = x * gg.cols + y + 1;
-                    input >> gg.graph[pos][dir][action];
-                }
+            for (uint32_t pos = 1; pos < gg.graph.size(); pos++) {
+                input >> gg.graph[pos][dir][action];
             }
         }
     }
@@ -189,6 +187,18 @@ std::ostream &operator<<(std::ostream &output, const GraphGuidance &gg) {
         }
     }
     return output;
+}
+
+uint32_t GraphGuidance::get_size() const {
+    return graph.size();
+}
+
+uint32_t GraphGuidance::get_rows() const {
+    return rows;
+}
+
+uint32_t GraphGuidance::get_cols() const {
+    return cols;
 }
 
 GraphGuidance &get_gg() {
