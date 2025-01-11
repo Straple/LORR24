@@ -8,64 +8,27 @@
 #include <fstream>
 #include <thread>
 
-//finish(0): 12188.2, 2460, 67.5548s
-//finish(4): 12188.2, 2460, 100.691s
-//improve(4): 12188.2 -> 12188.2
-//finish(2): 12188.2, 2460, 100.914s
-//improve(2): 12188.2 -> 12188.2
-//finish(5): 12188.2, 2460, 101.498s
-//improve(5): 12188.2 -> 12188.2
-//finish(0): 12188.2, 2460, 101.683s
-//improve(0): 12188.2 -> 12188.2
-//finish(3): 12188.2, 2460, 101.753s
-//improve(3): 12188.2 -> 12188.2
-//finish(1): 12188.2, 2460, 101.913s
-//improve(1): 12188.2 -> 12188.2
-//finish(4): 12188.2, 2460, 106.755s
-//improve(4): 12188.2 -> 12188.2
-//finish(2): 12188.2, 2460, 106.812s
-//improve(2): 12188.2 -> 12188.2
-//finish(5): 12188.2, 2460, 107.531s
-//improve(5): 12188.2 -> 12188.2
-//finish(1): 0, 2460, 107.686s
-//finish(3): 12188.2, 2460, 107.908s
-//improve(3): 12188.2 -> 12188.2
-//finish(0): 12188.2, 2460, 108.65s
-//improve(0): 12188.2 -> 12188.2
-//finish(1): 12188.2, 2460, 111.307s
-//improve(1): 12188.2 -> 12188.2
-//finish(4): 12188.2, 2460, 113.655s
-//improve(4): 12188.2 -> 12188.2
-//finish(3): 0, 2460, 111.65s
-//finish(2): 12188.2, 2460, 113.637s
-//improve(2): 12188.2 -> 12188.2
-//finish(0): 12188.2, 2460, 111.468s
-//improve(0): 12188.2 -> 12188.2
-//finish(5): 12188.2, 2460, 113.77s
-//improve(5): 12188.2 -> 12188.2
-//finish(4): 12188.2, 2460, 107.867s
-//improve(4): 12188.2 -> 12188.2
-//finish(2): 12188.2, 2460, 107.819s
-//improve(2): 12188.2 -> 12188.2
-//finish(3): 8636.43, 2460, 108.683s
-//finish(0): 8636.43, 2567, 108.203s
-//finish(1): 8636.43, 2460, 109.386s
-//finish(5): 8636.43, 2567, 108.48s
-//finish(4): 8636.43, 2567, 103.044s
-//finish(2): 8636.43, 2567, 103.784s
-//finish(0): 11740.5, 2426, 103.126s
-//finish(3): 11740.5, 2426, 104.07s
-//finish(1): 11740.5, 2426, 104.45s
-//finish(5): 11740.5, 2426, 104.579s
+Meta operator+(Meta lhs, const Meta &rhs) {
+    ASSERT(lhs.size() == rhs.size(), "unmatch sizes");
+    for (uint32_t pos = 0; pos < lhs.size(); pos++) {
+        for (uint32_t dir = 0; dir < 5; dir++) {
+            for (uint32_t act = 0; act < 5; act++) {
+                lhs[pos][dir][act] += rhs[pos][dir][act];
+            }
+        }
+    }
+    return lhs;
+}
 
-void GraphGuidanceSolver::change_pointwise(GraphGuidance &gg, Randomizer &rnd) const {
-    uint32_t dir = rnd.get(0, 3);
-    uint32_t act = rnd.get(0, 3);
+void GraphGuidanceSolver::change_path(GraphGuidance &gg, Randomizer &rnd) const {
     uint32_t pos = rnd.get(1, gg.get_size() - 1);
-    uint32_t len = rnd.get(1, 20);
+    uint32_t len = rnd.get(1, 30);
 
-    int diff = rnd.get(-10, 10);
+    int diff = rnd.get(-30, 30);
     while (len--) {
+        uint32_t dir = rnd.get(0, 3);
+        uint32_t act = rnd.get(0, 3);
+
         int val = gg.get(pos, dir, act);
         val += diff;
         val = std::max(100, val);
@@ -77,56 +40,125 @@ void GraphGuidanceSolver::change_pointwise(GraphGuidance &gg, Randomizer &rnd) c
         ASSERT(0 <= x && x < gg.get_rows(), "invalid x");
         ASSERT(0 <= y && y < gg.get_cols(), "invalid y");
 
-        int dir = rnd.get(0, 3);
-        if (dir == 0) {
-            y++;
-        } else if (dir == 1) {
-            x++;
-        } else if (dir == 2) {
-            y--;
-        } else if (dir == 3) {
-            x--;
-        }
+        {
+            int dir = rnd.get(0, 3);
+            if (dir == 0) {
+                y++;
+            } else if (dir == 1) {
+                x++;
+            } else if (dir == 2) {
+                y--;
+            } else if (dir == 3) {
+                x--;
+            }
 
-        if (0 <= x && x < gg.get_rows() && 0 <= y && y < gg.get_cols()) {
-            pos = x * gg.get_cols() + y + 1;
+            if (0 <= x && x < gg.get_rows() && 0 <= y && y < gg.get_cols()) {
+                pos = x * gg.get_cols() + y + 1;
+            }
         }
     }
 }
 
+void GraphGuidanceSolver::big_change(GraphGuidance &gg, Randomizer &rnd) const {
+    int left = -1;
+    int right = 1;
+    if (rnd.get_d() < 0.1) {
+        left = -50;
+        right = -50;
+    }
+    for (uint32_t dir = 0; dir < 4; dir++) {
+        for (uint32_t act = 0; act < 4; act++) {
+            for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
+                int val = gg.get(pos, dir, act);
+                val += rnd.get(left, right);
+                val = std::max(100, val);
+                val = std::min(10'000, val);
+                gg.set(pos, dir, act, val);
+            }
+        }
+    }
+}
+
+void GraphGuidanceSolver::smart_change(GraphGuidance &gg, const Meta &meta, Randomizer &rnd) const {
+    // (priority, pos, dir, action)
+    std::vector<std::tuple<double, uint32_t, uint32_t, uint32_t>> pool;
+    for (uint32_t dir = 0; dir < 4; dir++) {
+        for (uint32_t act = 0; act < 4; act++) {
+            for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
+                double priority = 1e9;
+                for (uint32_t other_dir = 0; other_dir < 4; other_dir++) {
+                    priority = std::min(priority,
+                                        std::abs(static_cast<double>(meta[pos][dir][act]) - meta[pos][other_dir][act]));
+                }
+                pool.emplace_back(priority, pos, dir, act);
+            }
+        }
+    }
+    std::sort(pool.begin(), pool.end(), std::greater<>());
+
+    uint32_t len = rnd.get(1, 30);
+    for (uint32_t i = 0; i < len && i < pool.size(); i++) {
+        if (rnd.get_d() < 0.3) {
+            continue;
+        }
+        auto [priority, pos, dir, act] = pool[i];
+        int val = gg.get(pos, dir, act);
+        val += rnd.get(-30, 30);
+        val = std::max(100, val);
+        val = std::min(10'000, val);
+        gg.set(pos, dir, act, val);
+    }
+}
+
 void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
-    Randomizer rnd(42 * thr + 5001);
+    Randomizer rnd(424242 * thr + 298412);
     while (true) {
         GraphGuidance gg;
         int dhm_power;
+        Meta meta;
         {
             std::unique_lock locker(mutex);
             gg = best_gg;
             dhm_power = best_dhm_power;
+            meta = best_meta;
         }
 
-        if (rnd.get_d() < 0.9) {
-            change_pointwise(gg, rnd);
+        double p = rnd.get_d();
+        if (p < 0.3) {
+            smart_change(gg, meta, rnd);
+        } else if (p < 0.6) {
+            big_change(gg, rnd);
+        } else if (p < 0.9) {
+            change_path(gg, rnd);
         } else {
-            dhm_power += rnd.get(-5, 5);
+            dhm_power += rnd.get(-200, 200);
             dhm_power = std::max(100, dhm_power);
             dhm_power = std::min(10'000, dhm_power);
         }
 
-        double cur_score = get_score(gg, dhm_power, thr);
-        double again_score = get_score(gg, dhm_power, thr);
+        if (rnd.get_d() < 0.05) {
+            dhm_power += rnd.get(-200, 200);
+            dhm_power = std::max(100, dhm_power);
+            dhm_power = std::min(10'000, dhm_power);
+        }
+
+        double score = 0;
+        std::tie(score, meta) = get_score(gg, dhm_power, thr);
+
+        /*double again_score = get_score(gg, dhm_power, thr);
         ASSERT(std::abs(cur_score - again_score) < 1e-9,
                "invalid scores: " + std::to_string(cur_score) + " != " + std::to_string(again_score) + ", thr: " +
-               std::to_string(thr));
+               std::to_string(thr));*/
 
         {
             std::unique_lock locker(mutex);
-            if (cur_score <= best_score) {
-                Printer() << "improve(" << thr << "): " << best_score << " -> " << cur_score << '\n';
+            if (score < best_score || rnd.get_d() < 5.0 / (score - best_score + 1)) {
+                Printer() << "improve(" << thr << "): " << best_score << " -> " << score << '\n';
                 Printer().get().flush();
 
-                best_score = cur_score;
+                best_score = score;
                 best_gg = gg;
+                best_meta = meta;
                 best_dhm_power = dhm_power;
 
                 {
@@ -137,6 +169,18 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
                     std::ofstream output("best_args");
                     output << best_dhm_power;
                 }
+                {
+                    std::ofstream output("best_meta");
+                    output << gg.get_rows() << ' ' << gg.get_cols() << '\n';
+                    for (uint32_t dir = 0; dir < 5; dir++) {
+                        for (uint32_t act = 0; act < 5; act++) {
+                            for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
+                                output << meta[pos][dir][act] << ' ';
+                            }
+                            output << '\n';
+                        }
+                    }
+                }
             }
         }
     }
@@ -144,8 +188,8 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
 
 GraphGuidanceSolver::GraphGuidanceSolver(const GraphGuidance &gg, int dhm_power)
         : best_gg(gg),
-          best_dhm_power(dhm_power),
-          best_score(get_score(gg, best_dhm_power, 0)) {
+          best_dhm_power(dhm_power) {
+    std::tie(best_score, best_meta) = get_score(gg, best_dhm_power, 0);
 }
 
 void GraphGuidanceSolver::solve() {
@@ -160,8 +204,9 @@ void GraphGuidanceSolver::solve() {
     }
 }
 
-double GraphGuidanceSolver::get_score(const GraphGuidance &gg, int dhm_power, uint32_t thr) {
+std::pair<double, Meta> GraphGuidanceSolver::get_score(const GraphGuidance &gg, int dhm_power, uint32_t thr) {
     Timer timer;
+
     {
         std::ofstream output("Tmp/gg" + std::to_string(thr));
         output << gg;
@@ -170,62 +215,74 @@ double GraphGuidanceSolver::get_score(const GraphGuidance &gg, int dhm_power, ui
         std::ofstream output("Tmp/args" + std::to_string(thr));
         output << dhm_power;
     }
-    int ret = std::system(
-            ("./cmake-build-release-wsl/lifelong -i ./example_problems/random.domain/random_32_32_20_300.json -o Tmp/test" +
-             std::to_string(thr) + ".json -s 200 -t 100000000 -p 100000000 --unique_id " + std::to_string(thr) +
-             " > Tmp/output" +
-             std::to_string(thr)).c_str());
-    ASSERT(ret == 0, "invalid return code: " + std::to_string(ret));
 
-    uint32_t finished_tasks = 0;
-    {
-        using json = nlohmann::basic_json<nlohmann::ordered_map>;
-        json data;
-        std::ifstream input("Tmp/test" + std::to_string(thr) + ".json");
-        try {
-            data = json::parse(input);
-        } catch (const json::parse_error &error) {
-            FAILED_ASSERT(error.what());
+    auto call = [&](const std::string &test) {
+        int ret = std::system(
+                ("./cmake-build-release-wsl/lifelong -i ./example_problems/" + test + " -o Tmp/test" +
+                 std::to_string(thr) + ".json -s 750 -t 100000000 -p 100000000 --unique_id " + std::to_string(thr) +
+                 " > Tmp/output" +
+                 std::to_string(thr)).c_str());
+        ASSERT(ret == 0, "invalid return code: " + std::to_string(ret));
+
+        uint32_t finished_tasks = 0;
+        {
+            using json = nlohmann::basic_json<nlohmann::ordered_map>;
+            json data;
+            std::ifstream input("Tmp/test" + std::to_string(thr) + ".json");
+            try {
+                data = json::parse(input);
+            } catch (const json::parse_error &error) {
+                FAILED_ASSERT(error.what());
+            }
+            finished_tasks = data["numTaskFinished"];
         }
-        finished_tasks = data["numTaskFinished"];
-    }
 
-    std::ifstream input("Tmp/meta" + std::to_string(thr));
-    // [pos][dir][action]
-    std::vector<std::array<std::array<uint32_t, 5>, 5>> dp(gg.get_size());
+        std::ifstream input("Tmp/meta" + std::to_string(thr));
+        // [pos][dir][action]
+        Meta meta(gg.get_size());
 
-    uint32_t rows, cols;
-    input >> rows >> cols;
+        uint32_t rows, cols;
+        input >> rows >> cols;
 
-    ASSERT(gg.get_rows() == rows && gg.get_cols() == cols, "invalid rows/cols");
-    for (uint32_t dir = 0; dir < 5; dir++) {
-        for (uint32_t act = 0; act < 5; act++) {
-            for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
-                input >> dp[pos][dir][act];
+        ASSERT(gg.get_rows() == rows && gg.get_cols() == cols, "invalid rows/cols");
+        for (uint32_t dir = 0; dir < 5; dir++) {
+            for (uint32_t act = 0; act < 5; act++) {
+                for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
+                    input >> meta[pos][dir][act];
+                }
             }
         }
-    }
 
-    auto calc = [&](uint32_t dir, uint32_t act) {
-        uint64_t s = 0;
-        for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
-            s += static_cast<uint64_t>(dp[pos][dir][act]) * dp[pos][dir][act];
+        auto calc = [&](uint32_t dir, uint32_t act) {
+            uint64_t s = 0;
+            for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
+                s += static_cast<uint64_t>(meta[pos][dir][act]) * meta[pos][dir][act];
+            }
+            return static_cast<double>(s) / (gg.get_size() - 1);
+        };
+
+        double score = 0;
+        for (uint32_t dir = 0; dir < 5; dir++) {
+            score += calc(dir, 1);
+            score += calc(dir, 2);
+            score += calc(dir, 3) * 0.2;
         }
-        return static_cast<double>(s) / (gg.get_size() - 1);
+        score -= finished_tasks * 0.1;
+        return std::tuple{score, meta, finished_tasks};
     };
 
-    double score = 0;
-    for (uint32_t dir = 0; dir < 5; dir++) {
-        score += calc(dir, 1);
-        score += calc(dir, 2);
-        score += calc(dir, 3) * 3;
-    }
-    score -= finished_tasks;
+    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_100.json");
+    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_200.json");
+    auto [score3, meta3, finished_tasks3] = call("random.domain/random_32_32_20_300.json");
+
+    double score = score1 + score2 + score3;
+    Meta meta = meta1 + meta2 + meta3;
+    uint32_t finished_tasks = finished_tasks1 + finished_tasks2 + finished_tasks3;
 
     {
         std::unique_lock locker(mutex);
         Printer() << "finish(" << thr << "): " << score << ", " << finished_tasks << ", " << timer << '\n';
         Printer().get().flush();
     }
-    return score;
+    return {score, meta};
 }

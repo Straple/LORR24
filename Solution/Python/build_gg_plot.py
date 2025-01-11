@@ -11,6 +11,8 @@ def read(filename):
         print(rows, cols)
         result = []
         line_ptr = 1
+        mn = 1000000000
+        mx = 0
         for act in range(0, 4):
             result.append([])
             for dir in range(0, 4):
@@ -25,10 +27,12 @@ def read(filename):
                         if pos >= len(map):
                             print(pos, len(map))
                         data[-1].append(map[pos])
+                        mn = min(mn, map[pos])
+                        mx = max(mx, map[pos])
 
                 result[-1].append(data)
 
-        return result
+        return result, mn, mx
 
 
 def build_svgs():
@@ -58,18 +62,19 @@ def paint():
         map = data[dir][act]
         ax = axes[dir][act]
         print("processing:", dir, act)
-        ax.imshow(map, cmap='viridis')
+        images.append(ax.imshow(map, cmap='viridis', vmin=mn, vmax=mx))
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
 
-    plt.tight_layout()
+    fig.colorbar(images[0], ax=axes.ravel().tolist())
+    #plt.tight_layout()
     plt.show()
 
 dirs = ["E", "S", "W", "N"]
 acts = ["FW", "R", "CR", "W"]
 
 if __name__ == '__main__':
-    data = read('../../best_gg')
+    data, mn, mx = read('../../best_gg')
 
     paint()
     #build_svgs()
