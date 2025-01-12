@@ -3,7 +3,7 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/position.hpp>
 
-uint16_t PENALTY_WEIGHT = 6;
+uint16_t PENALTY_WEIGHT = 5;
 uint16_t OK_WEIGHT = 2;
 
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
