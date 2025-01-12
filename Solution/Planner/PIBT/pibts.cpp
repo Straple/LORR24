@@ -153,22 +153,18 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
 }
 
 int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
-    //call(0): 2530, 12.1877s
-    //call(1): 4235, 22.6803s
-    //call(2): 5172, 34.0847s
-    //call(3): 5323, 44.6342s
-    //call(4): 4402, 74.317s
-    //call(5): 3537, 133.899s
-    //total: 25199
-
     int64_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
 
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
     if (op.back() == Action::W) {
         uint32_t node = path[path.size() - 2];
-        for (uint32_t action = 1; action <= 2; action++) {
-            uint32_t to = get_graph().get_to_node(node, action);
+        {
+            uint32_t to = get_graph().get_to_node(node, 1);
+            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+        }
+        {
+            uint32_t to = get_graph().get_to_node(node, 2);
             dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
         }
 
@@ -176,14 +172,6 @@ int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
             node = get_graph().get_to_node(node, 1);
             node = get_graph().get_to_node(node, 1);
             dist = std::min(dist, static_cast<int64_t>(get_dhm().get(node, robots[r].target)));
-            /*node = path[path.size() - 3];
-            for (uint32_t action1 = 1; action1 <= 2; action1++) {
-                for (uint32_t action2 = 1; action2 <= 2; action2++) {
-                    uint32_t to = get_graph().get_to_node(node, action1);
-                    to = get_graph().get_to_node(to, action2);
-                    dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
-                }
-            }*/
         }
     }
     return dist;
@@ -420,9 +408,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         if (to_r == -2 || (to_r != -1 && visited[to_r] == visited_counter)) {
             continue;
         }
-        //const auto &path = get_path(r, desired);
         int64_t priority = get_smart_dist(r, desired);
-        //get_dhm().get(path.back(), robots[r].target);
         steps.emplace_back(priority, desired);
     }
 
@@ -456,14 +442,17 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
             remove_path(to_r);
             add_path(r);
 
-            uint32_t res = try_build(to_r, ++counter, depth + 1);
-            if (res == 1) {
-                return res;
-            } else if (res == 2) {
-                remove_path(r);
-                add_path(to_r);
-                desires[r] = old_desired;
-                return res;
+            if (old_score - 1e-6 <= cur_score// || rnd.get_d() < 1.0 / (old_score - cur_score + 50)
+                    ) {
+                uint32_t res = try_build(to_r, ++counter, depth + 1);
+                if (res == 1) {
+                    return res;
+                } else if (res == 2) {
+                    remove_path(r);
+                    add_path(to_r);
+                    desires[r] = old_desired;
+                    return res;
+                }
             }
 
             remove_path(r);
@@ -514,8 +503,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (to_r != -1 && desires[to_r] != 0) {
             //continue;
         }
-        //const auto &path = get_path(r, desires[r]);
-        int64_t priority = get_smart_dist(r, desired);//get_dhm().get(path.back(), robots[r].target);
+        int64_t priority = get_smart_dist(r, desired);
         steps.emplace_back(priority, desired);
     }
 
@@ -964,7 +952,7 @@ void PIBTS::simulate_pibt() {
     }
     Printer() << '\n';*/
 
-    const bool skip_with_init_desired = false;//rnd.get_d() < 0.5;
+    const bool skip_with_init_desired = rnd.get_d() < 0.3;
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
             break;
