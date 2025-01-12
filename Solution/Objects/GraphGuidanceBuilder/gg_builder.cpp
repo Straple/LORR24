@@ -6,18 +6,20 @@
 int main() {
     Printer().get() = std::ofstream("gg_log");
 
-    /*std::ofstream output("best_gg.txt");
-    GraphGuidance gg(32, 32);
-    for (uint32_t pos = 0; pos < 32 * 32 + 1; pos++) {
-        for (uint32_t dir = 0; dir < 4; dir++) {
-            for (uint32_t action = 0; action < 4; action++) {
-                gg.set(pos, dir, action, 500);
+    /*{
+        std::ofstream output("best_gg");
+        GraphGuidance gg(32, 32);
+        for (uint32_t pos = 0; pos < 32 * 32 + 1; pos++) {
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                for (uint32_t action = 0; action < 4; action++) {
+                    gg.set(pos, dir, action, 500);
+                }
             }
         }
-    }
-    output << gg;
-    output.flush();*/
-
+        output << gg;
+        output.flush();
+        return 0;
+    }*/
     //std::string params = "-i ./example_problems/random.domain/random_32_32_20_300.json -o test.json -s 2000 -t 100000000 -p 100000000";
     /*std::string params;
     for (int i = 1; i < argc; i++) {

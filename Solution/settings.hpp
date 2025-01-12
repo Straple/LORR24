@@ -47,7 +47,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // -i ./example_problems/game.domain/brc202d_500.json -o test.json -s 1000 -t 10000 -p 100000000
 
-static constexpr uint32_t THREADS = 6;
+static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
@@ -57,7 +57,7 @@ static constexpr uint32_t PIBTS_STEPS = 1000;
 
 static constexpr uint32_t DHM_TIMELIMIT = 10000000;
 
-static constexpr uint32_t DHM_REBUILD_COUNT = 30;
+static constexpr uint32_t DHM_REBUILD_COUNT = 50;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм

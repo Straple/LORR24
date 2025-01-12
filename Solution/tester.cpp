@@ -31,11 +31,17 @@ uint32_t call(const std::string &test, uint32_t test_id) {
 
 std::vector<std::string> tests = {
         "random.domain/random_32_32_20_100.json",
+        "random.domain/random_32_32_20_100_2.json",
         "random.domain/random_32_32_20_200.json",
+        "random.domain/random_32_32_20_200_2.json",
         "random.domain/random_32_32_20_300.json",
+        "random.domain/random_32_32_20_300_2.json",
         "random.domain/random_32_32_20_400.json",
+        "random.domain/random_32_32_20_400_2.json",
         "random.domain/random_32_32_20_500.json",
+        "random.domain/random_32_32_20_500_2.json",
         "random.domain/random_32_32_20_600.json",
+        "random.domain/random_32_32_20_600_2.json",
 };
 
 uint32_t call() {

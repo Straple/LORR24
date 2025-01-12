@@ -60,11 +60,11 @@ void GraphGuidanceSolver::change_path(GraphGuidance &gg, Randomizer &rnd) const 
 }
 
 void GraphGuidanceSolver::big_change(GraphGuidance &gg, Randomizer &rnd) const {
-    int left = -1;
-    int right = 1;
+    int left = -5;
+    int right = 5;
     if (rnd.get_d() < 0.1) {
         left = -50;
-        right = -50;
+        right = 50;
     }
     for (uint32_t dir = 0; dir < 4; dir++) {
         for (uint32_t act = 0; act < 4; act++) {
@@ -111,7 +111,7 @@ void GraphGuidanceSolver::smart_change(GraphGuidance &gg, const Meta &meta, Rand
 }
 
 void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
-    Randomizer rnd(424242 * thr + 298412);
+    Randomizer rnd(228 * thr + 984213);
     while (true) {
         GraphGuidance gg;
         int dhm_power;
@@ -128,16 +128,10 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
             smart_change(gg, meta, rnd);
         } else if (p < 0.6) {
             big_change(gg, rnd);
-        } else if (p < 0.9) {
+        } else if (p < 0.8) {
             change_path(gg, rnd);
         } else {
-            dhm_power += rnd.get(-200, 200);
-            dhm_power = std::max(100, dhm_power);
-            dhm_power = std::min(10'000, dhm_power);
-        }
-
-        if (rnd.get_d() < 0.05) {
-            dhm_power += rnd.get(-200, 200);
+            dhm_power += rnd.get(-50, 50);
             dhm_power = std::max(100, dhm_power);
             dhm_power = std::min(10'000, dhm_power);
         }
@@ -152,7 +146,7 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
 
         {
             std::unique_lock locker(mutex);
-            if (score < best_score || rnd.get_d() < 5.0 / (score - best_score + 1)) {
+            if (score > best_score || rnd.get_d() < 5.0 / (best_score - score + 1)) {
                 Printer() << "improve(" << thr << "): " << best_score << " -> " << score << '\n';
                 Printer().get().flush();
 
@@ -219,7 +213,7 @@ std::pair<double, Meta> GraphGuidanceSolver::get_score(const GraphGuidance &gg, 
     auto call = [&](const std::string &test) {
         int ret = std::system(
                 ("./cmake-build-release-wsl/lifelong -i ./example_problems/" + test + " -o Tmp/test" +
-                 std::to_string(thr) + ".json -s 750 -t 100000000 -p 100000000 --unique_id " + std::to_string(thr) +
+                 std::to_string(thr) + ".json -s 500 -t 100000000 -p 100000000 --unique_id " + std::to_string(thr) +
                  " > Tmp/output" +
                  std::to_string(thr)).c_str());
         ASSERT(ret == 0, "invalid return code: " + std::to_string(ret));
@@ -262,22 +256,21 @@ std::pair<double, Meta> GraphGuidanceSolver::get_score(const GraphGuidance &gg, 
         };
 
         double score = 0;
-        for (uint32_t dir = 0; dir < 5; dir++) {
-            score += calc(dir, 1);
-            score += calc(dir, 2);
-            score += calc(dir, 3) * 0.2;
+        for (uint32_t dir = 0; dir < 4; dir++) {
+            score -= calc(dir, 1);
+            score -= calc(dir, 2);
+            score -= calc(dir, 3) * 2;
         }
-        score -= finished_tasks * 0.1;
+        score += finished_tasks * 5;
         return std::tuple{score, meta, finished_tasks};
     };
 
-    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_100.json");
-    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_200.json");
-    auto [score3, meta3, finished_tasks3] = call("random.domain/random_32_32_20_300.json");
+    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_300.json");
+    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_300_2.json");
 
-    double score = score1 + score2 + score3;
-    Meta meta = meta1 + meta2 + meta3;
-    uint32_t finished_tasks = finished_tasks1 + finished_tasks2 + finished_tasks3;
+    double score = score1 + score2;
+    Meta meta = meta1 + meta2;
+    uint32_t finished_tasks = finished_tasks1 + finished_tasks2;
 
     {
         std::unique_lock locker(mutex);
