@@ -13,48 +13,6 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
     dists.assign(get_graph().get_nodes_size(), -1);
 
     // (dist, node)
-    /*std::priority_queue<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, uint32_t>>, std::greater<>> heap;
-
-    for (uint32_t dir = 0; dir < 4; dir++) {
-        ASSERT(Position(source, dir).is_valid(), "invalid");
-        uint32_t node = get_graph().get_node(Position(source, dir));
-        heap.push({0, node});
-        dists[node] = 0;
-    }
-
-    std::vector<bool> visited(dists.size());
-
-    while (!heap.empty()) {
-        auto [d, node] = heap.top();
-        heap.pop();
-
-        ASSERT(0 < node && node < get_graph().get_nodes_size(), "invalid node");
-        ASSERT(node < visited.size(), "invalid node");
-
-        if (visited[node]) {
-            continue;
-        }
-        visited[node] = true;
-        ASSERT(dists[node] == d, "invalid dist");
-
-        for (uint32_t action = 0; action < 3; action++) {
-            uint32_t to = get_graph().get_to_node(node, action);
-            ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
-            if (to && !visited[to]) {
-                uint64_t to_dist = d + 1;
-                uint32_t p = get_graph().get_pos(to).get_pos();
-                if (action == 0 && used[p] == timestep) {
-                    to_dist += weight[p];
-                }
-                if (dists[to] > to_dist) {
-                    dists[to] = to_dist;
-                    heap.push({to_dist, to});
-                }
-            }
-        }
-    }*/
-
-    // (dist, node)
     std::priority_queue<std::pair<uint32_t, uint32_t>, std::vector<std::pair<uint32_t, uint32_t>>, std::greater<>> heap;
 
     std::vector<bool> visited(dists.size());
@@ -175,7 +133,12 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     };
 
     static double workload = env.num_of_agents * 1.0 / get_map().get_count_free();
-    static double power = read_power();//std::max(1.0, workload * 14 * 2 - 2);
+    static double power =
+#ifdef ENABLE_GG_SOLVER
+            read_power();
+#else
+    std::max(1.0, workload * 14 * 2 - 2);
+#endif
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "workload: " << workload << '\n';

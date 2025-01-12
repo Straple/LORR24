@@ -14,16 +14,14 @@
 // Note that, this function runs untill preprocess_time_limit (in milliseconds) is reached.
 // This is an offline step, after it completes then evaluation begins.
 void Entry::initialize(int preprocess_time_limit) {
-#ifdef ENABLE_READ_GG_FROM_FILE
-    {
-        std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
-        input >> get_gg();
-    }
+    get_map() = Map(*env);
+#ifdef ENABLE_GG_SOLVER
+    std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
+    input >> get_gg();
 #else
     Printer().get() = std::ofstream("printer");
     get_gg() = GraphGuidance(*env);
 #endif
-    get_map() = Map(*env);
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());

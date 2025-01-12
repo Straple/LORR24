@@ -3,6 +3,7 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
+#include <Objects/Environment/dynamic_heuristic_matrix.hpp>
 
 RobotsHandler::RobotsHandler(SharedEnvironment &env) {
     robots.resize(env.num_of_agents);
@@ -13,7 +14,7 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         Position pos(env.curr_states[r].location + 1, env.curr_states[r].orientation);
         ASSERT(pos.is_valid(),
                "invalid position: " + std::to_string(pos.get_x()) + " " + std::to_string(pos.get_y()) + " " +
-                       std::to_string(pos.get_dir()));
+               std::to_string(pos.get_dir()));
         uint32_t node = get_graph().get_node(pos);
 
         robots[r].node = node;
@@ -30,7 +31,15 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         ASSERT(Position(target, 1).is_valid(), "invalid");
         ASSERT(Position(target, 2).is_valid(), "invalid");
         ASSERT(Position(target, 3).is_valid(), "invalid");
-        uint32_t priority = get_hm().get(node, target);
+        uint32_t priority = 0;//get_dhm().get(node, target);
+        {
+            uint32_t node = robots[r].node;
+            for (int i = task.idx_next_loc; i < task.locations.size(); i++) {
+                int to_pos = task.locations[i] + 1;
+                priority += get_dhm().get(node, to_pos);
+                node = get_graph().get_node(Position(to_pos, 0));
+            }
+        }
         robots[r].target = target;
         robots[r].priority = priority;
     }

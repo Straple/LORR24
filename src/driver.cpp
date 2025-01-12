@@ -176,10 +176,14 @@ int main(int argc, char **argv) {
     delete logger;
 
 #ifdef BUILD_META_INFO
+#ifdef ENABLE_GG_SOLVER
     build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
                     "Tmp/meta" + std::to_string(get_unique_id()));
-    Printer().get().flush();
+#else
+    build_meta_info("test.json", "meta");
 #endif
+#endif
+    Printer().get().flush();
 
     _exit(0);
 }
