@@ -65,6 +65,7 @@ def paint():
         images.append(ax.imshow(map, cmap='viridis', vmin=mn, vmax=mx))
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
+        #fig.colorbar(images[-1], ax=ax)
 
     fig.colorbar(images[0], ax=axes.ravel().tolist())
     #plt.tight_layout()

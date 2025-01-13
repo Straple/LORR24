@@ -3,13 +3,12 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/time.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <Scheduler/hungarian.hpp>
 #include <settings.hpp>
 
 #include <atomic>
 #include <thread>
 #include <unordered_map>
-#include <unordered_set>
-#include "hungarian.hpp"
 
 int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
     uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
@@ -41,8 +40,8 @@ const int INF = 1000000;
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
     TimePoint point = get_now();
     solver.update();
-    solver.rebuild_dp(point + Milliseconds(300));
-    solver.triv_solve(point + Milliseconds(400));
+    solver.rebuild_dp(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
+    solver.triv_solve(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME));
     //solver.solve(get_now() + Milliseconds(50));
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();
@@ -184,16 +183,15 @@ std::vector<int> MyScheduler::greedy_schedule(int time_limit, std::vector<int> &
             if (//get_dist_to_start(r, task_id) <= 1 ||
                     get_dist_to_start(r, task_id, env) <= done_weight ||
                     // слишком много свободных роботов сейчас
-                    free_robots.size() > 600
-                    ) {
+                    free_robots.size() > 600) {
                 done_proposed_schedule[r] = task_id;
             }
         }
     }
 
-//#ifdef ENABLE_PRINT_LOG
-//    Printer() << "Scheduler: " << timer << '\n';
-//#endif
+    //#ifdef ENABLE_PRINT_LOG
+    //    Printer() << "Scheduler: " << timer << '\n';
+    //#endif
     return done_proposed_schedule;
 }
 

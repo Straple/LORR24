@@ -28,7 +28,7 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -37,9 +37,9 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 #define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-//#define BUILD_META_INFO
+#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -47,17 +47,29 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 // -i ./example_problems/game.domain/brc202d_500.json -o test.json -s 1000 -t 10000 -p 100000000
 
+static constexpr uint32_t MAX_CONST = -1;
+
 static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
-static constexpr uint32_t DHM_TIMELIMIT = 400;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
 
-static constexpr uint32_t DHM_REBUILD_COUNT = -1;
+static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
+
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = MAX_CONST;
+
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = MAX_CONST;
+
+// 235.623s
+// 4046
+
+//247.337s
+// 3924
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
@@ -90,6 +102,18 @@ Printer operator<<(Printer printer, const T &value) {
     return printer;
 }
 
+/*
+All
+call(0): 2292, 12.0526s
+call(1): 4100, 17.7083s
+call(2): 5189, 24.8347s
+call(3): 5659, 35.6665s
+call(4): 5100, 109.694s
+call(5): 4233, 292.406s
+total: 26573
+
+
+*/
 
 /*
 call(0): 2352, 19.4394s
@@ -129,4 +153,3 @@ TODO:
 5) Собрать результаты по всем подмножествам технологий, которые сейчас есть: PIBT, PIBT2, PIBTS, DHM, GG
    Это нужно, чтобы четко знать: какие технологии и сколько дают и в какой связке. Может какую-то технологию можно улучшить
 */
-

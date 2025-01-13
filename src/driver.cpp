@@ -180,7 +180,10 @@ int main(int argc, char **argv) {
     build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
                     "Tmp/meta" + std::to_string(get_unique_id()));
 #else
-    build_meta_info("test.json", "meta");
+    // TODO: change!
+    // build_meta_info("test.json", "meta");
+    build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
+                    "Tmp/meta" + std::to_string(get_unique_id()));
 #endif
 #endif
     Printer().get().flush();

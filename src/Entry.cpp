@@ -67,8 +67,8 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     Printer() << "\n";
     Printer() << "Timestep: " << env->curr_timestep << '\n';
 #endif
-    get_robots_handler() = RobotsHandler(*env);                     // update locations
-    get_dhm().update(*env, get_now() + Milliseconds(DHM_TIMELIMIT));// update DHM
+    get_robots_handler() = RobotsHandler(*env);
+    get_dhm().update(*env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
 
 #ifdef ENABLE_SCHEDULER_TRICK
     std::vector<int> done_proposed_schedule =

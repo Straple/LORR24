@@ -137,7 +137,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 #ifdef ENABLE_GG_SOLVER
             read_power();
 #else
-    std::max(1.0, workload * 14 * 2 - 2);
+            std::max(1.0, workload * 14 * 2 - 2);
 #endif
 
 #ifdef ENABLE_PRINT_LOG

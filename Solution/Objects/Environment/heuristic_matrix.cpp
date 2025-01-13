@@ -51,7 +51,7 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 
     auto do_work = [&](uint32_t thr) {
         for (uint32_t pos = thr + 1; pos < matrix.size(); pos += THREADS) {
-            if(Position(pos, 0).is_valid()) {
+            if (Position(pos, 0).is_valid()) {
                 build(pos, graph);
             }
         }

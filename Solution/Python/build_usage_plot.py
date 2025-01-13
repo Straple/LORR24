@@ -1,14 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 def read(filename):
     with open(filename) as f:
         lines = [line.rstrip('\n') for line in f]
         rows, cols = lines[0].split(' ')
         rows = int(rows)
         cols = int(cols)
-        print(rows, cols)
+        #print(rows, cols)
         result = []
         mn = 1000000000
         mx = 0
@@ -32,25 +31,54 @@ def read(filename):
 
         return result, mn, mx
 
+dirs = ["E", "S", "W", "N", "A"]
+
+acts = ["FW", "R", "CR", "W", "A"]
+
+def build(dir):
+    for id in range(6):
+        print(id)
+        data, mn, mx = read('../../Data/meta' + str(id))
+
+        fig, axes = plt.subplots(5, 5, figsize=(10, 10))
+        images = []
+        for i in range(25):
+            dir = i // 5
+            act = i % 5
+            map = data[dir][act]
+            ax = axes[dir][act]
+            # print(dir, act, map)
+            images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
+            ax.set_title(dirs[dir] + " & " + acts[act])
+            ax.axis('off')
+            fig.colorbar(images[-1], ax=ax)
+
+        # plt.plot(np.where(map == -500, map, None), color="red", label="1")
+
+        # fig.colorbar(images[-1], ax=axes.ravel().tolist())
+        plt.savefig("../../Data/usage" + str(id) + ".svg", format='svg', dpi=1200)
 
 if __name__ == '__main__':
-    data, mn, mx = read('../../Tmp/meta0')
+    build("../../Data/meta")
 
-    dirs = ["East", "South", "West", "North", "All"]
+    """id = '2'
+    data, mn, mx = read('../../Data/meta' + id)
 
-    acts = ["Forward", "Rotate", "C. rotate", "Wait", "All"]
-
-    fig, axes = plt.subplots(4, 4, figsize=(10, 10))
+    fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []
-    for i in range(16):
-        dir = i // 4
-        act = i % 4
+    for i in range(25):
+        dir = i // 5
+        act = i % 5
         map = data[dir][act]
         ax = axes[dir][act]
         # print(dir, act, map)
-        images.append(ax.imshow(map, cmap='viridis'))#, vmin=mn, vmax=mx))
+        images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
+        fig.colorbar(images[-1], ax=ax)
 
-    #fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    plt.show()
+    # plt.plot(np.where(map == -500, map, None), color="red", label="1")
+
+    # fig.colorbar(images[-1], ax=axes.ravel().tolist())
+    plt.savefig("../../Data/usage" + id + ".svg", format='svg', dpi=1200)
+    plt.show()"""
