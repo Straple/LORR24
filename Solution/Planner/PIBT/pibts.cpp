@@ -442,17 +442,14 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
             remove_path(to_r);
             add_path(r);
 
-            if (old_score - 1e-6 <= cur_score// || rnd.get_d() < 1.0 / (old_score - cur_score + 50)
-                    ) {
-                uint32_t res = try_build(to_r, ++counter, depth + 1);
-                if (res == 1) {
-                    return res;
-                } else if (res == 2) {
-                    remove_path(r);
-                    add_path(to_r);
-                    desires[r] = old_desired;
-                    return res;
-                }
+            uint32_t res = try_build(to_r, ++counter, depth + 1);
+            if (res == 1) {
+                return res;
+            } else if (res == 2) {
+                remove_path(r);
+                add_path(to_r);
+                desires[r] = old_desired;
+                return res;
             }
 
             remove_path(r);
@@ -856,7 +853,7 @@ bool PIBTS::parallel_build(uint32_t r) {
     }
     double old_score = cur_score;
 
-    if (s.cur_score <= old_score + 1e-7) {
+    if (s.cur_score <= old_score + 1e-6) {
         return false;
     }
 
