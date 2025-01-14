@@ -26,10 +26,10 @@ namespace DefaultPlanner {
 
     /**
      * @brief Default planner initialization
-     * 
+     *
      * @param preprocess_time_limit time limit for preprocessing in milliseconds
      * @param env shared environment object
-     * 
+     *
      * The initialization function initializes the default planner data structures and heuristics tables.
      */
     void initialize(int preprocess_time_limit, SharedEnvironment *env) {
@@ -66,12 +66,12 @@ namespace DefaultPlanner {
 
     /**
      * @brief Default planner plan function
-     * 
+     *
      * @param time_limit time limit for planning in milliseconds
      * @param actions vector of actions to be populated by the planner
      * @param env shared environment object
-     * 
-     * The plan function is the main function of the default planner. 
+     *
+     * The plan function is the main function of the default planner.
      * It computes the actions for the agents based on the current state of the environment.
      * The function first checks assignments/goal location changes and perform the necessary updates.
      * It then computes and optimises traffic flow optimised guide paths for the agents.
@@ -83,11 +83,9 @@ namespace DefaultPlanner {
         // calculate the time planner should stop optimsing traffic flows and return the plan.
         TimePoint start_time = std::chrono::steady_clock::now();
         //cap the time for distance to goal heuristic table initialisation to half of the given time_limit;
-        //int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents / 100;
-        //std::cout << "pibt_time: " << pibt_time << '\n';
+        int pibt_time = PIBT_RUNTIME_PER_100_AGENTS * env->num_of_agents / 100;
         //traffic flow assignment end time, leave PIBT_RUNTIME_PER_100_AGENTS ms per 100 agent and TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE ms for computing pibt actions;
-        int x = time_limit;
-        TimePoint end_time = start_time + std::chrono::milliseconds(x);
+        TimePoint end_time = start_time + std::chrono::milliseconds(time_limit - pibt_time - TRAFFIC_FLOW_ASSIGNMENT_END_TIME_TOLERANCE);
 
         // recrod the initial location of each agent as dummy goals in case no goal is assigned to the agent.
         if (env->curr_timestep == 0) {

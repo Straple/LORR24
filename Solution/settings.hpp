@@ -21,22 +21,22 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
 #define ENABLE_PIBT
 
-#define ENABLE_DHM
+//#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-#define BUILD_META_INFO
+//#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
-#define ENABLE_PIBTS_TRICK
+//#define ENABLE_PIBTS_TRICK
 
 #define ENABLE_SCHEDULER_TRICK
 
@@ -62,7 +62,7 @@ static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = MAX_CONST;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
-using PLANNER = EPlanner;
+using PLANNER = MAPFPlanner;
 
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
@@ -220,56 +220,42 @@ call(4): 1886, 406.353s
 call(5): 1792, 586.784s
 total: 11855
 
-*/
 
+17) MAPFPLANNER + мой шедулер
+call(0): 1840, 181.398s
+call(1): 2877, 181.792s
+call(2): 2743, 182.008s
+call(3): 2650, 182.18s
+call(4): 2395, 182.558s
+call(5): 2019, 182.778s
+total: 14524
 
-/*
-OLD
+18) MAPFPLANNER + их шедулер
+call(0): 1756, 181.116s
+call(1): 2773, 181.62s
+call(2): 2636, 181.991s
+call(3): 2557, 182.399s
+call(4): 2229, 182.812s
+call(5): 1838, 183.061s
+total: 13789
 
-1) DHM + GG + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
-call(0): 2292, 12.0526s
-call(1): 4100, 17.7083s
-call(2): 5189, 24.8347s
-call(3): 5659, 35.6665s
-call(4): 5100, 109.694s
-call(5): 4233, 292.406s
-total: 26573
+19) MAPFPLANNER + мой шедулер + ENABLE_SCHEDULER_TRICK
+call(0): 2107, 181.495s
+call(1): 3392, 181.779s
+call(2): 3737, 181.739s
+call(3): 3239, 182.445s
+call(4): 2868, 182.69s
+call(5): 2330, 182.785s
+total: 17673
 
-2) DHM + GG + PIBTS + PIBTS_STEPS=1000 + ENABLE_SCHEDULER_TRICK
-call(0): 2292, 11.3482s
-call(1): 4071, 16.4324s
-call(2): 5150, 22.311s
-call(3): 5586, 31.2824s
-call(4): 4720, 86.8913s
-call(5): 3705, 208.457s
-total: 25524
-
-3) DHM + GG + PIBTS + PIBTS_STEPS=0 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
-call(0): 2260, 6.86378s
-call(1): 3904, 10.6975s
-call(2): 4787, 14.5094s
-call(3): 4964, 20.2558s
-call(4): 4346, 73.3642s
-call(5): 3683, 191.437s
-total: 23944
-
-4) DHM + GG + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK
-call(0): 2042, 11.3738s
-call(1): 3662, 16.7337s
-call(2): 4585, 23.0989s
-call(3): 5049, 32.9808s
-call(4): 4212, 120.688s
-call(5): 3313, 358.855s
-total: 22863
-
-5) DHM + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
-call(0): 2403, 11.3534s
-call(1): 4184, 16.4483s
-call(2): 5236, 23.3809s
-call(3): 5797, 32.4601s
-call(4): 5342, 87.6157s
-call(5): 4193, 405.141s
-total: 27155
+20) MAPFPLANNER + мой шедулер + ENABLE_SCHEDULER_TRICK + DHM
+call(0): 2096, 181.353s
+call(1): 3361, 181.56s
+call(2): 2944, 181.956s
+call(3): 3117, 182.294s
+call(4): 2935, 182.608s
+call(5): 2440, 182.862s
+total: 16893
 
 */
 
