@@ -91,8 +91,10 @@ Printer operator<<(Printer printer, const T &value) {
 
 /*
 PIBTS_STEPS=1000
+use PIBTS
+if disable ENABLE_PIBTS_TRICK and PIBTS_STEPS=0, then PIBTS = PIBT2
 
-1) DHM + PIBTS + PIBTS_STEPS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+1) DHM + PIBTS_STEPS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
 call(0): 2403, 11.3534s
 call(1): 4184, 16.4483s
 call(2): 5236, 23.3809s
@@ -103,7 +105,7 @@ total: 27155
 
 =======================
 
-2) DHM + PIBTS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+2) DHM + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
 call(0): 2350, 7.18267s
 call(1): 3975, 11.0802s
 call(2): 4827, 15.4018s
@@ -112,7 +114,7 @@ call(4): 4634, 55.2668s
 call(5): 3846, 150.983s
 total: 24660
 
-3) DHM + PIBTS + PIBTS_STEPS + ENABLE_SCHEDULER_TRICK
+3) DHM + PIBTS_STEPS + ENABLE_SCHEDULER_TRICK
 call(0): 2404, 12.0467s
 call(1): 4192, 17.2747s
 call(2): 5221, 23.7821s
@@ -121,7 +123,7 @@ call(4): 4960, 86.9758s
 call(5): 3764, 247.762s
 total: 26165
 
-4) DHM + PIBTS + PIBTS_STEPS + ENABLE_PIBTS_TRICK
+4) DHM + PIBTS_STEPS + ENABLE_PIBTS_TRICK
 call(0): 2127, 12.2567s
 call(1): 3704, 17.7565s
 call(2): 4575, 24.9318s
@@ -130,7 +132,7 @@ call(4): 4198, 169.524s
 call(5): 3350, 495.446s
 total: 22905
 
-5) PIBTS + PIBTS_STEPS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+5) PIBTS_STEPS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
 call(0): 2372, 21.2071s
 call(1): 3987, 37.6914s
 call(2): 4190, 121.831s
@@ -141,8 +143,8 @@ total: 19716
 
 =======================
 
-# тут все потоки выдают одинаковое решение, так как не используется рандом
-6) DHM + PIBTS + ENABLE_SCHEDULER_TRICK
+# тут все потоки выдают одинаковое решение, так как не используется рандом: disable ENABLE_PIBTS_TRICK + disable PIBTS_STEPS
+6) DHM + ENABLE_SCHEDULER_TRICK
 call(0): 2261, 7.07915s
 call(1): 3701, 10.8508s
 call(2): 4275, 14.6964s
@@ -151,7 +153,7 @@ call(4): 3630, 34.707s
 call(5): 3127, 52.4499s
 total: 21170
 
-7) DHM + PIBTS + PIBTS_STEPS
+7) DHM + PIBTS_STEPS
 call(0): 2122, 12.1423s
 call(1): 3699, 17.3189s
 call(2): 4554, 23.6698s
@@ -160,7 +162,7 @@ call(4): 4078, 111.868s
 call(5): 3240, 234.339s
 total: 22652
 
-8) DHM + PIBTS + ENABLE_PIBTS_TRICK
+8) DHM + ENABLE_PIBTS_TRICK
 call(0): 2052, 7.17383s
 call(1): 3520, 11.0261s
 call(2): 4192, 15.2919s
@@ -169,10 +171,11 @@ call(4): 3773, 78.2991s
 call(5): 3100, 233.486s
 total: 20999
 
-9) DHM + PIBTS + PIBTS_STEPS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+9) PIBTS_STEPS + ENABLE_PIBTS_TRICK
 
 
 */
+
 
 /*
 OLD
