@@ -5,13 +5,6 @@
 #include <iostream>
 #include <set>
 
-/*
-steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
-500   |   823   |          900            |       910
-1000  |  1613   |         1762            |      1783 -> 2186 -> 2209
-10000 | 14132   |        16582            |     17042->18055
-*/
-
 // ssh -i ../abc egor@51.250.101.48
 
 // scp -i ../abc -r * egor@51.250.101.48:/home/egor
@@ -43,9 +36,11 @@ steps | my PIBT | my PIBT + dynamic dists |   MAPFPlanner
 
 #define ENABLE_PIBTS_ANNEALING
 
-//#define ENABLE_GG_SOLVER
+#define ENABLE_PIBTS_TRICK
 
-// -i ./example_problems/game.domain/brc202d_500.json -o test.json -s 1000 -t 10000 -p 100000000
+#define ENABLE_SCHEDULER_TRICK
+
+//#define ENABLE_GG_SOLVER
 
 static constexpr uint32_t MAX_CONST = -1;
 
@@ -65,12 +60,6 @@ static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = MAX_CONST;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = MAX_CONST;
 
-// 235.623s
-// 4046
-
-//247.337s
-// 3924
-
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
 using PLANNER = EPlanner;
@@ -78,8 +67,6 @@ using PLANNER = EPlanner;
 struct MyScheduler;  // мой алгоритм
 struct TaskScheduler;// их алгоритм
 using TASKSHEDULLER = MyScheduler;
-
-#define ENABLE_SCHEDULER_TRICK
 
 static constexpr uint32_t INVALID_DIST = 0;
 
@@ -103,7 +90,58 @@ Printer operator<<(Printer printer, const T &value) {
 }
 
 /*
-All
+1) DHM + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+call(0): 2403, 11.3534s
+call(1): 4184, 16.4483s
+call(2): 5236, 23.3809s
+call(3): 5797, 32.4601s
+call(4): 5342, 87.6157s
+call(5): 4193, 405.141s
+total: 27155
+
+2) DHM + PIBTS + PIBTS_STEPS=0 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+call(0): 2350, 7.18267s
+call(1): 3975, 11.0802s
+call(2): 4827, 15.4018s
+call(3): 5028, 21.9001s
+call(4): 4634, 55.2668s
+call(5): 3846, 150.983s
+total: 24660
+
+3) DHM + PIBTS + PIBTS_STEPS=1000 + ENABLE_SCHEDULER_TRICK
+call(0): 2404, 12.0467s
+call(1): 4192, 17.2747s
+call(2): 5221, 23.7821s
+call(3): 5624, 32.6402s
+call(4): 4960, 86.9758s
+call(5): 3764, 247.762s
+total: 26165
+
+4) DHM + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK
+call(0): 2127, 12.2567s
+call(1): 3704, 17.7565s
+call(2): 4575, 24.9318s
+call(3): 4951, 37.8259s
+call(4): 4198, 169.524s
+call(5): 3350, 495.446s
+total: 22905
+
+5) PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+call(0): 2372, 21.2071s
+call(1): 3987, 37.6914s
+call(2): 4190, 121.831s
+call(3): 3471, 409.616s
+call(4): 3092, 957.415s
+call(5): 2604, 1967.65s
+total: 19716
+
+
+*/
+
+/*
+OLD
+
+1) DHM + GG + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
 call(0): 2292, 12.0526s
 call(1): 4100, 17.7083s
 call(2): 5189, 24.8347s
@@ -112,6 +150,41 @@ call(4): 5100, 109.694s
 call(5): 4233, 292.406s
 total: 26573
 
+2) DHM + GG + PIBTS + PIBTS_STEPS=1000 + ENABLE_SCHEDULER_TRICK
+call(0): 2292, 11.3482s
+call(1): 4071, 16.4324s
+call(2): 5150, 22.311s
+call(3): 5586, 31.2824s
+call(4): 4720, 86.8913s
+call(5): 3705, 208.457s
+total: 25524
+
+3) DHM + GG + PIBTS + PIBTS_STEPS=0 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+call(0): 2260, 6.86378s
+call(1): 3904, 10.6975s
+call(2): 4787, 14.5094s
+call(3): 4964, 20.2558s
+call(4): 4346, 73.3642s
+call(5): 3683, 191.437s
+total: 23944
+
+4) DHM + GG + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK
+call(0): 2042, 11.3738s
+call(1): 3662, 16.7337s
+call(2): 4585, 23.0989s
+call(3): 5049, 32.9808s
+call(4): 4212, 120.688s
+call(5): 3313, 358.855s
+total: 22863
+
+5) DHM + PIBTS + PIBTS_STEPS=1000 + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+call(0): 2403, 11.3534s
+call(1): 4184, 16.4483s
+call(2): 5236, 23.3809s
+call(3): 5797, 32.4601s
+call(4): 5342, 87.6157s
+call(5): 4193, 405.141s
+total: 27155
 
 */
 

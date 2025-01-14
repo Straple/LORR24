@@ -532,7 +532,11 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             //ASSERT(desires[to_r] == 0, "invalid desires");
 
-            if (desires[to_r] != 0 && rnd.get_d() < 0.8) {
+            if (desires[to_r] != 0
+#ifdef ENABLE_PIBTS_TRICK
+                && rnd.get_d() < 0.8
+#endif
+            ) {
                 continue;
             }
 
@@ -949,7 +953,12 @@ void PIBTS::simulate_pibt() {
     }
     Printer() << '\n';*/
 
-    const bool skip_with_init_desired = rnd.get_d() < 0.5;
+    const bool skip_with_init_desired =
+#ifdef ENABLE_PIBTS_TRICK
+            rnd.get_d() < 0.5;
+#else
+            false;
+#endif
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
             break;
