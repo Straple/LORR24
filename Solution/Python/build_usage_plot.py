@@ -1,13 +1,14 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def read(filename):
     with open(filename) as f:
         lines = [line.rstrip('\n') for line in f]
         rows, cols = lines[0].split(' ')
         rows = int(rows)
         cols = int(cols)
-        #print(rows, cols)
+        # print(rows, cols)
         result = []
         mn = 1000000000
         mx = 0
@@ -31,14 +32,16 @@ def read(filename):
 
         return result, mn, mx
 
+
 dirs = ["E", "S", "W", "N", "A"]
 
 acts = ["FW", "R", "CR", "W", "A"]
 
-def build(dir):
+
+def build(directory):
     for id in range(6):
         print(id)
-        data, mn, mx = read('../../Data/meta' + str(id))
+        data, mn, mx = read(directory + "meta" + str(id))
 
         fig, axes = plt.subplots(5, 5, figsize=(10, 10))
         images = []
@@ -56,10 +59,11 @@ def build(dir):
         # plt.plot(np.where(map == -500, map, None), color="red", label="1")
 
         # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-        plt.savefig("../../Data/usage" + str(id) + ".svg", format='svg', dpi=1200)
+        plt.savefig(directory + "usage" + str(id) + ".svg", format='svg', dpi=1200)
+
 
 if __name__ == '__main__':
-    build("../../Data/meta")
+    build("../../Data/20/")
 
     """id = '2'
     data, mn, mx = read('../../Data/meta' + id)
