@@ -3,8 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
-#include <thread>
 #include <atomic>
+#include <thread>
 
 void SchedulerSolver::rebuild_dp(uint32_t r) {
     dp[r].clear();
@@ -54,7 +54,7 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
     for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
         int loc = env->task_pool[t].locations[i];
-        dist += get_dhm().get(source, loc + 1);
+        dist += get_hm().get(source, loc + 1);
         source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
     }
     return dist;
@@ -157,7 +157,7 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-        : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
+    : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
 }
 
 void SchedulerSolver::update() {
@@ -262,6 +262,7 @@ void SchedulerSolver::solve(TimePoint end_time) {
     Timer timer;
     double old_score = get_score();
     uint32_t step = 0;
+    // TODO: multithreading
     for (; get_now() < end_time; step++) {
         try_peek_task(rnd);
         //try_smart(rnd);

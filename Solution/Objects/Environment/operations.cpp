@@ -52,13 +52,6 @@ std::vector<Operation> OperationsGenerator::get() {
     {
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
-                //call(0): 2415, 17.2015s
-                //call(1): 4194, 36.8581s
-                //call(2): 5280, 65.1133s
-                //call(3): 5702, 55.4142s
-                //call(4): 4835, 89.5953s
-                //call(5): 4113, 175.681s
-                //total: 26539
                 "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
         );
         uint32_t num;

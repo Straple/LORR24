@@ -178,7 +178,7 @@ int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
-    int64_t old_dist = get_dhm().get(robots[r].node, robots[r].target);
+    int64_t old_dist = get_dhm().get(robots[r].node, robots[r].target);// TODO: try get_smart_dist(r, 0)
     int64_t cur_dist = get_smart_dist(r, desired);
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
@@ -532,6 +532,9 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             //ASSERT(desires[to_r] == 0, "invalid desires");
 
+            // TODO: у to_r может быть приоритет ниже чем у r
+            // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
+            // и этот x построил to_r
             if (desires[to_r] != 0
 #ifdef ENABLE_PIBTS_TRICK
                 && rnd.get_d() < 0.8
@@ -842,6 +845,7 @@ uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, St
     return 0;
 }
 
+// TODO: try send to testsys
 bool PIBTS::parallel_build(uint32_t r) {
     State s;
     s.version = version;
@@ -856,16 +860,17 @@ bool PIBTS::parallel_build(uint32_t r) {
         return false;
     }
     double old_score = cur_score;
-
+    // TODO: try annealing
     if (s.cur_score <= old_score + 1e-6) {
         return false;
     }
-
     if (!version.compare_exchange_strong(s.version, s.version + 1)) {
         return false;
     }
     flush_state(s);
+#ifdef ENABLE_PRINT_LOG
     Printer() << "->" << cur_score;
+#endif
     ++version;
 
     return true;
@@ -953,6 +958,7 @@ void PIBTS::simulate_pibt() {
     }
     Printer() << '\n';*/
 
+    // TODO: подобрать 0.5
     const bool skip_with_init_desired =
 #ifdef ENABLE_PIBTS_TRICK
             rnd.get_d() < 0.5;
