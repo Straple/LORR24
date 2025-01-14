@@ -21,22 +21,22 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
 #define ENABLE_PIBT
 
-#define ENABLE_DHM
+//#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
-#define ENABLE_PIBTS_ANNEALING
+//#define ENABLE_PIBTS_ANNEALING
 
-#define ENABLE_PIBTS_TRICK
+//#define ENABLE_PIBTS_TRICK
 
 #define ENABLE_SCHEDULER_TRICK
 
@@ -56,9 +56,9 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = MAX_CONST;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = MAX_CONST;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
@@ -88,6 +88,16 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
+
+/*
+call(0): 2405, 12.1126s
+call(1): 4211, 17.6213s
+call(2): 5260, 24.673s
+call(3): 5762, 34.4333s
+call(4): 5285, 98.5209s
+call(5): 4302, 174.456s
+total: 27225
+*/
 
 /*
 32 cores
@@ -283,7 +293,8 @@ PIBTS_STEPS = 1000
 TODO:
 -8) "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
     попробовать добавить количество операций разной длины: F, FF, CF и прочее.
--7) (static_cast<int32_t>(robots.size()) - weight[r])
+-7) UPD: что-то не очень получилось
+    (static_cast<int32_t>(robots.size()) - weight[r])
     может быть слишком большая разница между первым и последним
     может быть взять sqrt()
     может быть попробовать поделить на dist

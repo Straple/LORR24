@@ -181,9 +181,8 @@ void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int si
     int64_t old_dist = get_dhm().get(robots[r].node, robots[r].target);// TODO: try get_smart_dist(r, 0)
     int64_t cur_dist = get_smart_dist(r, desired);
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
-    double power = (static_cast<int32_t>(robots.size()) - weight[r]) * 1.0 / robots.size();
+    double power = std::sqrt((max_weight - weight[r]) * 1.0 / robots.size());
     cur_score += sign * diff * power;
-    //double power = (max_weight - weight[r]) * 1.0 / max_weight;
 }
 
 void PIBTS::add_path(uint32_t r) {

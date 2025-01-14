@@ -24,15 +24,15 @@ void GraphGuidanceSolver::change_path(GraphGuidance &gg, Randomizer &rnd) const 
     uint32_t pos = rnd.get(1, gg.get_size() - 1);
     uint32_t len = rnd.get(1, 30);
 
-    int diff = rnd.get(-30, 30);
+    int diff = rnd.get(-5, 5);
     while (len--) {
         uint32_t dir = rnd.get(0, 3);
         uint32_t act = rnd.get(0, 3);
 
         int val = gg.get(pos, dir, act);
         val += diff;
-        val = std::max(100, val);
-        val = std::min(10'000, val);
+        val = std::max(1, val);
+        val = std::min(50, val);
         gg.set(pos, dir, act, val);
 
         int x = (pos - 1) / gg.get_cols();
@@ -60,19 +60,15 @@ void GraphGuidanceSolver::change_path(GraphGuidance &gg, Randomizer &rnd) const 
 }
 
 void GraphGuidanceSolver::big_change(GraphGuidance &gg, Randomizer &rnd) const {
-    int left = -5;
-    int right = 5;
-    if (rnd.get_d() < 0.1) {
-        left = -50;
-        right = 50;
-    }
+    int left = -1;
+    int right = 1;
     for (uint32_t dir = 0; dir < 4; dir++) {
         for (uint32_t act = 0; act < 4; act++) {
             for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
                 int val = gg.get(pos, dir, act);
                 val += rnd.get(left, right);
-                val = std::max(100, val);
-                val = std::min(10'000, val);
+                val = std::max(1, val);
+                val = std::min(50, val);
                 gg.set(pos, dir, act, val);
             }
         }
@@ -103,9 +99,9 @@ void GraphGuidanceSolver::smart_change(GraphGuidance &gg, const Meta &meta, Rand
         }
         auto [priority, pos, dir, act] = pool[i];
         int val = gg.get(pos, dir, act);
-        val += rnd.get(-30, 30);
-        val = std::max(100, val);
-        val = std::min(10'000, val);
+        val += rnd.get(-5, 5);
+        val = std::max(1, val);
+        val = std::min(50, val);
         gg.set(pos, dir, act, val);
     }
 }
@@ -131,9 +127,9 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
         } else if (p < 0.8) {
             change_path(gg, rnd);
         } else {
-            dhm_power += rnd.get(-50, 50);
-            dhm_power = std::max(100, dhm_power);
-            dhm_power = std::min(10'000, dhm_power);
+            dhm_power += rnd.get(-5, 5);
+            dhm_power = std::max(1, dhm_power);
+            dhm_power = std::min(100, dhm_power);
         }
 
         double score = 0;

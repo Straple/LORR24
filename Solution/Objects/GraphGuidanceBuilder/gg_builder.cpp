@@ -12,7 +12,7 @@ int main() {
         for (uint32_t pos = 0; pos < 32 * 32 + 1; pos++) {
             for (uint32_t dir = 0; dir < 4; dir++) {
                 for (uint32_t action = 0; action < 4; action++) {
-                    gg.set(pos, dir, action, 500);
+                    gg.set(pos, dir, action, 10);
                 }
             }
         }
@@ -34,7 +34,7 @@ int main() {
         input >> gg;
     }
 
-    int dhm_power = 500;
+    int dhm_power = 10;
     {
         std::ifstream input("best_args");
         input >> dhm_power;
