@@ -90,8 +90,9 @@ Printer operator<<(Printer printer, const T &value) {
 }
 
 /*
-PIBTS_STEPS=1000
+32 cores
 use PIBTS
+if PIBTS_STEPS enable, then PIBTS_STEPS=1000
 if disable ENABLE_PIBTS_TRICK and PIBTS_STEPS=0, then PIBTS = PIBT2
 
 1) DHM + PIBTS_STEPS + ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
@@ -172,7 +173,52 @@ call(5): 3100, 233.486s
 total: 20999
 
 9) PIBTS_STEPS + ENABLE_PIBTS_TRICK
+call(0): 2104, 21.1304s
+call(1): 3387, 42.1391s
+call(2): 3072, 208.643s
+call(3): 2819, 510.713s
+call(4): 2413, 1190.89s
+call(5): 2206, 1807.67s
+total: 16001
 
+10) PIBTS_STEPS + ENABLE_SCHEDULER_TRICK
+
+11) ENABLE_PIBTS_TRICK + ENABLE_SCHEDULER_TRICK
+
+=======================
+
+12) DHM
+call(0): 1762, 6.95711s
+call(1): 3227, 10.6797s
+call(2): 3531, 14.3174s
+call(3): 3355, 19.7687s
+call(4): 2999, 33.3046s
+call(5): 2511, 66.3698s
+total: 17385
+
+13) ENABLE_PIBTS_TRICK
+
+14) ENABLE_SCHEDULER_TRICK
+call(0): 2065, 4.87735s
+call(1): 3009, 12.0905s
+call(2): 2628, 66.2085s
+call(3): 2585, 165.536s
+call(4): 2352, 258.666s
+call(5): 2161, 493.386s
+total: 14800
+
+15) PIBTS_STEPS
+
+=======================
+
+16)
+call(0): 1355, 16.1625s
+call(1): 2503, 14.6241s
+call(2): 2254, 66.3312s
+call(3): 2065, 172.373s
+call(4): 1886, 406.353s
+call(5): 1792, 586.784s
+total: 11855
 
 */
 
