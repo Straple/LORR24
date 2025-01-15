@@ -54,7 +54,7 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
     for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
         int loc = env->task_pool[t].locations[i];
-        dist += get_hm().get(source, loc + 1);
+        dist += get_dhm().get(source, loc + 1); // or hm?
         source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
     }
     return dist;

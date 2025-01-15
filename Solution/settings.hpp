@@ -27,7 +27,7 @@
 
 #define ENABLE_PIBT
 
-//#define ENABLE_DHM
+#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
@@ -52,7 +52,7 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = 1000;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
