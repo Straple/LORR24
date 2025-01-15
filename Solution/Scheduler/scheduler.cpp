@@ -42,7 +42,7 @@ std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &
     solver.update();
     solver.rebuild_dp(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
     solver.triv_solve(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME));
-    //solver.solve(get_now() + Milliseconds(50));
+    solver.solve(get_now() + Milliseconds(150));
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();
 
