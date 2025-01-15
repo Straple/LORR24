@@ -27,7 +27,7 @@
 
 #define ENABLE_PIBT
 
-#define ENABLE_DHM
+//#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
@@ -56,9 +56,9 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
 struct EPlanner;   // мой алгоритм
 struct MAPFPlanner;// их алгоритм
