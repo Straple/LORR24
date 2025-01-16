@@ -114,8 +114,8 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
         set_city();
     } else {
         //Printer() << "random" << '\n';
-        //set_grid();
-        for (uint32_t x = 0; x < rows; x++) {
+        set_grid();
+        /*for (uint32_t x = 0; x < rows; x++) {
             for (uint32_t y = 0; y < cols; y++) {
                 uint32_t pos = x * cols + y + 1;
                 for (uint32_t dir = 0; dir < 4; dir++) {
@@ -124,7 +124,7 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
                     }
                 }
             }
-        }
+        }*/
     }
     for (uint32_t x = 0; x < rows; x++) {
         for (uint32_t y = 0; y < cols; y++) {
