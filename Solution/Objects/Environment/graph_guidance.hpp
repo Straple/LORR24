@@ -18,6 +18,7 @@ class GraphGuidance {
 
     void set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value);
 
+public:
     void set_grid();
 
     void set_warehouse();
@@ -28,7 +29,6 @@ class GraphGuidance {
 
     void set_city();
 
-public:
     GraphGuidance() = default;
 
     GraphGuidance(uint32_t rows, uint32_t cols);

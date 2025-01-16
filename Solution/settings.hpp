@@ -23,9 +23,9 @@
 
 //#define ENABLE_DEFAULT_PLANNER
 
-//#define ENABLE_DEFAULT_SCHEDULER
+#define ENABLE_DEFAULT_SCHEDULER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -36,7 +36,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -46,15 +46,15 @@
 
 static constexpr uint32_t MAX_CONST = -1;
 
-static constexpr uint32_t THREADS = 6;
+static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 1000;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 500;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
@@ -96,6 +96,36 @@ call(3): 5530, 65.8229s
 call(4): 5072, 112.691s
 call(5): 4322, 189.266s
 total: 26514
+*/
+
+/*
+32 cores
+PIBTS_STEPS = 1000
+ENABLE_ALL
+call(0): 2303, 11.2551s
+call(1): 4127, 16.516s
+call(2): 5222, 22.9714s
+call(3): 5828, 33.0443s
+call(4): 5492, 80.6129s
+call(5): 4385, 208.314s
+total: 27357
+
+call(0): 2418, 11.1824s
+call(1): 4193, 16.3289s
+call(2): 5256, 22.7491s
+call(3): 5910, 32.1101s
+call(4): 5382, 96.7836s
+call(5): 4302, 210.19s
+total: 27461
+
+???
+call(0): 2369, 11.2392s
+call(1): 4309, 16.3778s
+call(2): 5442, 23.3106s
+call(3): 5849, 37.1555s
+call(4): 5063, 132.918s
+call(5): 4199, 216.33s
+total: 27231
 */
 
 /*

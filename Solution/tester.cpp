@@ -9,8 +9,9 @@ uint32_t call(const std::string &test, uint32_t test_id) {
     Timer timer;
 
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
+    //std::system("mkdir Tmp");
     int ret_code = std::system(
-            ("./cmake-build-release-wsl/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 300 -p 100000000 --unique_id " + std::to_string(test_id) + " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-remote-host/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 300 -p 100000000 --unique_id " + std::to_string(test_id) + " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
