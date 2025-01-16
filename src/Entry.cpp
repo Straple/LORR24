@@ -1,58 +1,17 @@
 #include "Entry.h"
-#include "Scheduler/journey_graph.hpp"
 #include "Tasks.h"
 #include "heuristics.h"
 #include "utils.h"
 
-#include <Objects/Basic/randomizer.hpp>
-#include <Objects/Environment/environment.hpp>
-#include <Tools/tools.hpp>
-#include <settings.hpp>
+#include <Objects/Basic/time.hpp>
 
 // The initialize function will be called by competition system at the preprocessing stage.
 // Implement the initialize functions of the planner and scheduler to load or compute auxiliary data.
 // Note that, this function runs untill preprocess_time_limit (in milliseconds) is reached.
 // This is an offline step, after it completes then evaluation begins.
 void Entry::initialize(int preprocess_time_limit) {
-    get_map() = Map(*env);
-#ifdef ENABLE_GG_SOLVER
-    std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
-    input >> get_gg();
-#else
-    Printer().get() = std::ofstream("printer");
-    get_gg() = GraphGuidance(*env);
-#endif
-    get_graph() = Graph(get_map(), get_gg());
-    get_hm() = HeuristicMatrix(get_graph());
-    get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
-    get_jg() = JG::JourneyGraph(env);
-    get_operations() = OperationsGenerator().get();
-    get_omap() = OperationsMap(get_graph(), get_operations());
-    // get_busyness_map() = BusynessMap(get_map());
-
     scheduler->initialize(preprocess_time_limit);
     planner->initialize(preprocess_time_limit);
-
-    // generate random agents
-    /*Randomizer rnd(5340000);
-    std::ofstream output("agents.txt");
-    std::set<uint32_t> S;
-    for(int i = 0; i < 600; i++){
-        uint32_t pos = 0;
-        while(true){
-            pos = rnd.get(1, get_map().get_size() - 1);
-            if(get_map().is_free(pos) && !S.count(pos)){
-                break;
-            }
-        }
-        S.insert(pos);
-    }
-    for(uint32_t pos : S){
-        pos--;
-        output << pos << '\n';
-    }
-    output.flush();
-    std::exit(0);*/
 }
 
 //The compute function will be called by competition system on each timestep.
@@ -67,25 +26,14 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     Printer() << "\n";
     Printer() << "Timestep: " << env->curr_timestep << '\n';
 #endif
-    get_robots_handler() = RobotsHandler(*env);
-    get_dhm().update(*env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
-
-#ifdef ENABLE_SCHEDULER_TRICK
-    std::vector<int> done_proposed_schedule =
-#endif
-            //call the task scheduler to assign tasks to agents
-            scheduler->plan(time_limit * 0.3, proposed_schedule);
+    //call the task scheduler to assign tasks to agents
+    scheduler->plan(time_limit, proposed_schedule);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
 
     //call the planner to compute the actions
     planner->plan(time_limit, plan);
-
-#ifdef ENABLE_SCHEDULER_TRICK
-    proposed_schedule = std::move(done_proposed_schedule);
-    update_goal_locations(proposed_schedule);
-#endif
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Entry time: " << timer << '\n';

@@ -10,6 +10,10 @@
 #include <thread>
 #include <unordered_map>
 
+MyScheduler::MyScheduler(SharedEnvironment *env) : env(env), solver(env) {
+
+}
+
 int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
     uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
     ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
@@ -32,9 +36,6 @@ int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
     return dist;
 }
 
-void MyScheduler::initialize(int preprocess_time_limit) {
-}
-
 const int INF = 1000000;
 
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
@@ -45,20 +46,6 @@ std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &
     solver.solve(get_now() + Milliseconds(150));
     auto done_proposed_schedule = proposed_schedule;
     proposed_schedule = solver.get_schedule();
-
-    double workload = env->num_of_agents * 1.0 / get_map().get_count_free();
-    uint32_t done_weight = 5;
-    if (workload > 0.4) {
-        done_weight = 1;
-    }
-    for (uint32_t r = 0; r < proposed_schedule.size(); r++) {
-        int t = proposed_schedule[r];
-        uint32_t source = get_graph().get_node(
-                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-        if (t != -1 && get_hm().get(source, env->task_pool[t].get_next_loc() + 1) <= done_weight) {
-            done_proposed_schedule[r] = t;
-        }
-    }
     return done_proposed_schedule;
 }
 

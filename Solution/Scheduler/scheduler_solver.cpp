@@ -157,7 +157,7 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-    : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
+        : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
 }
 
 void SchedulerSolver::update() {
@@ -167,27 +167,36 @@ void SchedulerSolver::update() {
 
     free_robots.clear();
     free_tasks.clear();
+    // TODO: here failed
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
-        uint32_t t = env->curr_task_schedule[r];
-        if (t == -1) {
+        int t = env->curr_task_schedule[r];
+        if (t == -1 || env->task_pool.at(t).idx_next_loc == 0
+        ) {
+            //if (t != -1 && get_hm().get(get_robots_handler().get_robot(r).node, env->task_pool[t].get_next_loc() + 1) <= 5) {
+            //    continue;
+            //}
+            if(t != -1){
+                env->task_pool.at(t).agent_assigned = -1;
+                env->curr_task_schedule[r] = -1;
+            }
             free_robots.push_back(r);
         }
     }
 
     for (auto &[t, task]: env->task_pool) {
-        if (task.agent_assigned == -1) {
-            ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+        if (task.agent_assigned == -1 || task.idx_next_loc == 0
+        ) {
+            //if (task.agent_assigned != -1 && get_hm().get(get_robots_handler().get_robot(task.agent_assigned).node, env->task_pool[t].get_next_loc() + 1) <= 5) {
+            //    continue;
+            //}
+            task.agent_assigned = -1; // remove task agent assigned
             free_tasks.push_back(t);
         }
     }
+    //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
 
     cur_score = 0;
     for (uint32_t r: free_robots) {
-        //if (desires[r] != -1) {
-        //    task_to_robot[desires[r]] = -1;
-        //}
-        //desires[r] = -1;
-
         if (desires[r] != -1 && !env->task_pool.count(desires[r])) {
             desires[r] = -1;
         }
@@ -269,7 +278,8 @@ void SchedulerSolver::solve(TimePoint end_time) {
         temp *= 0.999;
     }
 #ifdef ENABLE_PRINT_LOG
-    Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << ", " << step << ", " << timer << '\n';
+    Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << ", " << step << ", " << timer
+              << '\n';
 #endif
 }
 

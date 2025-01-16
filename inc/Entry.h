@@ -6,27 +6,25 @@
 #include <TaskScheduler.h>
 #include <ctime>
 
-#include <Planner/eplanner.hpp>
-#include <Scheduler/scheduler.hpp>
-#include <settings.hpp>
-
 class Entry {
 public:
     SharedEnvironment *env;
-    PLANNER *planner;
-    TASKSHEDULLER *scheduler;
+    MAPFPlanner *planner;
+    TaskScheduler *scheduler;
 
     Entry(SharedEnvironment *env) : env(env) {
-        planner = new PLANNER(env);
-    };
+        planner = new MAPFPlanner(env);
+    }
 
     Entry() {
         env = new SharedEnvironment();
-        planner = new PLANNER(env);
-        scheduler = new TASKSHEDULLER(env);
-    };
+        planner = new MAPFPlanner(env);
+        scheduler = new TaskScheduler(env);
+    }
 
-    virtual ~Entry() { delete env; };
+    virtual ~Entry() {
+        delete env;
+    }
 
     virtual void initialize(int preprocess_time_limit);
 

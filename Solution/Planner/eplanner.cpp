@@ -17,15 +17,11 @@ EPlanner::EPlanner() {
     env = new SharedEnvironment();
 }
 
-void EPlanner::initialize(int preprocess_time_limit) {}
-
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 20);
     Timer timer;
 
     plan.assign(env->num_of_agents, Action::W);
-
-    get_robots_handler() = RobotsHandler(*env);
 
 #ifdef ENABLE_PIBT
     /*std::vector<uint32_t> order(env->num_of_agents);

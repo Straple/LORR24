@@ -6,18 +6,15 @@
 #include <Tasks.h>
 
 class MyScheduler {
-public:
-    SharedEnvironment *env;
+
+    SharedEnvironment *env = nullptr;
 
     SchedulerSolver solver;
 
-    explicit MyScheduler(SharedEnvironment *env) : env(env), solver(env) {};
+public:
+    MyScheduler() = default;
 
-    MyScheduler() { env = new SharedEnvironment(); };
-
-    ~MyScheduler() { delete env; };
-
-    void initialize(int preprocess_time_limit);
+    explicit MyScheduler(SharedEnvironment *env);
 
     std::vector<int> plan(int time_limit, std::vector<int> &proposed_schedule);
 

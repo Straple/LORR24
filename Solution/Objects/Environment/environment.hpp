@@ -8,3 +8,7 @@
 #include <Objects/Environment/operations.hpp>
 #include <Objects/Environment/operations_map.hpp>
 #include <Objects/Environment/robot_handler.hpp>
+
+void init_environment(SharedEnvironment& env);
+
+void update_environment(SharedEnvironment& env);

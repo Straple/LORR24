@@ -3,6 +3,9 @@
 #include "const.h"
 #include "scheduler.h"
 
+#include <settings.hpp>
+#include <Objects/Environment/environment.hpp>
+
 /**
  * Initializes the task scheduler with a given time limit for preprocessing.
  * 
@@ -14,10 +17,14 @@
  *
  */
 void TaskScheduler::initialize(int preprocess_time_limit) {
+#ifdef ENABLE_DEFAULT_SCHEDULER
     //give at most half of the entry time_limit to scheduler;
     //-SCHEDULER_TIMELIMIT_TOLERANCE for timing error tolerance
     int limit = preprocess_time_limit / 2 - DefaultPlanner::SCHEDULER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::schedule_initialize(limit, env);
+#else
+    init_environment(*env);
+#endif
 }
 
 /**
@@ -31,8 +38,13 @@ void TaskScheduler::initialize(int preprocess_time_limit) {
  */
 
 void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
+#ifdef ENABLE_DEFAULT_SCHEDULER
     //give at most half of the entry time_limit to scheduler;
     //-SCHEDULER_TIMELIMIT_TOLERANCE for timing error tolerance
     int limit = time_limit / 2 - DefaultPlanner::SCHEDULER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::schedule_plan(limit, proposed_schedule, env);
+#else
+    update_environment(*env);
+    my_scheduler.plan(time_limit, proposed_schedule);
+#endif
 }

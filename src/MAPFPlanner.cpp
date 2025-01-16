@@ -5,6 +5,9 @@
 #include "const.h"
 #include "planner.h"
 
+#include <settings.hpp>
+#include <Objects/Environment/environment.hpp>
+
 /**
  * Initialises the MAPF planner with a given time limit for preprocessing.
  *
@@ -13,10 +16,13 @@
  * @param preprocess_time_limit The total time limit allocated for preprocessing (in milliseconds).
  */
 void MAPFPlanner::initialize(int preprocess_time_limit) {
+#ifdef ENABLE_DEFAULT_PLANNER
     // use the remaining entry time limit (after task scheduling) for path planning, -PLANNER_TIMELIMIT_TOLERANCE for timing error tolerance;
     int limit = preprocess_time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::initialize(limit, env);
-    return;
+#else
+    init_environment(*env);
+#endif
 }
 
 /**
@@ -29,9 +35,13 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
  * @param actions A reference to a vector that will be populated with the planned actions (next action for each agent).
  */
 void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
+#ifdef ENABLE_DEFAULT_PLANNER
     // use the remaining time after task schedule for path planning, -PLANNER_TIMELIMIT_TOLERANCE for timing error tolerance;
     int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
 
     DefaultPlanner::plan(limit, actions, env);
-    return;
+#else
+    update_environment(*env);
+    eplanner.plan(time_limit, actions);
+#endif
 }

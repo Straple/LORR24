@@ -21,24 +21,26 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
+//#define ENABLE_DEFAULT_PLANNER
+
+#define ENABLE_DEFAULT_SCHEDULER
+
 //#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
 #define ENABLE_PIBT
 
-//#define ENABLE_DHM
+#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
 //#define ENABLE_PRINT_LOG
 
-//#define ENABLE_PIBTS_ANNEALING
+#define ENABLE_PIBTS_ANNEALING
 
-//#define ENABLE_PIBTS_TRICK
-
-#define ENABLE_SCHEDULER_TRICK
+#define ENABLE_PIBTS_TRICK
 
 //#define ENABLE_GG_SOLVER
 
@@ -50,23 +52,17 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 1000;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 400;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 200;
 
-struct EPlanner;   // мой алгоритм
-struct MAPFPlanner;// их алгоритм
-using PLANNER = MAPFPlanner;
-
-struct MyScheduler;  // мой алгоритм
-struct TaskScheduler;// их алгоритм
-using TASKSHEDULLER = MyScheduler;
+//-i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 100000000
 
 static constexpr uint32_t INVALID_DIST = 0;
 
