@@ -77,9 +77,9 @@ std::vector<Operation> OperationsGenerator::get() {
         }
     }
 
-    auto kek = [&](Operation op){
+    auto kek = [&](Operation op) {
         int cnt = 0;
-        for(int i = 0; i < op.size(); i++){
+        for (int i = 0; i < op.size(); i++) {
             cnt += op[i] == Action::FW;
         }
         return cnt;

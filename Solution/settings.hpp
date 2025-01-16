@@ -23,9 +23,9 @@
 
 //#define ENABLE_DEFAULT_PLANNER
 
-#define ENABLE_DEFAULT_SCHEDULER
+//#define ENABLE_DEFAULT_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -36,7 +36,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -46,13 +46,13 @@
 
 static constexpr uint32_t MAX_CONST = -1;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 6;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 500;
 
@@ -84,6 +84,19 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
+
+/*
+6 cores
+PIBTS_STEPS = 1000
+ENABLE_ALL
+call(0): 2294, 19.5517s
+call(1): 4079, 56.2201s
+call(2): 5217, 66.1385s
+call(3): 5530, 65.8229s
+call(4): 5072, 112.691s
+call(5): 4322, 189.266s
+total: 26514
+*/
 
 /*
 call(0): 2405, 12.1126s
@@ -282,19 +295,11 @@ total: 52876
 TODO: попробовать поменять try_build так, чтобы он стремился на начальных агентах улучшать скор,\
  а если это не так, то с некоторой вероятностью он выйдет
 
-PIBTS_STEPS = 1000
-258.399s 3667
-175.168s 3834
-
 TODO:
--8) "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
-    попробовать добавить количество операций разной длины: F, FF, CF и прочее.
--7) UPD: что-то не очень получилось
-    (static_cast<int32_t>(robots.size()) - weight[r])
-    может быть слишком большая разница между первым и последним
-    может быть взять sqrt()
-    может быть попробовать поделить на dist
-    попробовать всякие разные веса
+-7) Взяли клетку. Запустили Дейкстру. Взяли среднее значение стоимости пути до всех клеток.
+Сделали так для всех проходимых клеток на карте.
+Нашли среди всех клеток максимальное среднее значение.
+Каждой клетке вместо 1 присвоили значение равное максимуму деленному на среднее значение стоимости пути для текущей клетки.
 -6) // TODO: у to_r может быть приоритет ниже чем у r
 // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
 // и этот x построил to_r
@@ -317,4 +322,14 @@ TODO:
    Если он идет в правильном направлении, то тоже обычный вес, который тоже подбирается в GGS.
    Далее эта штука когда нужно дать в lifelong, то GGS преобразует его в стандартную схему: weight[pos][dir][action].
    И подает на вход.
+
+*)  UPD: что-то не очень получилось
+    (static_cast<int32_t>(robots.size()) - weight[r])
+    может быть слишком большая разница между первым и последним
+    может быть взять sqrt()
+    может быть попробовать поделить на dist
+    попробовать всякие разные веса
+*)  UPD: что-то не очень получилось
+    "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
+    попробовать добавить количество операций разной длины: F, FF, CF и прочее.
 */

@@ -596,7 +596,7 @@ bool PIBTS::build_state(uint32_t r, uint32_t depth, uint32_t &counter, State &st
 
         auto path = get_path(r, desired);
 
-        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+        int64_t priority = get_smart_dist(r, desired);
 
         steps.emplace_back(priority, desired);
     }
@@ -803,7 +803,7 @@ uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, St
         }
 
         auto path = get_path(r, desired);
-        int64_t priority = get_dhm().get(path.back(), robots[r].target);
+        int64_t priority = get_smart_dist(r, desired);
         steps.emplace_back(priority, desired);
     }
 

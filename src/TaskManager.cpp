@@ -76,7 +76,7 @@ bool TaskManager::set_task_assignment(vector<int> &assignment) {
     for (int a = 0; a < assignment.size(); a++) {
         if (current_assignment[a] >= 0) {
             ongoing_tasks[current_assignment[a]]->agent_assigned = -1;
-            //current_assignment[a] = -1;
+            current_assignment[a] = -1; // testsys bug, code here fix that
         }
     }
 
