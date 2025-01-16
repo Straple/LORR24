@@ -54,7 +54,7 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 400;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 500;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
