@@ -13,6 +13,8 @@
 // Solver mode
 class PIBTS {
 
+    std::atomic<uint32_t> version = 0;
+
     double cur_score = 0;
 
     const std::vector<Robot> &robots;
@@ -107,13 +109,9 @@ class PIBTS {
 
     bool build_state(uint32_t r);
 
-    void build_clusters();
+    uint32_t parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, State &state, Randomizer& rnd) const;
 
-    std::atomic<uint32_t> version = 0;
-
-    uint32_t parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, State &state) const;
-
-    bool parallel_build(uint32_t r);
+    bool parallel_build(uint32_t r, Randomizer& rnd);
 
     void do_work(uint32_t thr);
 

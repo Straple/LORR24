@@ -422,7 +422,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
 #ifdef ENABLE_PIBTS_ANNEALING
                 || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
 #endif
-            ) {
+                    ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -430,7 +430,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
-            if (counter > 200 && depth >= 6) {
+            if (rnd.get_d() < 0.1) {
                 continue;
             }
 
@@ -511,11 +511,11 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             // отлично! там никого нет
             add_path(r);
             if (old_score - 1e-6 <= cur_score
-            // old_score > cur_score
-#ifdef ENABLE_PIBTS_ANNEALING
+                // old_score > cur_score
+                #ifdef ENABLE_PIBTS_ANNEALING
                 || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
 #endif
-            ) {
+                    ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -535,10 +535,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
             // и этот x построил to_r
             if (desires[to_r] != 0
-#ifdef ENABLE_PIBTS_TRICK
+                #ifdef ENABLE_PIBTS_TRICK
                 && rnd.get_d() < 0.8
 #endif
-            ) {
+                    ) {
                 continue;
             }
 
@@ -665,132 +665,14 @@ bool PIBTS::build_state(uint32_t r) {
     }*/
 }
 
-void PIBTS::build_clusters() {
-    static Randomizer rnd;
-
-    std::vector<uint32_t> order(robots.size());
-    std::iota(order.begin(), order.end(), 0);
-    //std::shuffle(order.begin(), order.end(), rnd.generator);
-    std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        return get_robots_handler().get_robot(lhs).priority < get_robots_handler().get_robot(rhs).priority;
-    });
-
-    DSU dsu(get_map().get_size());
-
-    constexpr uint32_t CLUSTER_SIZE = 150;
-
-    // (priority, desired, r)
-    std::vector<std::tuple<int64_t, uint32_t, uint32_t>> pool;
-
-    for (uint32_t r: order) {
-        Position start = get_graph().get_pos(robots[r].node);
-
-        for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
-            if (validate_path(r, desired)) {
-                auto path = get_path(r, desired);
-
-                int64_t priority = get_dhm().get(path.back(), robots[r].target);
-                pool.emplace_back(priority, desired, r);
-            }
-        }
-    }
-    //std::stable_sort(pool.begin(), pool.end());
-    std::shuffle(pool.begin(), pool.end(), rnd.generator);
-
-    {
-        for (auto [_, desired, r]: pool) {
-            auto operation = get_operations()[desired];
-            bool ok = true;
-            Position start = get_graph().get_pos(robots[r].node);
-            Position p = start;
-            std::set<std::pair<uint32_t, uint32_t>> S;
-            for (auto action: operation) {
-                p = p.simulate_action(action);
-                if (!p.is_valid()) {
-                    ok = false;
-                    break;
-                }
-                if (dsu.get(p.get_pos()) != dsu.get(start.get_pos())) {
-                    S.insert({p.get_pos(), dsu.get_size(p.get_pos())});
-                }
-            }
-            uint32_t total_size = dsu.get_size(start.get_pos());
-            for (auto [_, size]: S) {
-                total_size += size;
-            }
-            if (total_size > CLUSTER_SIZE) {
-                continue;
-            }
-
-            if (ok) {
-                Position p = start;
-                for (auto action: operation) {
-                    p = p.simulate_action(action);
-                    dsu.uni(p.get_pos(), start.get_pos());
-                }
-            }
-        }
-    }
-    std::set<std::pair<uint32_t, uint32_t>> S;
-    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
-        if (get_map().is_free(pos)) {
-            S.insert({dsu.get_size(pos), dsu.get(pos)});
-        }
-    }
-    while (S.size() >= 2 && S.begin()->first + (++S.begin())->first <= CLUSTER_SIZE) {
-        auto a = *S.begin();
-        S.erase(S.begin());
-        auto b = *S.begin();
-        S.erase(S.begin());
-        dsu.uni(a.second, b.second);
-        S.insert({dsu.get_size(a.second), dsu.get(a.second)});
-    }
-    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
-        if (!get_map().is_free(pos)) {
-            dsu.uni(0, pos);
-        }
-    }
-
-    cluster_id.resize(get_map().get_size());
-    for (uint32_t pos = 1; pos < cluster_id.size(); pos++) {
-        cluster_id[pos] = dsu.get(pos);
-    }
-
-    /*{
-        static uint32_t id = 0;
-        std::ofstream output("Clusters/cluster" + std::to_string(id) + ".txt");
-        id++;
-        output << get_map().get_rows() << ' ' << get_map().get_cols() << '\n';
-        std::unordered_map<uint32_t, uint32_t> kek;
-        for (uint32_t pos = 0; pos < cluster_id.size(); pos++) {
-            if(!kek.count(cluster_id[pos])){
-                kek[dsu.get(pos)] = kek.size();
-            }
-        }
-        for (uint32_t x = 0; x < get_map().get_rows(); x++) {
-            for (uint32_t y = 0; y < get_map().get_cols(); y++) {
-                if (y != 0) {
-                    output << ' ';
-                }
-                uint32_t val = kek[cluster_id[x * get_map().get_cols() + y + 1]];
-                if (val != 0) {
-                    val += 3;
-                }
-                output << val;
-            }
-            output << '\n';
-        }
-    }*/
-}
-
-uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, State &state) const {
+uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, State &state, Randomizer &rnd) const {
     if (state.version != version) {
         return 2;// new version
     }
-    if (counter == -1 || counter > 5'000) {
-        return 2;
-    }
-    if (get_now() >= end_time) {
+    //if (counter == -1 || counter > 5'000) {
+    //    return 2;
+    //}
+    if (counter > 100 || counter == -1 || get_now() >= end_time) {
         counter = -1;
         return 2;
     }
@@ -816,9 +698,9 @@ uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, St
             add_path(r, state);
             return 1;
         } else {
-            if (counter > 3'000 && depth >= 6) {
-                continue;
-            }
+            //if (counter > 3'000 && depth >= 6) {
+            //    continue;
+            //}
             uint32_t to_r = get_used(r, state);
             if (state.version != version) {
                 return 2;
@@ -827,10 +709,14 @@ uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, St
             if (state.desires.count(to_r)) {
                 continue;
             }
+
+            if (rnd.get_d() < 0.1) {
+                continue;
+            }
             remove_path(to_r, state);
             add_path(r, state);
 
-            uint32_t res = parallel_build(to_r, depth + 1, ++counter, state);
+            uint32_t res = parallel_build(to_r, depth + 1, ++counter, state, rnd);
             if (res != 0) {
                 return res;
             }
@@ -845,7 +731,7 @@ uint32_t PIBTS::parallel_build(uint32_t r, uint32_t depth, uint32_t &counter, St
 }
 
 // TODO: try send to testsys
-bool PIBTS::parallel_build(uint32_t r) {
+bool PIBTS::parallel_build(uint32_t r, Randomizer &rnd) {
     State s;
     s.version = version;
     if (s.version & 1) {
@@ -854,7 +740,7 @@ bool PIBTS::parallel_build(uint32_t r) {
     s.cur_score = cur_score;
     remove_path(r, s);
     uint32_t counter = 0;
-    uint32_t res = parallel_build(r, 0, counter, s);
+    uint32_t res = parallel_build(r, 0, counter, s, rnd);
     if (res == 0 || res == 2) {
         return false;
     }
@@ -867,9 +753,9 @@ bool PIBTS::parallel_build(uint32_t r) {
         return false;
     }
     flush_state(s);
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "->" << cur_score;
-#endif
+//#ifdef ENABLE_PRINT_LOG
+//    Printer() << "->" << cur_score;
+//#endif
     ++version;
 
     return true;
@@ -882,12 +768,12 @@ void PIBTS::do_work(uint32_t thr) {
         while (version & 1) {}
 
         uint32_t r = rnd.get(0, robots.size() - 1);
-        parallel_build(r);
+        parallel_build(r, rnd);
     }
 }
 
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
-    : robots(robots), end_time(end_time), rnd(seed) {
+        : robots(robots), end_time(end_time), rnd(seed) {
 
     visited.resize(robots.size());
     desires.resize(robots.size());
@@ -926,43 +812,42 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
     for (uint32_t r = 0; r < robots.size(); r++) {
         add_path(r);
     }
-
-    //build_clusters();
 }
 
 void PIBTS::simulate_pibt() {
     // PIBT
-    /*const bool skip_with_init_desired = true;//rnd.get_d() < 0.5;
+    /*const bool skip_with_init_desired = rnd.get_d() < 0.5;
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
             break;
         }
         if (desires[r] != 0 && skip_with_init_desired) {
-            //continue;
+            continue;
         }
         build(r);
     }
 
-    Printer() << "PIBTS: " << cur_score;
-    std::vector<std::thread> threads(THREADS);
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
+    //Printer() << "PIBTS: " << cur_score;
+    std::vector<std::thread> threads(2);
+    for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr] = std::thread(
                 [&](uint32_t thr) {
                     do_work(thr);
                 },
                 thr);
     }
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
+    for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr].join();
-    }
-    Printer() << '\n';*/
+    }*/
+    //Printer() << '\n';
+    //Printer() << "PIBTS version: " << version << '\n';
 
     // TODO: подобрать 0.5
     const bool skip_with_init_desired =
 #ifdef ENABLE_PIBTS_TRICK
             rnd.get_d() < 0.5;
 #else
-            false;
+    false;
 #endif
     for (uint32_t r: order) {
         if (get_now() >= end_time) {

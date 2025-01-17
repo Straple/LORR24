@@ -25,7 +25,7 @@
 
 #define ENABLE_DEFAULT_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -61,8 +61,6 @@ static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 200;
-
-//-i ./example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 300 -p 100000000
 
 static constexpr uint32_t INVALID_DIST = 0;
 
@@ -102,6 +100,30 @@ total: 26514
 32 cores
 PIBTS_STEPS = 1000
 ENABLE_ALL
+
+now:
+call(0): 2302, 81.13s
+call(1): 4117, 81.3284s
+call(2): 5295, 81.5713s
+call(3): 5929, 81.7886s
+call(4): 5164, 82.2492s
+call(5): 4241, 82.5167s
+total: 27048
+
+call(0): 2269, 81.6343s
+call(1): 3841, 81.8773s
+call(2): 5304, 82.1224s
+call(3): 5661, 82.3486s
+call(4): 4695, 83.106s
+call(5): 3903, 83.5068s
+total: 25673
+
+call(0): 2262, 81.9859s
+call(1): 4031, 82.2502s
+call(2): 5275, 82.5392s
+call(3): 5476, 82.9957s
+call(4): 4472, 83.9389s
+
 call(0): 2303, 11.2551s
 call(1): 4127, 16.516s
 call(2): 5222, 22.9714s
@@ -326,6 +348,8 @@ TODO: попробовать поменять try_build так, чтобы он 
  а если это не так, то с некоторой вероятностью он выйдет
 
 TODO:
+-8) сделать более умный вес задачи у шедулера. Например: для каждой задачи найти самую ближайшую на ее конце и дать этому некоторый вес
+    таким образом он будет не только брать самую близкую задачу, но еще и думать чуток наперед.
 -7) Взяли клетку. Запустили Дейкстру. Взяли среднее значение стоимости пути до всех клеток.
 Сделали так для всех проходимых клеток на карте.
 Нашли среди всех клеток максимальное среднее значение.
