@@ -25,7 +25,7 @@
 
 #define ENABLE_DEFAULT_SCHEDULER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -101,53 +101,13 @@ total: 26514
 PIBTS_STEPS = 1000
 ENABLE_ALL
 
-now:
-call(0): 2302, 81.13s
-call(1): 4117, 81.3284s
-call(2): 5295, 81.5713s
-call(3): 5929, 81.7886s
-call(4): 5164, 82.2492s
-call(5): 4241, 82.5167s
-total: 27048
-
-call(0): 2269, 81.6343s
-call(1): 3841, 81.8773s
-call(2): 5304, 82.1224s
-call(3): 5661, 82.3486s
-call(4): 4695, 83.106s
-call(5): 3903, 83.5068s
-total: 25673
-
-call(0): 2262, 81.9859s
-call(1): 4031, 82.2502s
-call(2): 5275, 82.5392s
-call(3): 5476, 82.9957s
-call(4): 4472, 83.9389s
-
-call(0): 2303, 11.2551s
-call(1): 4127, 16.516s
-call(2): 5222, 22.9714s
-call(3): 5828, 33.0443s
-call(4): 5492, 80.6129s
-call(5): 4385, 208.314s
-total: 27357
-
-call(0): 2418, 11.1824s
-call(1): 4193, 16.3289s
-call(2): 5256, 22.7491s
-call(3): 5910, 32.1101s
-call(4): 5382, 96.7836s
-call(5): 4302, 210.19s
-total: 27461
-
-???
-call(0): 2369, 11.2392s
-call(1): 4309, 16.3778s
-call(2): 5442, 23.3106s
-call(3): 5849, 37.1555s
-call(4): 5063, 132.918s
-call(5): 4199, 216.33s
-total: 27231
+call(0): 2286, 81.1296s
+call(1): 4121, 81.3628s
+call(2): 5341, 81.568s
+call(3): 6134, 81.7594s
+call(4): 5214, 82.243s
+call(5): 4153, 82.5459s
+total: 27249
 */
 
 /*
