@@ -22,3 +22,7 @@ public:
 };
 
 std::vector<Operation> &get_operations();
+
+std::ostream &operator<<(std::ostream &output, const Operation &op);
+
+std::istream &operator>>(std::istream &input, Operation &op);

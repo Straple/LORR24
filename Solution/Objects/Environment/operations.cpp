@@ -44,7 +44,6 @@ void OperationsGenerator::generate(Operation &op, uint32_t i) {
 }
 
 std::vector<Operation> OperationsGenerator::get() {
-    Operation op;
 
     //generate(op, 0);
 
@@ -52,27 +51,17 @@ std::vector<Operation> OperationsGenerator::get() {
     {
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
-                "16 FFF FFW FWF FWW WFF WFW WWF FCF FRF RFF CFF RFW CFW RRF RWF CWF"
+                "16 FFW FFF FWW FRF FCF RFW CFW RFF CFF RRF WFW FWF WFF WWF RWF CWF"
         );
         uint32_t num;
         input >> num;
         for (uint32_t i = 0; i < num; i++) {
             std::string line;
             input >> line;
+            Operation op;
             ASSERT(line.size() == op.size(), "does not match sizes: >" + line + "<, " + std::to_string(op.size()));
-            for (uint32_t j = 0; j < op.size(); j++) {
-                if (line[j] == 'W') {
-                    op[j] = Action::W;
-                } else if (line[j] == 'F') {
-                    op[j] = Action::FW;
-                } else if (line[j] == 'R') {
-                    op[j] = Action::CR;
-                } else if (line[j] == 'C') {
-                    op[j] = Action::CCR;
-                } else {
-                    ASSERT(false, "failed");
-                }
-            }
+            std::stringstream ss(line);
+            ss >> op;
             pool.push_back(op);
         }
     }
@@ -100,6 +89,7 @@ std::vector<Operation> OperationsGenerator::get() {
 
     // add WWW
     {
+        Operation op;
         for (uint32_t i = 0; i < op.size(); i++) {
             op[i] = Action::W;
         }
@@ -130,22 +120,7 @@ std::vector<Operation> OperationsGenerator::get() {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Operation: " << result.size() << '\n';
     for (auto operation: result) {
-        for (uint32_t d = 0; d < DEPTH; d++) {
-            char c = '#';
-            if (operation[d] == Action::FW) {
-                c = 'F';
-            } else if (operation[d] == Action::CR) {
-                c = 'R';
-            } else if (operation[d] == Action::CCR) {
-                c = 'C';
-            } else if (operation[d] == Action::W) {
-                c = 'W';
-            } else {
-                ASSERT(false, "failed");
-            }
-            Printer() << c;
-        }
-        Printer() << '\n';
+        Printer() << operation << '\n';
     }
 #endif
     return result;
@@ -154,4 +129,42 @@ std::vector<Operation> OperationsGenerator::get() {
 std::vector<Operation> &get_operations() {
     static std::vector<Operation> operations;
     return operations;
+}
+
+std::ostream &operator<<(std::ostream &output, const Operation &op) {
+    for (auto op: op) {
+        if (op == Action::W) {
+            output << 'W';
+        } else if (op == Action::FW) {
+            output << 'F';
+        } else if (op == Action::CCR) {
+            output << 'C';
+        } else if (op == Action::CR) {
+            output << 'R';
+        } else if (op == Action::NA) {
+            output << 'N';
+        }
+    }
+    return output;
+}
+
+std::istream &operator>>(std::istream &input, Operation &op) {
+    for (auto &op: op) {
+        char c;
+        input >> c;
+        if (c == 'W') {
+            op = Action::W;
+        } else if (c == 'F') {
+            op = Action::FW;
+        } else if (c == 'C') {
+            op = Action::CCR;
+        } else if (c == 'R') {
+            op = Action::CR;
+        } else if (c == 'N') {
+            op = Action::NA;
+        } else {
+            ASSERT(false, "invalid action");
+        }
+    }
+    return input;
 }

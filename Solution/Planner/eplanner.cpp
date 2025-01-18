@@ -31,14 +31,14 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
-    std::vector<std::tuple<double, double, std::vector<Action>>> results(THR);
+    std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>>> results(THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
         Timer timer;
         PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
         pibt.simulate_pibt();
         double time = timer.get_ms();
-        results[thr] = {pibt.get_score(), time, pibt.get_actions()};
+        results[thr] = {pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(), pibt.get_changes()};
     };
 
     static Randomizer rnd(228);
@@ -56,7 +56,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "RESULTS: ";
 #endif
-    for (const auto &[score, time, actions]: results) {
+    for (const auto &[score, time, actions, desires, changes]: results) {
 #ifdef ENABLE_PRINT_LOG
         Printer() << "(" << score << ", " << time << ") ";
 #endif
@@ -68,6 +68,21 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "\nbest: " << best_score << '\n';
 #endif
+
+    static std::vector<uint32_t> total_desires(get_operations().size());
+    static std::vector<int64_t> total_changes(get_operations().size());
+    for(uint32_t r = 0; r < env->num_of_agents; r++){
+        uint32_t desired = std::get<3>(results[0])[r];
+        int64_t change = std::get<4>(results[0])[r];
+        ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
+        total_desires[desired]++;
+        total_changes[desired] += change;
+    }
+    Printer() << "Desires:\n";
+    for (uint32_t d = 0; d < total_desires.size(); d++) {
+        Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
+    }
+
 
 #endif
 

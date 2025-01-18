@@ -178,7 +178,7 @@ int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
-    int64_t old_dist = get_dhm().get(robots[r].node, robots[r].target);// TODO: try get_smart_dist(r, 0)
+    int64_t old_dist = get_smart_dist(r, 0); // get_dhm().get(robots[r].node, robots[r].target);
     int64_t cur_dist = get_smart_dist(r, desired);
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = std::sqrt((max_weight - weight[r]) * 1.0 / robots.size());
@@ -874,6 +874,18 @@ std::vector<Action> PIBTS::get_actions() const {
     std::vector<Action> answer(robots.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         answer[r] = get_operations()[desires[r]][0];
+    }
+    return answer;
+}
+
+std::vector<uint32_t> PIBTS::get_desires() const {
+    return desires;
+}
+
+std::vector<int64_t> PIBTS::get_changes() const {
+    std::vector<int64_t> answer(robots.size());
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        answer[r] = get_smart_dist(r, 0) - get_smart_dist(r, desires[r]);
     }
     return answer;
 }

@@ -123,4 +123,8 @@ public:
     [[nodiscard]] double get_score() const;
 
     [[nodiscard]] std::vector<Action> get_actions() const;
+
+    [[nodiscard]] std::vector<uint32_t> get_desires() const;
+
+    [[nodiscard]] std::vector<int64_t> get_changes() const;
 };
