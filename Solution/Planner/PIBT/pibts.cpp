@@ -418,8 +418,8 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         if (is_free_path(r)) {
             add_path(r);
             if (old_score - 1e-6 <= cur_score
-            // old_score > cur_score
-#ifdef ENABLE_PIBTS_ANNEALING
+                // old_score > cur_score
+                #ifdef ENABLE_PIBTS_ANNEALING
                 || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
 #endif
                     ) {
@@ -487,7 +487,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
-    for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
         desires[r] = desired;
         if (!validate_path(r, desires[r])) {
             continue;

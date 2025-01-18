@@ -23,9 +23,9 @@
 
 //#define ENABLE_DEFAULT_PLANNER
 
-#define ENABLE_DEFAULT_SCHEDULER
+//#define ENABLE_DEFAULT_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -36,7 +36,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -44,7 +44,7 @@
 
 //#define ENABLE_GG_SOLVER
 
-static constexpr uint32_t MAX_CONST = -1;
+static constexpr uint32_t MAX_CONST = 10'000'000;
 
 static constexpr uint32_t THREADS = 32;
 
@@ -54,13 +54,13 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 200;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = MAX_CONST;
 
 static constexpr uint32_t INVALID_DIST = 0;
 
@@ -98,16 +98,15 @@ total: 26514
 
 /*
 32 cores
-PIBTS_STEPS = 1000
 ENABLE_ALL
 
-call(0): 2286, 81.1296s
-call(1): 4121, 81.3628s
-call(2): 5341, 81.568s
-call(3): 6134, 81.7594s
-call(4): 5214, 82.243s
-call(5): 4153, 82.5459s
-total: 27249
+call(0): 2421, 81.0339s
+call(1): 4244, 81.1961s
+call(2): 5339, 81.3922s
+call(3): 6179, 81.5677s
+call(4): 5924, 81.7985s
+call(5): 4400, 82.1342s
+total: 28507
 */
 
 /*
@@ -336,6 +335,26 @@ TODO:
    Если он идет в правильном направлении, то тоже обычный вес, который тоже подбирается в GGS.
    Далее эта штука когда нужно дать в lifelong, то GGS преобразует его в стандартную схему: weight[pos][dir][action].
    И подает на вход.
+5) про PIBT:
+вот мы хотим построить робота r. выбрали действие и видим там робота to_r, который нам мешает. Я сношу его, добавляю путь r и рекурсивно строю to_r. А почему бы не сделать так: рассмотреть пары (операция робота r, операция to_r). И конечно, чтобы они не коллизили друг с другом, но могут коллизить с другими роботами. И дать им приоритет = некоторой метрике об этих двух операциях. Отсортировать это и пройтись. Тут мы уже берем и ставим два пути, и возможно коллизим с третьим роботом, для него рекурсивно построить
+
+ну или вообще строим для робота r. Переберем все его действия. если действие коллизит с другим роботом r2. То переберем еще и его действия. Но этот набор может коллизить с другим роботом r3. Которого мы уже рекурсивно построим. В итоге все это сортируем по весу, обходим в этом порядке и выполняем. Так мы даже сможем построить, если действие робота r коллизит с двумя роботами
+
+Есть уже такое. Правда делалось это для оптимального алгоритма CBS, который не скейлится нифига)
+Называется meta-agents.
+Когда мы объединяем нескольких агентов в одну сущность и работаем с ним как с одним.
+
+Таким образом мы можем решить вопрос с запуском рекурсии при конфликте с двумя агентами
+
+Сейчас мы не понимаем на кого из них запустить рекурсию, а так мы запускаем её на одного мета-агента.
+
+У такого подхода есть очевидное ограничение. Количество комбинаций действий растёт экспоненциально. Учитывая, что мы рассматриваем 16 действий, мета агент из 3х агентов - это уже 2048 возможных комбинаций.
+
+
+
+
+
+
 
 *)  UPD: что-то не очень получилось
     (static_cast<int32_t>(robots.size()) - weight[r])

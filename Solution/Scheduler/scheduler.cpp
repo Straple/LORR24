@@ -574,12 +574,60 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 }
 
 std::vector<int> MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
+
+    /*{
+        std::set<uint32_t> used_tasks;
+        for (uint32_t r = 0; r < env->num_of_agents; r++) {
+            if (env->curr_task_schedule[r] != -1) {
+                ASSERT(!used_tasks.count(env->curr_task_schedule[r]), "already contains 0");
+                used_tasks.insert(env->curr_task_schedule[r]);
+            }
+        }
+    }*/
+
     Timer timer;
     auto old_schedule = proposed_schedule;
     auto res = solver_schedule(time_limit, proposed_schedule);
-    //auto res = greedy_schedule(time_limit, proposed_schedule);
+    // auto res = greedy_schedule(time_limit, proposed_schedule);
     // auto res = greedy_schedule_double(time_limit, proposed_schedule);
     // auto res = artem_schedule(time_limit, proposed_schedule);
+
+    /*std::set<uint32_t> used_tasks;
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        if (proposed_schedule[r] != -1) {
+            ASSERT(!used_tasks.count(proposed_schedule[r]), "already contains 1");
+            used_tasks.insert(proposed_schedule[r]);
+        }
+    }
+
+    auto it = env->task_pool.begin();
+    int cnt = 0;
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        if (proposed_schedule[r] == -1) {
+            // need to find free task
+            while (it != env->task_pool.end() && (used_tasks.count(it->first) || it->second.idx_next_loc != 0)) {
+                it++;
+            }
+            ASSERT(it != env->task_pool.end(), "failed to get free task");
+            ASSERT(!used_tasks.count(it->first), "already contains 2");
+            proposed_schedule[r] = it->first;
+            used_tasks.insert(it->first);
+            //it->second.agent_assigned = r;
+            cnt++;
+        }
+    }
+
+    Printer() << "Added tasks: " << cnt << '\n';
+
+    {
+        std::set<uint32_t> used_tasks;
+        for (uint32_t r = 0; r < env->num_of_agents; r++) {
+            if (proposed_schedule[r] != -1) {
+                ASSERT(!used_tasks.count(proposed_schedule[r]), "already contains 3");
+                used_tasks.insert(proposed_schedule[r]);
+            }
+        }
+    }*/
 
     /*{
         std::vector<int> greedy_ans = old_schedule;
