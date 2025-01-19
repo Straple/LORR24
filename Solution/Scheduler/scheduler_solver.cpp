@@ -172,23 +172,18 @@ void SchedulerSolver::update() {
         int t = env->curr_task_schedule[r];
         if (t == -1// || env->task_pool.at(t).idx_next_loc == 0
                 ) {
-            //if (t != -1 && get_hm().get(get_robots_handler().get_robot(r).node, env->task_pool[t].get_next_loc() + 1) <= 5) {
-            //    continue;
-            //}
-            if (t != -1) {
+            /*if (t != -1) {// remove task agent assigned
                 env->task_pool.at(t).agent_assigned = -1;
                 env->curr_task_schedule[r] = -1;
-            }
+            }*/
             free_robots.push_back(r);
+            desires[r] = -1;
         }
     }
 
-    for (auto &[t, task]: env->task_pool) {
+    /*for (auto &[t, task]: env->task_pool) {
         if (task.agent_assigned == -1// || task.idx_next_loc == 0
                 ) {
-            //if (task.agent_assigned != -1 && get_hm().get(get_robots_handler().get_robot(task.agent_assigned).node, env->task_pool[t].get_next_loc() + 1) <= 5) {
-            //    continue;
-            //}
             task.agent_assigned = -1; // remove task agent assigned
             free_tasks.push_back(t);
         }
@@ -203,7 +198,7 @@ void SchedulerSolver::update() {
 
         cur_score += get_dist(r, desires[r]);
     }
-    validate();
+    validate();*/
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "free robots: " << free_robots.size() << '\n';
@@ -219,7 +214,21 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
     }
 #ifdef ENABLE_TRIVIAL_SCHEDULER
-    std::vector<uint32_t> kek;
+    for (uint32_t r: free_robots) {
+        uint32_t task_id = r;
+        while (!env->task_pool.count(task_id)) {
+            task_id += env->num_of_agents;
+            if (task_id > 1'000'000'000) {
+                Printer() << "pizda: " << r << ' ' << task_id << ' ' << env->task_pool.size() << '\n';
+                Printer().get().flush();
+                _exit(0);
+                throw "kek";
+            }
+            ASSERT(task_id < 1e8, "invalid task_id");
+        }
+        set(r, task_id);
+    }
+    /*std::vector<uint32_t> kek;
     for (auto [t, task]: env->task_pool) {
         if (task.agent_assigned == -1) {
             kek.emplace_back(t);
@@ -231,7 +240,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         uint32_t task_id = kek.back();
         kek.pop_back();
         set(r, task_id);
-    }
+    }*/
 
     /*std::unordered_set<uint32_t> used_task;
     for (uint32_t r = 0; r < desires.size(); r++) {

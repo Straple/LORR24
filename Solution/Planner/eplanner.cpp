@@ -82,6 +82,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     static std::vector<uint32_t> total_desires(get_operations().size());
     static std::vector<int64_t> total_changes(get_operations().size());
     for(uint32_t r = 0; r < env->num_of_agents; r++){
+        if(results.empty()){
+            break;
+        }
         uint32_t desired = std::get<3>(results[0])[r];
         int64_t change = std::get<4>(results[0])[r];
         ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
