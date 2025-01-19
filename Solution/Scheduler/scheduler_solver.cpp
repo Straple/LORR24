@@ -232,7 +232,9 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             }
             //ASSERT(task_id < 1e8, "invalid task_id");
         }
-        set(r, task_id);
+        if(env->task_pool.count(task_id)) {
+            set(r, task_id);
+        }
     }
     Printer() << '\n';
     /*std::vector<uint32_t> kek;

@@ -23,11 +23,11 @@
 
 //#define ENABLE_DEFAULT_PLANNER
 
-//#define ENABLE_DEFAULT_SCHEDULER
+#define ENABLE_DEFAULT_SCHEDULER
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -38,7 +38,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -48,15 +48,13 @@
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 6;
-
-static constexpr uint32_t PLANNER_DEPTH = 3;
+static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 100;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 400;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 

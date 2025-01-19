@@ -93,18 +93,20 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         total_desires[desired]++;
         total_changes[desired] += change;
     }
+#ifdef ENABLE_PRINT_LOG
     Printer() << "Desires:\n";
     for (uint32_t d = 0; d < total_desires.size(); d++) {
         Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
     }
+#endif
 
 
 #endif
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Planner: " << timer << '\n';
-    if (timer.get_ms() > 300) {
-        Printer() << "TIMEOUT\n";
-    }
+    //if (timer.get_ms() > 300) {
+    //    Printer() << "TIMEOUT\n";
+    //}
 #endif
 }

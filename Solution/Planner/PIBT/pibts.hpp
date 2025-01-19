@@ -45,6 +45,9 @@ class PIBTS {
         std::unordered_map<uint32_t, uint32_t> desires;
     };
 
+    // neighbours[r] = { neighbours }
+    std::vector<std::vector<uint32_t>> neighbours;
+
     std::vector<uint32_t> order;
 
     std::vector<uint32_t> weight;

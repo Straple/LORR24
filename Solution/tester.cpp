@@ -17,6 +17,7 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
 
     json data;
     std::ifstream input("Tmp/test" + std::to_string(test_id) + ".json");
+    uint32_t value = 0;
     try {
         data = json::parse(input);
 
@@ -29,12 +30,10 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
         if(data["numScheduleErrors"] != 0){
             std::cout << "\nSCHEDULER ERROR" << std::endl;
         }
+        value = data["numTaskFinished"];
     } catch (const json::parse_error &error) {
         std::cerr << "Message: " << error.what() << std::endl;
-        exit(1);
     }
-
-    uint32_t value = data["numTaskFinished"];
     std::cout << value << ", " << timer << std::endl;
     return value;
 }
@@ -50,6 +49,8 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"Data2023/random.domain/MR23-I-08.json", 2000},
         {"Data2023/game.domain/MR23-I-09.json", 5000},
         {"Data2023/warehouse.domain/MR23-I-10.json", 5000},
+
+
         /*{"random.domain/random_32_32_20_100.json", 1000},
         //"random.domain/random_32_32_20_100_2.json",
         {"random.domain/random_32_32_20_200.json", 1000},

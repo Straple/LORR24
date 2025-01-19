@@ -821,7 +821,75 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         }*/
     }
 
+    Timer timer;
+
+    /*neighbours.resize(robots.size());
+
+    {
+        // used_edge[depth][edge] = robot id
+        std::array<std::vector<std::vector<uint32_t>>, DEPTH> used_edge;
+
+        // used_pos[depth][pos] = robot id
+        std::array<std::vector<std::vector<uint32_t>>, DEPTH> used_pos;
+
+        for (uint32_t depth = 0; depth < DEPTH; depth++) {
+            used_pos[depth].resize(get_map().get_size());
+            used_edge[depth].resize(get_graph().get_edges_size());
+        }
+
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+                if (!validate_path(r, desired)) {
+                    continue;
+                }
+                uint32_t source = robots[r].node;
+                auto &poses_path = get_omap().get_poses_path(source, desired);
+                auto &edges_path = get_omap().get_edges_path(source, desired);
+                for (uint32_t depth = 0; depth < DEPTH; depth++) {
+                    uint32_t to_edge = edges_path[depth];
+                    uint32_t to_pos = poses_path[depth];
+
+                    ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
+                    ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
+
+                    auto add = [&](std::vector<uint32_t> &vec) {
+                        if (std::find(vec.begin(), vec.end(), r) == vec.end()) {
+                            vec.push_back(r);
+                        }
+                    };
+
+                    add(used_edge[depth][to_edge]);
+                    add(used_pos[depth][to_pos]);
+                }
+            }
+        }
+
+        for (uint32_t depth = 0; depth < DEPTH; depth++) {
+            for (uint32_t edge = 0; edge < used_edge[depth].size(); edge++) {
+                for (uint32_t r: used_edge[depth][edge]) {
+                    for (uint32_t r2: used_edge[depth][edge]) {
+                        if (r != r2 && std::find(neighbours[r].begin(), neighbours[r].end(), r2) == neighbours[r].end()) {
+                            neighbours[r].push_back(r2);
+                        }
+                    }
+                }
+            }
+            for (uint32_t pos = 0; pos < used_pos[depth].size(); pos++) {
+                for (uint32_t r: used_pos[depth][pos]) {
+                    for (uint32_t r2: used_pos[depth][pos]) {
+                        if (r != r2 && std::find(neighbours[r].begin(), neighbours[r].end(), r2) == neighbours[r].end()) {
+                            neighbours[r].push_back(r2);
+                        }
+                    }
+                }
+            }
+        }
+    }*/
+
+    //Printer() << "NEIGH BUILD: " << timer << '\n';
+
     for (uint32_t r = 0; r < robots.size(); r++) {
+        desires[r] = 0;
         add_path(r);
     }
 }
