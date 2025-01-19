@@ -387,7 +387,7 @@ bool PIBTS::try_build_state(uint32_t r, Randomizer &rnd) {
 uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
     if (counter == -1 || //
         counter > 1000 ||//
-        (counter % 256 == 0 && get_now() >= end_time)) {
+        (counter % 32 == 0 && get_now() >= end_time)) {
 
         counter = -1;
         return 2;
@@ -477,12 +477,13 @@ bool PIBTS::try_build(uint32_t r) {
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 ||//
         //counter > 30'000 ||//
-        (counter % 256 == 0 && get_now() >= end_time)) {
+        (counter % 32 == 0 && get_now() >= end_time)) {
 
         counter = -1;
         return 2;
     }
 
+    visited[r] = visited_counter;
     uint32_t old_desired = desires[r];
 
     // (priority, desired)
@@ -498,6 +499,9 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         }
         if (to_r != -1 && desires[to_r] != 0) {
             //continue;
+        }
+        if (to_r != -1 && visited[to_r] == visited_counter) {
+            continue;
         }
         int64_t priority = get_smart_dist(r, desired);
         steps.emplace_back(priority, desired);
@@ -530,13 +534,14 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             //ASSERT(desires[to_r] == 0, "invalid desires");
+            ASSERT(visited[to_r] != visited_counter, "already visited");
 
             // TODO: у to_r может быть приоритет ниже чем у r
             // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
             // и этот x построил to_r
             if (desires[to_r] != 0
                 #ifdef ENABLE_PIBTS_TRICK
-                && rnd.get_d() < 0.8
+                && rnd.get_d() < visited_bound
 #endif
                     ) {
                 continue;
@@ -560,6 +565,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         }
     }
 
+    visited[r] = 0;
     desires[r] = old_desired;
     return false;
 }
@@ -775,6 +781,12 @@ void PIBTS::do_work(uint32_t thr) {
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
         : robots(robots), end_time(end_time), rnd(seed) {
 
+    if (rnd.get_d() < 0.5) {
+        visited_bound = 2;
+    } else {
+        visited_bound = rnd.get_d(0.1, 0.9);
+    }
+
     visited.resize(robots.size());
     desires.resize(robots.size());
 
@@ -901,4 +913,33 @@ std::vector<int64_t> PIBTS::get_changes() const {
         answer[r] = get_smart_dist(r, 0) - get_smart_dist(r, desires[r]);
     }
     return answer;
+}
+
+double PIBTS::get_kek() {
+    uint64_t kek = 0;
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        uint32_t old_desired = desires[r];
+        remove_path(r);
+        std::vector<std::pair<int64_t, uint32_t>> steps;
+        for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+            desires[r] = desired;
+            if (!validate_path(r, desires[r])) {
+                continue;
+            }
+            uint32_t to_r = get_used(r);
+            if (to_r == -2) {
+                continue;
+            }
+            if (to_r != -1 && desires[to_r] != 0) {
+                //continue;
+            }
+            int64_t priority = get_smart_dist(r, desired);
+            steps.emplace_back(priority, desired);
+        }
+        desires[r] = old_desired;
+        add_path(r);
+
+        kek += steps.size();
+    }
+    return kek * 1.0 / robots.size();
 }

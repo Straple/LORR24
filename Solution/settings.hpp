@@ -25,9 +25,9 @@
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
-#define ENABLE_TRIVIAL_SCHEDULER
+//#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -48,15 +48,15 @@
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 6;
 
 static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = MAX_CONST;
+static constexpr uint32_t PIBTS_STEPS = 100;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 400;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 

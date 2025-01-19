@@ -59,7 +59,7 @@ class PIBTS {
 
     double temp = 1;
 
-    std::vector<uint32_t> cluster_id;
+    double visited_bound = 0.8;
 
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
 
@@ -127,4 +127,6 @@ public:
     [[nodiscard]] std::vector<uint32_t> get_desires() const;
 
     [[nodiscard]] std::vector<int64_t> get_changes() const;
+
+    [[nodiscard]] double get_kek();
 };

@@ -31,19 +31,19 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
-    std::vector<std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>>>> results_pack(
+    std::vector<std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>>> results_pack(
             THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
-        //while(get_now() < end_time) {
-        Timer timer;
-        PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
-        pibt.simulate_pibt();
-        double time = timer.get_ms();
-        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
-                                       pibt.get_changes());
-        //seed = seed * 736 + 202;
-        //}
+        while (get_now() < end_time) {
+            Timer timer;
+            PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
+            pibt.simulate_pibt();
+            double time = timer.get_ms();
+            results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
+                                           pibt.get_changes(), pibt.get_kek());
+            seed = seed * 736 + 202;
+        }
     };
 
     static Randomizer rnd(228);
@@ -55,7 +55,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         threads[thr].join();
     }
 
-    std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>>> results;
+    std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>> results;
     for (uint32_t thr = 0; thr < THR; thr++) {
         for (auto &item: results_pack[thr]) {
             results.emplace_back(std::move(item));
@@ -68,9 +68,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "RESULTS(" << results.size() << "): ";
 #endif
-    for (const auto &[score, time, actions, desires, changes]: results) {
+    for (const auto &[score, time, actions, desires, changes, kek]: results) {
 #ifdef ENABLE_PRINT_LOG
-        Printer() << "(" << score << ", " << time << ") ";
+        Printer() << "(" << score << ", " << time << ", " << kek << ") ";
 #endif
         if (best_score < score) {
             best_score = score;
