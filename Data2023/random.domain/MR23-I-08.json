@@ -3,6 +3,6 @@
     "agentFile": "agents/random-32-32-20_800.agents",
     "teamSize": 800,
     "taskFile": "tasks/random-32-32-20_800.tasks",
-    "numTasksReveal": 1,
+    "numTasksReveal": 10,
     "taskAssignmentStrategy": "roundrobin"
 }
