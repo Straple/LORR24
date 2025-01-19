@@ -41,7 +41,9 @@ const int INF = 1000000;
 std::vector<int> MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
     TimePoint point = get_now();
     solver.update();
-    //solver.rebuild_dp(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
+#ifndef ENABLE_TRIVIAL_SCHEDULER
+    solver.rebuild_dp(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
+#endif
     solver.triv_solve(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME));
     //solver.solve(get_now() + Milliseconds(150));
     auto done_proposed_schedule = proposed_schedule;

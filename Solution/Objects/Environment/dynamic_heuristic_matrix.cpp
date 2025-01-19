@@ -196,20 +196,38 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
         }
     }
 
-    // (timestep updated, target pos)
-    std::vector<std::pair<uint32_t, uint32_t>> pool;
-    for (auto &[t, task]: env.task_pool) {
+    // (score, target pos)
+    //std::vector<std::pair<double, uint32_t>> pool;
+
+    // mp[pos] = score
+    std::unordered_map<uint32_t, double> mp;
+    {
+        const auto &robots = get_robots_handler().get_robots();
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            if (robots[r].target) {
+                mp[robots[r].target]++;
+            }
+        }
+    }
+    /*for (auto &[t, task]: env.task_pool) {
         uint32_t target = task.get_next_loc() + 1;
         ASSERT(0 < target && target < get_map().get_size(), "invalid target");
         pool.emplace_back(timestep_updated[target], target);
     }
     std::sort(pool.begin(), pool.end());
-    pool.erase(std::unique(pool.begin(), pool.end()), pool.end());
+    pool.erase(std::unique(pool.begin(), pool.end()), pool.end());*/
+
+    std::vector<std::pair<double, uint32_t>> pool;
+    for (auto [pos, score]: mp) {
+        pool.emplace_back(score, pos);
+    }
+    std::sort(pool.begin(), pool.end());
 
     std::atomic<uint32_t> total_rebuild = 0;
 
     auto do_work = [&](uint32_t thr) {
-        for (uint32_t index = thr; index < pool.size() && get_now() < end_time && index < DHM_REBUILD_COUNT; index += THREADS) {
+        for (uint32_t index = thr;
+             index < pool.size() && get_now() < end_time && index < DHM_REBUILD_COUNT; index += THREADS) {
             auto [_, target] = pool[index];
 
             timestep_updated[target] = env.curr_timestep;

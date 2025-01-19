@@ -18,7 +18,7 @@ EPlanner::EPlanner() {
 }
 
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
-    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 20);
+    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
     Timer timer;
 
     plan.assign(env->num_of_agents, Action::W);
@@ -31,17 +31,19 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
-    std::vector<std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>>>> results_pack(THR);
+    std::vector<std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>>>> results_pack(
+            THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
-        while(get_now() < end_time) {
-            Timer timer;
-            PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
-            pibt.simulate_pibt();
-            double time = timer.get_ms();
-            results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(), pibt.get_changes());
-            seed = seed * 736 + 202;
-        }
+        //while(get_now() < end_time) {
+        Timer timer;
+        PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
+        pibt.simulate_pibt();
+        double time = timer.get_ms();
+        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
+                                       pibt.get_changes());
+        //seed = seed * 736 + 202;
+        //}
     };
 
     static Randomizer rnd(228);
@@ -55,7 +57,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>>> results;
     for (uint32_t thr = 0; thr < THR; thr++) {
-        for(auto &item : results_pack[thr]){
+        for (auto &item: results_pack[thr]) {
             results.emplace_back(std::move(item));
         }
     }
@@ -81,8 +83,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     static std::vector<uint32_t> total_desires(get_operations().size());
     static std::vector<int64_t> total_changes(get_operations().size());
-    for(uint32_t r = 0; r < env->num_of_agents; r++){
-        if(results.empty()){
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        if (results.empty()) {
             break;
         }
         uint32_t desired = std::get<3>(results[0])[r];
