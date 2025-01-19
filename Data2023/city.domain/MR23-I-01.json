@@ -3,6 +3,6 @@
     "agentFile": "agents/Paris_1_256_1500.agents",
     "teamSize": 1500,
     "taskFile": "tasks/Paris_1_256_1500.tasks",
-    "numTasksReveal": 10,
+    "numTasksReveal": 30,
     "taskAssignmentStrategy": "roundrobin"
 }

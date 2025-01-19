@@ -3,6 +3,6 @@
     "agentFile": "agents/Warehouse_10000.agents",
     "teamSize": 10000,
     "taskFile": "tasks/warehouse_large.tasks",
-    "numTasksReveal": 10,
+    "numTasksReveal": 30,
     "taskAssignmentStrategy": "roundrobin"
 }
