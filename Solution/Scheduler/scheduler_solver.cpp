@@ -170,12 +170,12 @@ void SchedulerSolver::update() {
     // TODO: here failed
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         int t = env->curr_task_schedule[r];
-        if (t == -1 || env->task_pool.at(t).idx_next_loc == 0
-        ) {
+        if (t == -1// || env->task_pool.at(t).idx_next_loc == 0
+                ) {
             //if (t != -1 && get_hm().get(get_robots_handler().get_robot(r).node, env->task_pool[t].get_next_loc() + 1) <= 5) {
             //    continue;
             //}
-            if(t != -1){
+            if (t != -1) {
                 env->task_pool.at(t).agent_assigned = -1;
                 env->curr_task_schedule[r] = -1;
             }
@@ -184,8 +184,8 @@ void SchedulerSolver::update() {
     }
 
     for (auto &[t, task]: env->task_pool) {
-        if (task.agent_assigned == -1 || task.idx_next_loc == 0
-        ) {
+        if (task.agent_assigned == -1// || task.idx_next_loc == 0
+                ) {
             //if (task.agent_assigned != -1 && get_hm().get(get_robots_handler().get_robot(task.agent_assigned).node, env->task_pool[t].get_next_loc() + 1) <= 5) {
             //    continue;
             //}
@@ -218,6 +218,41 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             set(r, -1);
         }
     }
+#ifdef ENABLE_TRIVIAL_SCHEDULER
+    std::vector<uint32_t> kek;
+    for (auto [t, task]: env->task_pool) {
+        if (task.agent_assigned == -1) {
+            kek.emplace_back(t);
+        }
+    }
+    std::sort(kek.begin(), kek.end(), std::greater<>());
+    for (uint32_t r: free_robots) {
+        ASSERT(!kek.empty(), "empty task pool");
+        uint32_t task_id = kek.back();
+        kek.pop_back();
+        set(r, task_id);
+    }
+
+    /*std::unordered_set<uint32_t> used_task;
+    for (uint32_t r = 0; r < desires.size(); r++) {
+        if (desires[r] != -1) {
+            ASSERT(!used_task.count(desires[r]), "already contains");
+            used_task.insert(desires[r]);
+        }
+    }
+
+    auto it = env->task_pool.begin();
+    for (uint32_t r: free_robots) {
+        while (it != env->task_pool.end() && used_task.count(it->first)) {
+            it++;
+        }
+        ASSERT(it != env->task_pool.end(), "kek");
+
+        uint32_t task_id = it->first;
+        set(r, task_id);
+        used_task.insert(task_id);
+    }*/
+#else
     // (dist, r, index)
     std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
     for (uint32_t r: free_robots) {
@@ -225,8 +260,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             Heap.push({dp[r][0].first, r, 0});
         }
     }
-
-    std::unordered_set<uint32_t> used_task;
 
     while (!Heap.empty() && get_now() < end_time) {
         auto [dist, r, index] = Heap.top();
@@ -256,6 +289,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         set(r, task_id);
         used_task.insert(task_id);
     }
+#endif
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "SchedulerSolver::triv_solve: " << timer << '\n';

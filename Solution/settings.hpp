@@ -25,6 +25,8 @@
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
+#define ENABLE_TRIVIAL_SCHEDULER
+
 #define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
@@ -34,7 +36,7 @@
 #define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-//#define BUILD_META_INFO
+#define BUILD_META_INFO
 
 #define ENABLE_PRINT_LOG
 
@@ -52,7 +54,7 @@ static constexpr uint32_t PLANNER_DEPTH = 3;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = MAX_CONST;
 
@@ -82,6 +84,26 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
+
+/*
+-i Data2023/Main/random.domain/MR23-I-03.json -o test.json -s 500 -t 200 -p 100000000
+Total time: 90.6059s
+score: 2573 -> 2631
+*/
+
+/*
+call(0): 10170 / 10385, 1549.94s
+call(1): 47649 / 49186, 3533.54s
+call(2): 2547 / 3042, 490.689s
+call(3): 1530 / 1741, 490.636s
+call(4): 7026 / 7432, 981.584s
+call(5): 180743 / 197275, 5103.04s
+call(6): 5235 / 5914, 982.136s
+call(7): 6580 / 6059, 1964.96s
+call(8): 12316 / 28954, 5052.89s
+call(9): 164905 / 194677, 5069.29s
+total: 438701 / 504665
+*/
 
 /*
 6 cores
@@ -288,23 +310,8 @@ total: 16893
 */
 
 /*
-call(0): 2352, 19.4394s
-call(1): 2325, 20.138s
-call(2): 4137, 50.8091s
-call(3): 4081, 57.113s
-call(4): 5238, 51.5664s
-call(5): 5177, 57.8458s
-call(6): 5761, 67.9453s
-call(7): 5543, 67.6235s
-call(8): 4973, 140.395s
-call(9): 5207, 111.707s
-call(10): 4078, 304.588s // PIBTS_STEPS = 0: 165.8s 3802, если без rnd.get_d() < 0.8, то 91.5006s 3075
-call(11): 4004, 306.231s // TODO: тут оочень медленно с PIBTS_STEPS=1000, попробовать поменять
-total: 52876
-TODO: попробовать поменять try_build так, чтобы он стремился на начальных агентах улучшать скор,\
- а если это не так, то с некоторой вероятностью он выйдет
-
 TODO:
+!!!) мы должны были выяснить что сделать за эти WW. Мы должны перебрать CWW, RWW, RRW и взять лучший и сделать его
 -8) сделать более умный вес задачи у шедулера. Например: для каждой задачи найти самую ближайшую на ее конце и дать этому некоторый вес
     таким образом он будет не только брать самую близкую задачу, но еще и думать чуток наперед.
 -7) Взяли клетку. Запустили Дейкстру. Взяли среднее значение стоимости пути до всех клеток.

@@ -874,6 +874,19 @@ std::vector<Action> PIBTS::get_actions() const {
     std::vector<Action> answer(robots.size());
     for (uint32_t r = 0; r < robots.size(); r++) {
         answer[r] = get_operations()[desires[r]][0];
+        // TODO: для WWW нужно расчитать что именно сделать: W, R, C
+        if (desires[r] == 0) {
+            auto dist = std::min({get_dhm().get(get_graph().get_to_node(robots[r].node, 1), robots[r].target),
+                                  get_dhm().get(get_graph().get_to_node(robots[r].node, 2), robots[r].target),
+                                  get_dhm().get(get_graph().get_to_node(robots[r].node, 3), robots[r].target)});
+            if (dist == get_dhm().get(get_graph().get_to_node(robots[r].node, 1), robots[r].target)) {
+                answer[r] = Action::CR;
+            } else if (dist == get_dhm().get(get_graph().get_to_node(robots[r].node, 2), robots[r].target)) {
+                answer[r] = Action::CCR;
+            } else {
+                answer[r] = Action::W;
+            }
+        }
     }
     return answer;
 }
