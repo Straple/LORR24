@@ -32,8 +32,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
     // (score, time, actions, desires, changes, kek)
-    std::vector<std::vector<std::tuple<double, int, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>>> results_pack(
-            THR);
+    std::vector<std::vector<std::tuple<double, int, std::vector<Action>
+#ifdef ENABLE_PRINT_LOG
+            , std::vector<uint32_t>, std::vector<int64_t>, double
+#endif
+    >>> results_pack(THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
         //while (get_now() < end_time) {
@@ -47,9 +50,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             x += kek;
         }*/
         auto time = timer.get_ms();
-        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(),
+        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions()
 #ifdef ENABLE_PRINT_LOG
-                                       pibt.get_desires(), pibt.get_changes(), 0
+                ,pibt.get_desires(), pibt.get_changes(), 0
 #endif
         );
         //    seed = seed * 736 + 202;
@@ -65,7 +68,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         threads[thr].join();
     }
 
-    std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>> results;
+    std::vector<std::tuple<double, double, std::vector<Action>
+#ifdef ENABLE_PRINT_LOG
+            , std::vector<uint32_t>, std::vector<int64_t>, double
+#endif
+    >> results;
     for (uint32_t thr = 0; thr < THR; thr++) {
         for (auto &item: results_pack[thr]) {
             results.emplace_back(std::move(item));
@@ -80,7 +87,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "RESULTS(" << results.size() << "): ";
 #endif
-    for (const auto &[score, time, actions, desires, changes, kek]: results) {
+    for (const auto &[score, time, actions
+#ifdef ENABLE_PRINT_LOG
+                      , desires, changes, kek
+#endif
+                      ]: results) {
 #ifdef ENABLE_PRINT_LOG
         Printer() << "(" << score << ", " << time << ", " << kek << ") ";
 #endif

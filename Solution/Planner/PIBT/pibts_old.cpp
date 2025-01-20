@@ -1,3 +1,4 @@
+#ifdef MY_UNUSED
 #include <Planner/PIBT/pibts.hpp>
 
 #include <Objects/Basic/assert.hpp>
@@ -1195,3 +1196,4 @@ double PIBTS::get_kek() {
     }
     return kek * 1.0 / robots.size();
 }
+#endif
