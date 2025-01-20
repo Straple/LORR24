@@ -18,14 +18,15 @@ bool PIBTS::is_free_path(uint32_t r) const {
     ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
     ASSERT(validate_path(r, desires[r]), "invalid path");
 
-    uint32_t source = robots[r].node;
-    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
-    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
+    const auto &poses_path = get_omap().get_poses_path(robots[r].node, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         if (used_pos[depth][poses_path[depth]] != -1) {
             ASSERT(used_pos[depth][poses_path[depth]] != r, "invalid used_node");
             return false;
         }
+    }
+    const auto &edges_path = get_omap().get_edges_path(robots[r].node, desires[r]);
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
         if (used_edge[depth][edges_path[depth]] != -1) {
             ASSERT(used_edge[depth][edges_path[depth]] != r, "invalid used_edge");
             return false;
@@ -71,36 +72,32 @@ EPath PIBTS::get_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
     ASSERT(validate_path(r, desired), "invalid path");
 
-    uint32_t node = robots[r].node;
-    return get_omap().get_nodes_path(node, desired);
+    return get_omap().get_nodes_path(robots[r].node, desired);
 }
 
 uint32_t PIBTS::get_used(uint32_t r) const {
     uint32_t answer = -1;
 
-    uint32_t source = robots[r].node;
-    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
-    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
-
+    auto &poses_path = get_omap().get_poses_path(robots[r].node, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        uint32_t to_edge = edges_path[depth];
         uint32_t to_pos = poses_path[depth];
-
-        if (used_edge[depth][to_edge] != -1) {
-            if (answer == -1) {
-                answer = used_edge[depth][to_edge];
-            } else if (answer != used_edge[depth][to_edge]) {
-                answer = -2;
-                break;
-            }
-        }
-
         if (used_pos[depth][to_pos] != -1) {
             if (answer == -1) {
                 answer = used_pos[depth][to_pos];
             } else if (answer != used_pos[depth][to_pos]) {
-                answer = -2;
-                break;
+                return -2;
+            }
+        }
+    }
+
+    const auto &edges_path = get_omap().get_edges_path(robots[r].node, desires[r]);
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        uint32_t to_edge = edges_path[depth];
+        if (used_edge[depth][to_edge] != -1) {
+            if (answer == -1) {
+                answer = used_edge[depth][to_edge];
+            } else if (answer != used_edge[depth][to_edge]) {
+                return -2;
             }
         }
     }
@@ -146,8 +143,8 @@ uint32_t PIBTS::get_used(uint32_t r, const State &state) const {
     return answer;
 }
 
-int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
-    int64_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
+int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
+    int32_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
 
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
@@ -155,20 +152,24 @@ int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
         uint32_t node = path[path.size() - 2];
         {
             uint32_t to = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int32_t>(get_dhm().get(to, robots[r].target)));
         }
         {
             uint32_t to = get_graph().get_to_node(node, 2);
-            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int32_t>(get_dhm().get(to, robots[r].target)));
         }
 
         if (op[op.size() - 2] == Action::W) {
             node = get_graph().get_to_node(node, 1);
             node = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(node, robots[r].target)));
+            dist = std::min(dist, static_cast<int32_t>(get_dhm().get(node, robots[r].target)));
         }
     }
     return dist;
+}
+
+int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
+    return smart_dist_dp[r][desired];
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
@@ -183,23 +184,22 @@ void PIBTS::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
 
-    uint32_t source = robots[r].node;
-    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
-    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
+    const auto &poses_path = get_omap().get_poses_path(robots[r].node, desires[r]);
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        uint32_t to_pos = poses_path[depth];
+        ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
+        ASSERT(used_pos[depth][to_pos] == -1, "already used");
+        used_pos[depth][to_pos] = r;
+    }
+
+    const auto &edges_path = get_omap().get_edges_path(robots[r].node, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         uint32_t to_edge = edges_path[depth];
-        uint32_t to_pos = poses_path[depth];
-
-        ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
-
         if (to_edge) {
             ASSERT(to_edge < used_edge[depth].size(), "invalid to_edge");
             ASSERT(used_edge[depth][to_edge] == -1, "already used");
             used_edge[depth][to_edge] = r;
         }
-
-        ASSERT(used_pos[depth][to_pos] == -1, "already used");
-        used_pos[depth][to_pos] = r;
     }
 
     update_score(r, desires[r], cur_score, +1);
@@ -240,25 +240,22 @@ void PIBTS::remove_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
 
-    uint32_t source = robots[r].node;
-    auto &poses_path = get_omap().get_poses_path(source, desires[r]);
-    auto &edges_path = get_omap().get_edges_path(source, desires[r]);
+    const auto &poses_path = get_omap().get_poses_path(robots[r].node, desires[r]);
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        uint32_t to_pos = poses_path[depth];
+        ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
+        ASSERT(used_pos[depth][to_pos] == r, "invalid node");
+        used_pos[depth][to_pos] = -1;
+    }
+    const auto &edges_path = get_omap().get_edges_path(robots[r].node, desires[r]);
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         uint32_t to_edge = edges_path[depth];
-        uint32_t to_pos = poses_path[depth];
-
-        ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
-
         if (to_edge) {
             ASSERT(to_edge < used_edge[depth].size(), "invalid to_edge");
             ASSERT(used_edge[depth][to_edge] == r, "invalid edge");
             used_edge[depth][to_edge] = -1;
         }
-
-        ASSERT(used_pos[depth][to_pos] == r, "invalid node");
-        used_pos[depth][to_pos] = -1;
     }
-
     update_score(r, desires[r], cur_score, -1);
 }
 
@@ -487,6 +484,165 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
     visited[r] = visited_counter;
     uint32_t old_desired = desires[r];
+
+    // smart version
+    // (priority, desired, r2, desired2, to_r)
+    /*std::vector<std::tuple<int64_t, uint32_t, uint32_t, uint32_t, uint32_t>> steps;
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+        desires[r] = desired;
+        if (!validate_path(r, desires[r])) {
+            continue;
+        }
+        uint32_t to_r = get_used(r);
+        if (to_r == -2) {
+            continue;
+        }
+        if (to_r != -1 && desires[to_r] != 0) {
+            //continue;
+        }
+        if (to_r != -1 && visited[to_r] == visited_counter) {
+            continue;
+        }
+        int64_t priority = get_smart_dist(r, desired);
+        steps.emplace_back(priority, desired, -1, -1, to_r);
+    }
+
+    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+        desires[r] = desired;
+        if (!validate_path(r, desired)) {
+            continue;
+        }
+        //for (uint32_t r2: neighbours[r]) {
+        if(neighbours[r].empty()){
+            continue;
+        }
+        uint32_t r2 = rnd.get(neighbours[r]);
+        {
+            ASSERT(r != r2, "invalid neighbours");
+            uint32_t old_desired2 = desires[r2];
+            remove_path(r2);
+            for (uint32_t desired2 = 0; desired2 < get_operations().size(); desired2++) {
+                desires[r2] = desired2;
+                if (!validate_path(r2, desired2)) {
+                    continue;
+                }
+
+                uint32_t used = get_used(r);
+                uint32_t used2 = get_used(r2);
+                if (used == -2 || used2 == -2) {
+                    continue;
+                }
+                if (used != -1 && used2 != -1 && used != used2) {
+                    continue;
+                }
+
+                uint32_t to_r = used;
+                if (to_r == -1) {
+                    to_r = used2;
+                }
+
+                if (to_r != -1 && visited[to_r] == visited_counter) {
+                    continue;
+                }
+
+                if (to_r != -1) {
+                    remove_path(to_r);
+                }
+                add_path(r);
+                if (get_used(r2) == r) {
+                    remove_path(r);
+                    if (to_r != -1) {
+                        add_path(to_r);
+                    }
+                    continue;
+                }
+
+                // здесь я могу добавить путь для r и r2 с такими desired и desired2
+                // а также тут есть to_r, который мы уже построим рекурсивно
+
+                int64_t priority = get_smart_dist(r, desired) + get_smart_dist(r2, desired2);
+                steps.emplace_back(priority, desired, r2, desired2, to_r);
+
+                remove_path(r);
+                if (to_r != -1) {
+                    add_path(to_r);
+                }
+            }
+            desires[r2] = old_desired2;
+            add_path(r2);
+        }
+    }
+
+    std::stable_sort(steps.begin(), steps.end());
+
+    for (auto [priority, desired, r2, desired2, to_r]: steps) {
+        uint32_t old_desired2 = -1;
+        if(r2 != -1){
+            old_desired2 = desires[r2];
+        }
+        desires[r] = desired;
+        if (r2 != -1) {
+            remove_path(r2);
+            desires[r2] = desired2;
+        }
+
+        if (to_r == -1) {
+            add_path(r);
+            if (r2 != -1) {
+                add_path(r2);
+            }
+            if (old_score - 1e-6 <= cur_score
+                // old_score > cur_score
+                #ifdef ENABLE_PIBTS_ANNEALING
+                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
+#endif
+                    ) {
+                return 1;// accepted
+            } else {
+                remove_path(r);
+                desires[r] = old_desired;
+                if (r2 != -1) {
+                    remove_path(r2);
+                    desires[r2] = old_desired2;
+                    add_path(r2);
+                }
+                return 2;// not accepted
+            }
+        } else {
+            remove_path(to_r);
+            add_path(r);
+            if(r2 != -1) {
+                add_path(r2);
+            }
+
+            uint32_t res = build(to_r, depth + 1, ++counter);
+            if (res == 1) {
+                return res;
+            } else if (res == 2) {
+                remove_path(r);
+                if(r2 != -1) {
+                    remove_path(r2);
+                }
+                add_path(to_r);
+                desires[r] = old_desired;
+                if(r2 != -1) {
+                    desires[r2] = old_desired2;
+                    add_path(r2);
+                }
+                return res;
+            }
+
+            remove_path(r);
+            if(r2 != -1) {
+                remove_path(r2);
+            }
+            add_path(to_r);
+            if(r2 != -1) {
+                desires[r2] = old_desired2;
+                add_path(r2);
+            }
+        }
+    }*/
 
     // (priority, desired)
     std::vector<std::pair<int64_t, uint32_t>> steps;
@@ -828,9 +984,19 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         }*/
     }
 
+    smart_dist_dp.resize(robots.size());
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        smart_dist_dp[r].resize(get_operations().size());
+        for (uint32_t desired = 0; desired < smart_dist_dp[r].size(); desired++) {
+            if (validate_path(r, desired)) {
+                smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired);
+            }
+        }
+    }
+
     Timer timer;
 
-    /*neighbours.resize(robots.size());
+    neighbours.resize(robots.size());
 
     {
         // used_edge[depth][edge] = robot id
@@ -840,7 +1006,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         std::array<std::vector<std::vector<uint32_t>>, DEPTH> used_pos;
 
         for (uint32_t depth = 0; depth < DEPTH; depth++) {
-            used_pos[depth].resize(get_map().get_size());
+            used_pos[depth].resize(get_graph().get_zipes_size());
             used_edge[depth].resize(get_graph().get_edges_size());
         }
 
@@ -857,7 +1023,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                     uint32_t to_pos = poses_path[depth];
 
                     ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
-                    ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
+                    ASSERT(to_edge < used_edge[depth].size(), "invalid to_edge");
 
                     auto add = [&](std::vector<uint32_t> &vec) {
                         if (std::find(vec.begin(), vec.end(), r) == vec.end()) {
@@ -865,35 +1031,37 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                         }
                     };
 
-                    add(used_edge[depth][to_edge]);
+                    if (to_edge) {
+                        add(used_edge[depth][to_edge]);
+                    }
                     add(used_pos[depth][to_pos]);
                 }
             }
         }
 
         for (uint32_t depth = 0; depth < DEPTH; depth++) {
-            for (uint32_t edge = 0; edge < used_edge[depth].size(); edge++) {
+            for (uint32_t edge = 1; edge < used_edge[depth].size(); edge++) {
                 for (uint32_t r: used_edge[depth][edge]) {
                     for (uint32_t r2: used_edge[depth][edge]) {
-                        if (r != r2 && std::find(neighbours[r].begin(), neighbours[r].end(), r2) == neighbours[r].end()) {
+                        if (r != r2 &&
+                            std::find(neighbours[r].begin(), neighbours[r].end(), r2) == neighbours[r].end()) {
                             neighbours[r].push_back(r2);
                         }
                     }
                 }
             }
-            for (uint32_t pos = 0; pos < used_pos[depth].size(); pos++) {
+            for (uint32_t pos = 1; pos < used_pos[depth].size(); pos++) {
                 for (uint32_t r: used_pos[depth][pos]) {
                     for (uint32_t r2: used_pos[depth][pos]) {
-                        if (r != r2 && std::find(neighbours[r].begin(), neighbours[r].end(), r2) == neighbours[r].end()) {
+                        if (r != r2 &&
+                            std::find(neighbours[r].begin(), neighbours[r].end(), r2) == neighbours[r].end()) {
                             neighbours[r].push_back(r2);
                         }
                     }
                 }
             }
         }
-    }*/
-
-    //Printer() << "NEIGH BUILD: " << timer << '\n';
+    }
 
     for (uint32_t r = 0; r < robots.size(); r++) {
         desires[r] = 0;
@@ -932,7 +1100,8 @@ void PIBTS::simulate_pibt() {
     // TODO: подобрать 0.5
     const bool skip_with_init_desired =
 #ifdef ENABLE_PIBTS_TRICK
-            rnd.get_d() < 0.5;
+            false;
+    rnd.get_d() < 0.5;
 #else
     false;
 #endif
@@ -994,27 +1163,35 @@ double PIBTS::get_kek() {
     uint64_t kek = 0;
     for (uint32_t r = 0; r < robots.size(); r++) {
         uint32_t old_desired = desires[r];
-        remove_path(r);
-        std::vector<std::pair<int64_t, uint32_t>> steps;
-        for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+        /*remove_path(r);
+        add_path(r);
+        kek += old_desired;*/
+
+
+        //std::vector<std::pair<int64_t, uint32_t>> steps;
+        for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
             desires[r] = desired;
-            if (!validate_path(r, desires[r])) {
+            validate_path(r, desires[r]);
+            /*if (!validate_path(r, desires[r])) {
                 continue;
             }
-            uint32_t to_r = get_used(r);
+            uint32_t to_r = 0;//get_used(r);
             if (to_r == -2) {
                 continue;
             }
             if (to_r != -1 && desires[to_r] != 0) {
                 //continue;
             }
-            int64_t priority = get_smart_dist(r, desired);
-            steps.emplace_back(priority, desired);
+            int64_t priority = 10;//get_smart_dist(r, desired);
+            //steps.emplace_back(priority, desired);*/
+            kek++;
         }
         desires[r] = old_desired;
-        add_path(r);
 
-        kek += steps.size();
+        //kek += get_smart_dist(r, desires[r]);//rnd.get_d() < 0.5;
+        //add_path(r);
+
+        //kek += steps.size();
     }
     return kek * 1.0 / robots.size();
 }

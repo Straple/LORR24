@@ -64,6 +64,9 @@ class PIBTS {
 
     double visited_bound = 0.8;
 
+    // smart_dist_dp[r][desired]
+    std::vector<std::vector<int32_t>> smart_dist_dp;
+
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
 
     [[nodiscard]] bool is_free_path(uint32_t r) const;
@@ -76,7 +79,9 @@ class PIBTS {
 
     [[nodiscard]] uint32_t get_used(uint32_t r, const State &state) const;
 
-    [[nodiscard]] int64_t get_smart_dist(uint32_t r, uint32_t desired) const;
+    [[nodiscard]] int32_t get_smart_dist_IMPL(uint32_t r, uint32_t desired) const;
+
+    [[nodiscard]] int32_t get_smart_dist(uint32_t r, uint32_t desired) const;
 
     void update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const;
 

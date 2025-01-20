@@ -37,12 +37,18 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
         //while (get_now() < end_time) {
-            Timer timer;
-            PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
-            pibt.simulate_pibt();
-            double time = timer.get_ms();
-            results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
-                                           pibt.get_changes(), pibt.get_kek());
+        Timer timer;
+        PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
+        pibt.simulate_pibt();
+        //timer.reset();
+        double x = 0;
+        /*for(uint32_t i = 0; i < 100; i++) {
+            auto kek = pibt.get_kek();
+            x += kek;
+        }*/
+        double time = timer.get_ms();
+        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
+                                       pibt.get_changes(), x);
         //    seed = seed * 736 + 202;
         //}
     };
@@ -73,7 +79,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif
     for (const auto &[score, time, actions, desires, changes, kek]: results) {
 #ifdef ENABLE_PRINT_LOG
-        //Printer() << "(" << score << ", " << time << ", " << kek << ") ";
+        Printer() << "(" << score << ", " << time << ", " << kek << ") ";
 #endif
         if (best_score < score) {
             best_score = score;

@@ -42,8 +42,7 @@ void DynamicHeuristicMatrix::rebuild(uint32_t source, uint32_t timestep) {
             ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
             if (to && !visited[to]) {
                 uint32_t to_dist = dist;
-                to_dist += std::max(0,
-                                    static_cast<int32_t>(get_graph().get_weight(node, action)) + weights[node][action]);
+                to_dist += get_graph().get_weight(node, action) + weights[node][action];
                 if (dists[to] > to_dist) {
                     dists[to] = to_dist;
                     heap.push({to_dist, to});
