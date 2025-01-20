@@ -583,9 +583,9 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
 
     Timer timer;
 
-    neighbours.resize(robots.size());
-
-    {
+    // init neighbours
+    /*{
+        neighbours.resize(robots.size());
         // TODO: here swap depth and edge for optimize
 
         // used_edge[depth][edge] = robot id
@@ -650,7 +650,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                 }
             }
         }
-    }
+    }*/
 
     for (uint32_t r = 0; r < robots.size(); r++) {
         desires[r] = 0;
@@ -751,32 +751,18 @@ double PIBTS::get_kek() {
     uint64_t kek = 0;
     for (uint32_t r = 0; r < robots.size(); r++) {
         uint32_t old_desired = desires[r];
-        /*remove_path(r);
+        remove_path(r);
         add_path(r);
-        kek += old_desired;*/
+        kek += old_desired;
 
-
-        //std::vector<std::pair<int64_t, uint32_t>> steps;
+        /*//std::vector<std::pair<int64_t, uint32_t>> steps;
         for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
             desires[r] = desired;
-            validate_path(r, desires[r]);
-            /*if (!validate_path(r, desires[r])) {
-                continue;
-            }
-            uint32_t to_r = 0;//get_used(r);
-            if (to_r == -2) {
-                continue;
-            }
-            if (to_r != -1 && desires[to_r] != 0) {
-                //continue;
-            }
-            int64_t priority = 10;//get_smart_dist(r, desired);
-            //steps.emplace_back(priority, desired);*/
             kek++;
-        }
+        }*/
         desires[r] = old_desired;
 
-        //kek += get_smart_dist(r, desires[r]);//rnd.get_d() < 0.5;
+        kek += old_desired;//get_smart_dist(r, desires[r]);//rnd.get_d() < 0.5;
         //add_path(r);
 
         //kek += steps.size();

@@ -32,7 +32,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
     // (score, time, actions, desires, changes, kek)
-    std::vector<std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>>> results_pack(
+    std::vector<std::vector<std::tuple<double, int, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>>> results_pack(
             THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
@@ -40,15 +40,18 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         Timer timer;
         PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
         pibt.simulate_pibt();
-        //timer.reset();
+        /*timer.reset();
         double x = 0;
-        /*for(uint32_t i = 0; i < 100; i++) {
+        for(uint32_t i = 0; i < 100; i++) {
             auto kek = pibt.get_kek();
             x += kek;
         }*/
-        double time = timer.get_ms();
-        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
-                                       pibt.get_changes(), x);
+        auto time = timer.get_ms();
+        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(),
+#ifdef ENABLE_PRINT_LOG
+                                       pibt.get_desires(), pibt.get_changes(), 0
+#endif
+        );
         //    seed = seed * 736 + 202;
         //}
     };
@@ -90,6 +93,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     Printer() << "\nbest: " << best_score << '\n';
 #endif
 
+#ifdef ENABLE_PRINT_LOG
     static std::vector<uint32_t> total_desires(get_operations().size());
     static std::vector<int64_t> total_changes(get_operations().size());
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
@@ -102,7 +106,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         total_desires[desired]++;
         total_changes[desired] += change;
     }
-#ifdef ENABLE_PRINT_LOG
     Printer() << "Desires:\n";
     for (uint32_t d = 0; d < total_desires.size(); d++) {
         Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
