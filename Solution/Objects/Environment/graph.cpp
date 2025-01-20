@@ -3,12 +3,16 @@
 #include <Objects/Basic/assert.hpp>
 
 Graph::Graph(const Map &map, const GraphGuidance &gg) {
+    pos_to_zip.resize(map.get_size());
     pos_to_node.resize(map.get_size());
     node_to_pos.resize(1);
+    zip_to_pos.resize(1);
     for (uint32_t pos = 1; pos < map.get_size(); pos++) {
         if (!map.is_free(pos)) {
             continue;
         }
+        pos_to_zip[pos] = zip_to_pos.size();
+        zip_to_pos.push_back(pos);
         for (uint32_t dir = 0; dir < 4; dir++) {
             Position p(pos, dir);
             ASSERT(p.is_valid(), "p is invalid");
@@ -36,6 +40,10 @@ Graph::Graph(const Map &map, const GraphGuidance &gg) {
             uint32_t a = p.get_pos();
             uint32_t b = to.get_pos();
 
+            if (a == b) {
+                continue;
+            }
+
             if (a > b) {
                 std::swap(a, b);
             }
@@ -49,12 +57,24 @@ Graph::Graph(const Map &map, const GraphGuidance &gg) {
     edges_size = edges.size() + 1;
 }
 
+uint32_t Graph::get_zipes_size() const {
+    return zip_to_pos.size();
+}
+
 uint32_t Graph::get_nodes_size() const {
     return node_to_pos.size();
 }
 
 uint32_t Graph::get_edges_size() const {
     return edges_size;
+}
+
+uint32_t Graph::get_zip(uint32_t pos) const {
+    return pos_to_zip[pos];
+}
+
+uint32_t Graph::get_pos_from_zip(uint32_t zip) const {
+    return zip_to_pos[zip];
 }
 
 Position Graph::get_pos(uint32_t node) const {

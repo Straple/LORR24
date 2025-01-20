@@ -15,7 +15,7 @@ std::tuple<EPath, EPath, EPath> OperationsMap::get_paths(uint32_t node, const Op
         uint32_t to_node = get_graph().get_to_node(node, action);
         uint32_t to_edge = get_graph().get_to_edge(node, action);
 
-        if (!to_node || !to_edge) {
+        if (!to_node) {
             return {EPath{}, EPath{}, EPath{}};
         }
 
@@ -23,7 +23,7 @@ std::tuple<EPath, EPath, EPath> OperationsMap::get_paths(uint32_t node, const Op
 
         nodes_path[depth] = to_node;
         edges_path[depth] = to_edge;
-        poses_path[depth] = to_pos;
+        poses_path[depth] = get_graph().get_zip(to_pos);
 
         node = to_node;
     }

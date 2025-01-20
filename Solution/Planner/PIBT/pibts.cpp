@@ -82,15 +82,9 @@ uint32_t PIBTS::get_used(uint32_t r) const {
     auto &poses_path = get_omap().get_poses_path(source, desires[r]);
     auto &edges_path = get_omap().get_edges_path(source, desires[r]);
 
-    //uint32_t start_pos = get_graph().get_pos(source).get_pos();
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
         uint32_t to_edge = edges_path[depth];
         uint32_t to_pos = poses_path[depth];
-
-        //if (cluster_id[to_pos] != cluster_id[start_pos]) {
-        //    answer = -2;
-        //    break;
-        //}
 
         if (used_edge[depth][to_edge] != -1) {
             if (answer == -1) {
@@ -197,10 +191,12 @@ void PIBTS::add_path(uint32_t r) {
         uint32_t to_pos = poses_path[depth];
 
         ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
-        ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
 
-        ASSERT(used_edge[depth][to_edge] == -1, "already used");
-        used_edge[depth][to_edge] = r;
+        if (to_edge) {
+            ASSERT(to_edge < used_edge[depth].size(), "invalid to_edge");
+            ASSERT(used_edge[depth][to_edge] == -1, "already used");
+            used_edge[depth][to_edge] = r;
+        }
 
         ASSERT(used_pos[depth][to_pos] == -1, "already used");
         used_pos[depth][to_pos] = r;
@@ -252,10 +248,12 @@ void PIBTS::remove_path(uint32_t r) {
         uint32_t to_pos = poses_path[depth];
 
         ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
-        ASSERT(to_edge && to_edge < used_edge[depth].size(), "invalid to_edge");
 
-        ASSERT(used_edge[depth][to_edge] == r, "invalid edge");
-        used_edge[depth][to_edge] = -1;
+        if (to_edge) {
+            ASSERT(to_edge < used_edge[depth].size(), "invalid to_edge");
+            ASSERT(used_edge[depth][to_edge] == r, "invalid edge");
+            used_edge[depth][to_edge] = -1;
+        }
 
         ASSERT(used_pos[depth][to_pos] == r, "invalid node");
         used_pos[depth][to_pos] = -1;
@@ -429,7 +427,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
-            if(get_now() >= end_time){
+            if (get_now() >= end_time) {
                 desires[r] = old_desired;
                 return 2;
             }
@@ -535,7 +533,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 continue;
             }
 
-            if(get_now() >= end_time){
+            if (get_now() >= end_time) {
                 desires[r] = old_desired;
                 return 2;
             }
@@ -800,7 +798,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
     desires.resize(robots.size());
 
     for (uint32_t depth = 0; depth < DEPTH; depth++) {
-        used_pos[depth].resize(get_map().get_size(), -1);
+        used_pos[depth].resize(get_graph().get_zipes_size(), -1);
         used_edge[depth].resize(get_graph().get_edges_size(), -1);
     }
 
