@@ -387,8 +387,7 @@ bool PIBTS::try_build_state(uint32_t r, Randomizer &rnd) {
 uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
     if (counter == -1 || //
         counter > 1000 ||//
-        (counter % 32 == 0 && get_now() >= end_time)) {
-
+        (counter % 16 == 0 && get_now() >= end_time)) {
         counter = -1;
         return 2;
     }
@@ -430,6 +429,11 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
+            if(get_now() >= end_time){
+                desires[r] = old_desired;
+                return 2;
+            }
+
             if (rnd.get_d() < 0.1) {
                 continue;
             }
@@ -477,7 +481,7 @@ bool PIBTS::try_build(uint32_t r) {
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 ||//
         //counter > 30'000 ||//
-        (counter % 32 == 0 && get_now() >= end_time)) {
+        (counter % 16 == 0 && get_now() >= end_time)) {
 
         counter = -1;
         return 2;
@@ -529,6 +533,11 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         } else {
             if (counter > 3000 && depth >= 6) {
                 continue;
+            }
+
+            if(get_now() >= end_time){
+                desires[r] = old_desired;
+                return 2;
             }
 
             uint32_t to_r = get_used(r);
@@ -781,11 +790,11 @@ void PIBTS::do_work(uint32_t thr) {
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
         : robots(robots), end_time(end_time), rnd(seed) {
 
-    if (rnd.get_d() < 0.5) {
+    /*if (rnd.get_d() < 0.5) {
         visited_bound = 2;
     } else {
         visited_bound = rnd.get_d(0.1, 0.9);
-    }
+    }*/
 
     visited.resize(robots.size());
     desires.resize(robots.size());

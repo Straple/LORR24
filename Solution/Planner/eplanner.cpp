@@ -31,19 +31,20 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
+    // (score, time, actions, desires, changes, kek)
     std::vector<std::vector<std::tuple<double, double, std::vector<Action>, std::vector<uint32_t>, std::vector<int64_t>, double>>> results_pack(
             THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
-        while (get_now() < end_time) {
+        //while (get_now() < end_time) {
             Timer timer;
             PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
             pibt.simulate_pibt();
             double time = timer.get_ms();
             results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions(), pibt.get_desires(),
                                            pibt.get_changes(), pibt.get_kek());
-            seed = seed * 736 + 202;
-        }
+        //    seed = seed * 736 + 202;
+        //}
     };
 
     static Randomizer rnd(228);
@@ -63,14 +64,16 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     }
 
     double best_score = -1e300;
-    std::sort(results.begin(), results.end(), std::greater<>());
+    std::sort(results.begin(), results.end(), [&](const auto &lhs, const auto &rhs) {
+        return std::get<0>(lhs) > std::get<0>(rhs);
+    });
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "RESULTS(" << results.size() << "): ";
 #endif
     for (const auto &[score, time, actions, desires, changes, kek]: results) {
 #ifdef ENABLE_PRINT_LOG
-        Printer() << "(" << score << ", " << time << ", " << kek << ") ";
+        //Printer() << "(" << score << ", " << time << ", " << kek << ") ";
 #endif
         if (best_score < score) {
             best_score = score;

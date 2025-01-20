@@ -52,7 +52,7 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 1000;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 400;
 
@@ -101,6 +101,20 @@ call(7): 6580 / 6059, 1964.96s
 call(8): 12316 / 28954, 5052.89s
 call(9): 164905 / 194677, 5069.29s
 total: 438701 / 504665
+*/
+
+/*
+call(0): 10173, 1525.63s
+call(1): 46233, 3524.64s
+call(2): 2621, 477.479s
+call(3): 1611, 477.273s
+call(4): 7159, 956.207s
+call(5): 155049, 5209.88s ENTRY TIMEOUT
+call(6): 5084, 956.684s
+call(7): 6047, 1916.77s
+call(8): 10174, 5087.78s
+call(9): 102886, 5250.45s ENTRY TIMEOUT
+total: 347037
 */
 
 /*
