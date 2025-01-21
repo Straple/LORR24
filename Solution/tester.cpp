@@ -11,7 +11,7 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     //std::system("mkdir Tmp");
     int ret_code = std::system(
-            ("./lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s " + std::to_string(steps_num) + " -t 1000 -p 1000000000 --unique_id " + std::to_string(test_id) + " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-remote-host/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 --unique_id " + std::to_string(test_id) + " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
@@ -39,7 +39,7 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
 }
 
 std::vector<std::tuple<std::string, int>> tests = {
-        {"Data2023/city.domain/MR23-I-01.json", 1500},
+        /*{"Data2023/city.domain/MR23-I-01.json", 1500},
         {"Data2023/city.domain/MR23-I-02.json", 3500},
         {"Data2023/random.domain/MR23-I-03.json", 500},
         {"Data2023/random.domain/MR23-I-04.json", 500},
@@ -48,22 +48,21 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"Data2023/random.domain/MR23-I-07.json", 1000},
         {"Data2023/random.domain/MR23-I-08.json", 2000},
         {"Data2023/game.domain/MR23-I-09.json", 5000},
-        {"Data2023/warehouse.domain/MR23-I-10.json", 5000},
+        {"Data2023/warehouse.domain/MR23-I-10.json", 5000},*/
 
 
-        /*{"random.domain/random_32_32_20_100.json", 1000},
-        //"random.domain/random_32_32_20_100_2.json",
-        {"random.domain/random_32_32_20_200.json", 1000},
-        //"random.domain/random_32_32_20_200_2.json",
-        {"random.domain/random_32_32_20_300.json", 1000},
-        //"random.domain/random_32_32_20_300_2.json",
-        {"random.domain/random_32_32_20_400.json", 1000},
-        //"random.domain/random_32_32_20_400_2.json",
-        {"random.domain/random_32_32_20_500.json", 1000},
-        //"random.domain/random_32_32_20_500_2.json",
-        {"random.domain/random_32_32_20_600.json", 1000},
-        //"random.domain/random_32_32_20_600_2.json",
-        */
+        {"example_problems/random.domain/random_32_32_20_100.json", 1000},
+        //"example_problems/random.domain/random_32_32_20_100_2.json",
+        {"example_problems/random.domain/random_32_32_20_200.json", 1000},
+        //"example_problems/random.domain/random_32_32_20_200_2.json",
+        {"example_problems/random.domain/random_32_32_20_300.json", 1000},
+        //"example_problems/random.domain/random_32_32_20_300_2.json",
+        {"example_problems/random.domain/random_32_32_20_400.json", 1000},
+        //"example_problems/random.domain/random_32_32_20_400_2.json",
+        {"example_problems/random.domain/random_32_32_20_500.json", 1000},
+        //"example_problems/random.domain/random_32_32_20_500_2.json",
+        {"example_problems/random.domain/random_32_32_20_600.json", 1000},
+        //"example_problems/random.domain/random_32_32_20_600_2.json",
 };
 
 uint32_t call() {

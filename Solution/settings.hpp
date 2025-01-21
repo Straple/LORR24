@@ -27,7 +27,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -38,7 +38,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -46,13 +46,16 @@
 
 //#define ENABLE_GG_SOLVER
 
+// warehouse:
+// 17080 -> 17485
+
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 6;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 0;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
 
@@ -82,12 +85,6 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
-
-/*
--i Data2023/Main/random.domain/MR23-I-03.json -o test.json -s 500 -t 200 -p 100000000
-Total time: 90.6059s
-score: 2573 -> 2631
-*/
 
 /*
 call(0): 10170 / 10385, 1549.94s
@@ -323,6 +320,10 @@ total: 16893
 
 /*
 TODO:
+-9) посылка с DHM, где каждый раз строится просто максимальные по количеству роботов получает очень хорошо на sortation
+ и чуток warehouse
+ может быть все дело в том, что там либо DHM не очень нужен, так как они идут друг за другом
+ либо именно самые главные нужны
 -8) сделать более умный вес задачи у шедулера. Например: для каждой задачи найти самую ближайшую на ее конце и дать этому некоторый вес
     таким образом он будет не только брать самую близкую задачу, но еще и думать чуток наперед.
 -7) Взяли клетку. Запустили Дейкстру. Взяли среднее значение стоимости пути до всех клеток.

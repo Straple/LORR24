@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Objects/Basic/randomizer.hpp>
+#include <settings.hpp>
 
 #include <SharedEnv.h>
 

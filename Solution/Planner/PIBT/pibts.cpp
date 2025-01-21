@@ -102,9 +102,9 @@ int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
-    int64_t old_dist = get_smart_dist(r, 0); // get_dhm().get(robots[r].node, robots[r].target);
-    int64_t cur_dist = get_smart_dist(r, desired);
-    int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
+    int32_t old_dist = get_smart_dist(r, 0); // get_dhm().get(robots[r].node, robots[r].target);
+    int32_t cur_dist = get_smart_dist(r, desired);
+    int32_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = std::sqrt((max_weight - weight[r]) * 1.0 / robots.size());
     cur_score += sign * diff * power;
 }
@@ -202,11 +202,6 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else {
-            if (get_now() >= end_time) {
-                desires[r] = old_desired;
-                return 2;
-            }
-
             if (rnd.get_d() < 0.1) {
                 continue;
             }
@@ -719,7 +714,7 @@ std::vector<Action> PIBTS::get_actions() const {
     for (uint32_t r = 0; r < robots.size(); r++) {
         answer[r] = get_operations()[desires[r]][0];
         // TODO: для WWW нужно расчитать что именно сделать: W, R, C
-        if (desires[r] == 0) {
+        /*if (desires[r] == 0) {
             auto dist = std::min({get_dhm().get(get_graph().get_to_node(robots[r].node, 1), robots[r].target),
                                   get_dhm().get(get_graph().get_to_node(robots[r].node, 2), robots[r].target),
                                   get_dhm().get(get_graph().get_to_node(robots[r].node, 3), robots[r].target)});
@@ -730,7 +725,7 @@ std::vector<Action> PIBTS::get_actions() const {
             } else {
                 answer[r] = Action::W;
             }
-        }
+        }*/
     }
     return answer;
 }

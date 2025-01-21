@@ -196,17 +196,16 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
     }
 
     // (score, target pos)
-    //std::vector<std::pair<double, uint32_t>> pool;
-
-    /*for (auto &[t, task]: env.task_pool) {
+    std::vector<std::pair<double, uint32_t>> pool;
+    for (auto &[t, task]: env.task_pool) {
         uint32_t target = task.get_next_loc() + 1;
         ASSERT(0 < target && target < get_map().get_size(), "invalid target");
         pool.emplace_back(timestep_updated[target], target);
     }
     std::sort(pool.begin(), pool.end());
-    pool.erase(std::unique(pool.begin(), pool.end()), pool.end());*/
+    pool.erase(std::unique(pool.begin(), pool.end()), pool.end());
 
-    std::vector<std::pair<double, uint32_t>> pool;
+    /*std::vector<std::pair<double, uint32_t>> pool;
     {
         // mp[pos] = score
         std::unordered_map<uint32_t, double> mp;
@@ -221,7 +220,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
             pool.emplace_back(score, pos);
         }
         std::sort(pool.begin(), pool.end());
-    }
+    }*/
 
     std::atomic<uint32_t> total_rebuild = 0;
 

@@ -2,8 +2,10 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/position.hpp>
+//#include <Objects/Environment/graph.hpp>
+//#include <Objects/Environment/heuristic_matrix.hpp>
 
-uint16_t PENALTY_WEIGHT = 6;
+uint16_t PENALTY_WEIGHT = 3;
 uint16_t OK_WEIGHT = 2;
 
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
@@ -138,11 +140,57 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
             }
         }
     }
-    /*{
+
+    // [pos][dir]
+    /*get_graph() = Graph(get_map(), *this);
+    get_hm() = HeuristicMatrix(get_graph());
+    std::vector<std::vector<uint64_t>> kek(get_map().get_size(), std::vector<uint64_t>(4));
+    uint64_t mx = 0;
+    for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            uint32_t pos = x * cols + y + 1;
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                if (!Position(x, y, dir).is_valid()) {
+                    continue;
+                }
+                uint32_t source = get_graph().get_node(Position(x, y, dir));
+                uint64_t sum = 0;
+                for (uint32_t target = 1; target < get_map().get_size(); target++) {
+                    if (Position(target, 0).is_valid()) {
+                        sum += get_hm().get(source, target);
+                    }
+                }
+                kek[pos][dir] = sum;
+                mx = std::max(mx, sum);
+                uint32_t w = sum / get_map().get_size() + 1;
+                graph[pos][dir][0] = w;
+                graph[pos][dir][1] = w;
+                graph[pos][dir][2] = w;
+                graph[pos][dir][3] = w;
+            }
+        }
+    }
+
+    for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            uint32_t pos = x * cols + y + 1;
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                if (!Position(x, y, dir).is_valid()) {
+                    continue;
+                }
+
+                for (uint32_t action = 0; action < 4; action++) {
+                    graph[pos][dir][action] = mx * 10 / kek[pos][dir];
+                }
+            }
+        }
+    }*/
+
+    {
         std::ofstream output("graph_guidance");
         output << *this;
     }
-    std::exit(0);*/
+    //_exit(0);
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {

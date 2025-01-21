@@ -54,7 +54,7 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
     for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
         int loc = env->task_pool[t].locations[i];
-        dist += get_dhm().get(source, loc + 1); // or hm?
+        dist += get_hm().get(source, loc + 1); // or hm?
         source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
     }
     return dist;
@@ -175,10 +175,6 @@ void SchedulerSolver::update() {
             || env->task_pool.at(t).idx_next_loc == 0
 #endif
                 ) {
-            /*if (t != -1) {// remove task agent assigned
-                env->task_pool.at(t).agent_assigned = -1;
-                env->curr_task_schedule[r] = -1;
-            }*/
             free_robots.push_back(r);
             desires[r] = -1;
         }
@@ -186,9 +182,9 @@ void SchedulerSolver::update() {
 
 #ifndef ENABLE_TRIVIAL_SCHEDULER
     for (auto &[t, task]: env->task_pool) {
-        if (task.agent_assigned == -1// || task.idx_next_loc == 0
-                ) {
-            task.agent_assigned = -1; // remove task agent assigned
+        // TODO: here some strange
+        if (task.agent_assigned == -1 || task.idx_next_loc == 0
+        ) {
             free_tasks.push_back(t);
         }
     }
@@ -196,10 +192,6 @@ void SchedulerSolver::update() {
 
     cur_score = 0;
     for (uint32_t r: free_robots) {
-        if (desires[r] != -1 && !env->task_pool.count(desires[r])) {
-            desires[r] = -1;
-        }
-
         cur_score += get_dist(r, desires[r]);
     }
     validate();

@@ -36,6 +36,7 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
             if (to && !visited[to]) {
                 uint32_t to_inv = graph.get_node(graph.get_pos(to).rotate().rotate());
                 uint64_t to_dist = dist + graph.get_weight(node, action);
+                ASSERT(to_dist == static_cast<uint16_t>(to_dist), "dist overflow");
                 if (dists[to_inv] > to_dist) {
                     dists[to_inv] = to_dist;
                     heap.push({to_dist, to});
