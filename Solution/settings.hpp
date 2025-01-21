@@ -27,7 +27,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -38,7 +38,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -55,15 +55,15 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 1000;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 350;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
 static constexpr uint32_t INVALID_DIST = 0;
 
@@ -127,15 +127,6 @@ call(5): 4322, 189.266s
 total: 26514
 */
 
-//now
-//call(0): 1934, 10.0134s
-//call(1): 3767, 14.7725s
-//call(2): 4927, 20.2918s
-//call(3): 5248, 34.1852s
-//call(4): 3923, 69.2035s
-//call(5): 3405, 80.7129s
-//total: 23204
-
 /*
 32 cores
 ENABLE_ALL
@@ -148,13 +139,13 @@ call(4): 5924, 81.7985s
 call(5): 4400, 82.1342s
 total: 28507
 
-call(0): 2410, 81.0495s
-call(1): 4248, 81.2473s
-call(2): 5372, 81.4135s
-call(3): 6145, 81.5723s
-call(4): 5718, 81.9133s
-call(5): 4339, 82.1599s
-total: 28232
+call(0): 2424, 81.1501s
+call(1): 4229, 81.3128s
+call(2): 5367, 81.5239s
+call(3): 6153, 81.6815s
+call(4): 6214, 81.9661s
+call(5): 4220, 82.1553s
+total: 28607
 */
 
 /*
@@ -329,6 +320,9 @@ total: 16893
 
 /*
 TODO:
+-10) поиграться с GG, добавить GG в корзинки для warehouse и sortation. Попробовать сделать GG, которое говорит
+     в какое направление тут нужно: -1 если ни в какое, 0-3 направления. Тогда если делать действие в другое, то штраф.
+     Таким образом веса будут иметь не только операции FW, но и остальные
 -9) посылка с DHM, где каждый раз строится просто максимальные по количеству роботов получает очень хорошо на sortation
  и чуток warehouse
  может быть все дело в том, что там либо DHM не очень нужен, так как они идут друг за другом

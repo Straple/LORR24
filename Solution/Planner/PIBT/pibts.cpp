@@ -427,11 +427,8 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (to_r == -2) {
             continue;
         }
-        if (to_r != -1 && desires[to_r] != 0) {
-            //continue;
-        }
         if (to_r != -1 && visited[to_r] == visited_counter) {
-            continue;
+            //continue;
         }
         int64_t priority = get_smart_dist(r, desired);
         steps.emplace_back(priority, desired);
@@ -463,7 +460,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            ASSERT(visited[to_r] != visited_counter, "already visited");
+            //ASSERT(visited[to_r] != visited_counter, "already visited");
 
             // TODO: у to_r может быть приоритет ниже чем у r
             // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r

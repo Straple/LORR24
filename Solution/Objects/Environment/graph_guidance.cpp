@@ -5,7 +5,7 @@
 //#include <Objects/Environment/graph.hpp>
 //#include <Objects/Environment/heuristic_matrix.hpp>
 
-uint16_t PENALTY_WEIGHT = 3;
+uint16_t PENALTY_WEIGHT = 6;
 uint16_t OK_WEIGHT = 2;
 
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
@@ -16,6 +16,19 @@ void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t
             ASSERT(dir < 4, "invalid dir");
             ASSERT(action < 4, "invalid action");
             graph[pos][dir][action] = value;
+        }
+    }
+}
+
+void GraphGuidance::set_default() {
+    for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            uint32_t pos = x * cols + y + 1;
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                for (uint32_t action = 0; action < 4; action++) {
+                    graph[pos][dir][action] = OK_WEIGHT;
+                }
+            }
         }
     }
 }
@@ -117,16 +130,7 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
     } else {
         //Printer() << "random" << '\n';
         //set_grid();
-        for (uint32_t x = 0; x < rows; x++) {
-            for (uint32_t y = 0; y < cols; y++) {
-                uint32_t pos = x * cols + y + 1;
-                for (uint32_t dir = 0; dir < 4; dir++) {
-                    for (uint32_t action = 0; action < 4; action++) {
-                        graph[pos][dir][action] = OK_WEIGHT;
-                    }
-                }
-            }
-        }
+        set_default();
     }
     for (uint32_t x = 0; x < rows; x++) {
         for (uint32_t y = 0; y < cols; y++) {
@@ -186,11 +190,11 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
         }
     }*/
 
-    {
+    /*{
         std::ofstream output("graph_guidance");
         output << *this;
     }
-    //_exit(0);
+    _exit(0);*/
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {

@@ -43,16 +43,10 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         Timer timer;
         PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
         pibt.simulate_pibt();
-        /*timer.reset();
-        double x = 0;
-        for(uint32_t i = 0; i < 100; i++) {
-            auto kek = pibt.get_kek();
-            x += kek;
-        }*/
         auto time = timer.get_ms();
         results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions()
 #ifdef ENABLE_PRINT_LOG
-                ,pibt.get_desires(), pibt.get_changes(), 0
+                , pibt.get_desires(), pibt.get_changes(), 0
 #endif
         );
         //    seed = seed * 736 + 202;
@@ -89,9 +83,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif
     for (const auto &[score, time, actions
 #ifdef ENABLE_PRINT_LOG
-                      , desires, changes, kek
+                , desires, changes, kek
 #endif
-                      ]: results) {
+        ]: results) {
 #ifdef ENABLE_PRINT_LOG
         Printer() << "(" << score << ", " << time << ", " << kek << ") ";
 #endif
