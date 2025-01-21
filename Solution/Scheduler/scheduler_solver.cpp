@@ -182,7 +182,6 @@ void SchedulerSolver::update() {
 
 #ifndef ENABLE_TRIVIAL_SCHEDULER
     for (auto &[t, task]: env->task_pool) {
-        // TODO: here some strange
         if (task.agent_assigned == -1 || task.idx_next_loc == 0
         ) {
             free_tasks.push_back(t);

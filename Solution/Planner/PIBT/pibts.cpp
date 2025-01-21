@@ -158,8 +158,7 @@ void PIBTS::remove_path(uint32_t r) {
 }
 
 uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
-    if (counter == -1 || //
-        counter > 1000 ||//
+    if (counter > 1000 ||//
         (counter % 16 == 0 && get_now() >= end_time)) {
         counter = -1;
         return 2;
@@ -540,7 +539,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         used_edge.resize(get_graph().get_edges_size(), value);
     }
 
-    // build order
+    // build order and weight
     {
         order.resize(robots.size());
         iota(order.begin(), order.end(), 0);

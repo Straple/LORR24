@@ -51,7 +51,7 @@ std::vector<Operation> OperationsGenerator::get() {
     {
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
-                "16 FFW FFF FWW FRF FCF RFW CFW RFF CFF RRF WFW FWF WFF WWF RWF CWF"
+                "16 FFF FFW FWW FRF FCF RFW CFW RFF CFF RRF WFW FWF WFF WWF RWF CWF"
         );
         uint32_t num;
         input >> num;

@@ -51,11 +51,11 @@
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 6;
+static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 0;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
 
