@@ -54,7 +54,7 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
     for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
         int loc = env->task_pool[t].locations[i];
-        dist += get_hm().get(source, loc + 1); // or hm?
+        dist += get_dhm().get(source, loc + 1); // or hm?
         source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
     }
     return dist;
@@ -167,7 +167,6 @@ void SchedulerSolver::update() {
 
     free_robots.clear();
     free_tasks.clear();
-
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         int t = env->curr_task_schedule[r];
         if (t == -1
@@ -176,14 +175,13 @@ void SchedulerSolver::update() {
 #endif
                 ) {
             free_robots.push_back(r);
-            desires[r] = -1;
         }
     }
 
 #ifndef ENABLE_TRIVIAL_SCHEDULER
     for (auto &[t, task]: env->task_pool) {
-        if (task.agent_assigned == -1 || task.idx_next_loc == 0
-        ) {
+        if (task.agent_assigned == -1 || task.idx_next_loc == 0) {
+            task.agent_assigned = -1; // IMPORTANT! remove task agent assigned
             free_tasks.push_back(t);
         }
     }
@@ -191,6 +189,7 @@ void SchedulerSolver::update() {
 
     cur_score = 0;
     for (uint32_t r: free_robots) {
+        desires[r] = -1;
         cur_score += get_dist(r, desires[r]);
     }
     validate();
@@ -228,39 +227,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
     }
     Printer() << '\n';
-    /*std::vector<uint32_t> kek;
-    for (auto [t, task]: env->task_pool) {
-        if (task.agent_assigned == -1) {
-            kek.emplace_back(t);
-        }
-    }
-    std::sort(kek.begin(), kek.end(), std::greater<>());
-    for (uint32_t r: free_robots) {
-        ASSERT(!kek.empty(), "empty task pool");
-        uint32_t task_id = kek.back();
-        kek.pop_back();
-        set(r, task_id);
-    }*/
-
-    /*std::unordered_set<uint32_t> used_task;
-    for (uint32_t r = 0; r < desires.size(); r++) {
-        if (desires[r] != -1) {
-            ASSERT(!used_task.count(desires[r]), "already contains");
-            used_task.insert(desires[r]);
-        }
-    }
-
-    auto it = env->task_pool.begin();
-    for (uint32_t r: free_robots) {
-        while (it != env->task_pool.end() && used_task.count(it->first)) {
-            it++;
-        }
-        ASSERT(it != env->task_pool.end(), "kek");
-
-        uint32_t task_id = it->first;
-        set(r, task_id);
-        used_task.insert(task_id);
-    }*/
 #else
     std::unordered_set<uint32_t> used_task;
 
