@@ -61,14 +61,31 @@ def build(directory):
         # fig.colorbar(images[-1], ax=axes.ravel().tolist())
         plt.savefig(directory + "usage" + str(id) + ".svg", format='svg', dpi=1200)
 
+def build2(directory):
+    data, mn, mx = read(directory + "meta")
+
+    for i in range(25):
+        fig, axes = plt.subplots(1, 1, figsize=(10, 10))
+        dir = i // 5
+        act = i % 5
+        map = data[dir][act]
+        ax = axes
+        print("processing:", dir, act)
+        ax.imshow(map, cmap='viridis')
+        ax.set_title(dirs[dir] + " & " + acts[act])
+        ax.axis('off')
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
 
 if __name__ == '__main__':
-    build("../../Data/20/")
+    #build("../../r/20/")
 
-    """id = '2'
-    data, mn, mx = read('../../Data/meta' + id)
+    data, mn, mx = read('../../meta')
 
-    fig, axes = plt.subplots(5, 5, figsize=(10, 10))
+    build2("../../")
+
+    """fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []
     for i in range(25):
         dir = i // 5
@@ -84,5 +101,5 @@ if __name__ == '__main__':
     # plt.plot(np.where(map == -500, map, None), color="red", label="1")
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    plt.savefig("../../Data/usage" + id + ".svg", format='svg', dpi=1200)
+    plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
     plt.show()"""
