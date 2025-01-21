@@ -461,14 +461,8 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 continue;
             }
 
-            if (get_now() >= end_time) {
-                desires[r] = old_desired;
-                return 2;
-            }
-
             uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
-            //ASSERT(desires[to_r] == 0, "invalid desires");
             ASSERT(visited[to_r] != visited_counter, "already visited");
 
             // TODO: у to_r может быть приоритет ниже чем у r
@@ -713,7 +707,7 @@ std::vector<Action> PIBTS::get_actions() const {
     for (uint32_t r = 0; r < robots.size(); r++) {
         answer[r] = get_operations()[desires[r]][0];
         // TODO: для WWW нужно расчитать что именно сделать: W, R, C
-        /*if (desires[r] == 0) {
+        if (desires[r] == 0) {
             auto dist = std::min({get_dhm().get(get_graph().get_to_node(robots[r].node, 1), robots[r].target),
                                   get_dhm().get(get_graph().get_to_node(robots[r].node, 2), robots[r].target),
                                   get_dhm().get(get_graph().get_to_node(robots[r].node, 3), robots[r].target)});
@@ -724,7 +718,7 @@ std::vector<Action> PIBTS::get_actions() const {
             } else {
                 answer[r] = Action::W;
             }
-        }*/
+        }
     }
     return answer;
 }
