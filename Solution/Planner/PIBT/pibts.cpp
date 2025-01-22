@@ -165,28 +165,12 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
     }
 
     visited[r] = visited_counter;
-
-    // (priority, desired)
-    std::vector<std::pair<int64_t, uint32_t>> steps;
     uint32_t old_desired = desires[r];
-    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+
+    for (uint32_t desired: robot_desires[r]) {
         desires[r] = desired;
-        if (!validate_path(r, desired)) {
-            continue;
-        }
         uint32_t to_r = get_used(r);
-        if (to_r == -2 || (to_r != -1 && visited[to_r] == visited_counter)) {
-            continue;
-        }
-        int64_t priority = get_smart_dist(r, desired);
-        steps.emplace_back(priority, desired);
-    }
-
-    std::stable_sort(steps.begin(), steps.end());
-
-    for (auto [_, desired]: steps) {
-        desires[r] = desired;
-        if (is_free_path(r)) {
+        if (to_r == -1) {
             add_path(r);
             if (old_score - 1e-6 <= cur_score
                 // old_score > cur_score
@@ -200,12 +184,11 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 desires[r] = old_desired;
                 return 2;// not accepted
             }
-        } else {
+        } else if (to_r != -2 && visited[to_r] != visited_counter) {
             if (rnd.get_d() < 0.1) {
                 continue;
             }
 
-            uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             ASSERT(visited[to_r] != visited_counter, "already visited");
 
@@ -416,30 +399,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         }
     }*/
 
-    // (priority, desired)
-    std::vector<std::pair<int64_t, uint32_t>> steps;
-    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+    for (uint32_t desired: robot_desires[r]) {
         desires[r] = desired;
-        if (!validate_path(r, desires[r])) {
-            continue;
-        }
         uint32_t to_r = get_used(r);
-        if (to_r == -2) {
-            continue;
-        }
-        if (to_r != -1 && visited[to_r] == visited_counter) {
-            //continue;
-        }
-        int64_t priority = get_smart_dist(r, desired);
-        steps.emplace_back(priority, desired);
-    }
-
-    std::stable_sort(steps.begin(), steps.end());
-
-    for (auto [priority, desired]: steps) {
-        desires[r] = desired;
-        if (is_free_path(r)) {
-            // отлично! там никого нет
+        if (to_r == -1) {
             add_path(r);
             if (old_score - 1e-6 <= cur_score
                 // old_score > cur_score
@@ -453,12 +416,12 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 desires[r] = old_desired;
                 return 2;// not accepted
             }
-        } else {
+        } else if (to_r != -2// && visited[to_r] != visited_counter
+                ) {
             if (counter > 3000 && depth >= 6) {
                 continue;
             }
 
-            uint32_t to_r = get_used(r);
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
             //ASSERT(visited[to_r] != visited_counter, "already visited");
 
@@ -640,6 +603,23 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
     for (uint32_t r = 0; r < robots.size(); r++) {
         desires[r] = 0;
         add_path(r);
+    }
+
+    robot_desires.resize(robots.size());
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        // (priority, desired)
+        std::vector<std::pair<int64_t, uint32_t>> steps;
+        for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+            if (!validate_path(r, desired)) {
+                continue;
+            }
+            int64_t priority = get_smart_dist(r, desired);
+            steps.emplace_back(priority, desired);
+        }
+        std::stable_sort(steps.begin(), steps.end());
+        for (auto [priority, desired]: steps) {
+            robot_desires[r].push_back(desired);
+        }
     }
 }
 

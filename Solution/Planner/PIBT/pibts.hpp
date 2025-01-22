@@ -29,10 +29,13 @@ class PIBTS {
     std::vector<uint32_t> desires;
 
     // neighbours[r] = { neighbours }
-    std::vector<std::vector<uint32_t>> neighbours;
+    //std::vector<std::vector<uint32_t>> neighbours;
 
     // smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired)
     std::vector<std::vector<int32_t>> smart_dist_dp;
+
+    // robot_desires[r] = { desired }
+    std::vector<std::vector<uint32_t>> robot_desires;
 
     std::vector<uint32_t> order;
 
