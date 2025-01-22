@@ -216,7 +216,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
             }
         }
         for (auto [pos, score]: mp) {
-            score = -score;//static_cast<double>(timestep_updated[pos]) - score;
+            score = static_cast<double>(timestep_updated[pos]) * 100 - score;
             pool.emplace_back(score, pos);
         }
         std::sort(pool.begin(), pool.end());
