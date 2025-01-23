@@ -21,7 +21,7 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-//#define ENABLE_DEFAULT_PLANNER
+#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
@@ -33,7 +33,7 @@
 
 #define ENABLE_PIBT
 
-#define ENABLE_DHM
+//#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
@@ -49,6 +49,22 @@
 // warehouse:
 // 17080 -> 17485
 
+/*
+v2.4.8 improve DHM
+Map	Tasks	Score	Line Honours	Warnings
+CITY-01	    8341	0.998	0	None
+CITY-02	    16189	0.976	0	None
+GAME	    9151	0.798	0	None
+RANDOM-01	642 	0.985	0	None
+RANDOM-02	1129	0.992	0	None
+RANDOM-03	2002	0.928	0	None
+RANDOM-04	1474	0.868	0	None
+RANDOM-05	2102	0.945	0	None
+SORTATION	136708	1	    1	None
+WAREHOUSE	126777	0.865	0	None
+Total	    304515	9.355	1
+*/
+
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
 static constexpr uint32_t THREADS = 32;
@@ -61,9 +77,9 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 500;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 250;
 
 static constexpr uint32_t INVALID_DIST = 0;
 
