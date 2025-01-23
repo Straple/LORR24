@@ -115,23 +115,20 @@ GraphGuidance::GraphGuidance(uint32_t rows, uint32_t cols) : rows(rows), cols(co
 }
 
 GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.cols), graph(env.rows * env.cols + 1) {
-    if (env.map_name == "warehouse_large.map") {
-        //Printer() << "warehouse" << '\n';
+    if (get_map_type() == MapType::WAREHOUSE) {
         set_warehouse();
-    } else if (env.map_name == "sortation_large.map") {
-        //Printer() << "sortation" << '\n';
+    } else if (get_map_type() == MapType::SORTATION) {
         set_sortation();
-    } else if (env.map_name == "brc202d.map") {
-        //Printer() << "game" << '\n';
+    } else if (get_map_type() == MapType::GAME) {
         set_game();
-    } else if (env.map_name == "Paris_1_256.map") {
-        //Printer() << "city" << '\n';
+    } else if (get_map_type() == MapType::CITY) {
         set_city();
-    } else {
-        //Printer() << "random" << '\n';
-        //set_grid();
+    } else if (get_map_type() == MapType::GAME) {
         set_default();
+    } else {
+        FAILED_ASSERT("undefined map");
     }
+
     for (uint32_t x = 0; x < rows; x++) {
         for (uint32_t y = 0; y < cols; y++) {
             uint32_t pos = x * cols + y + 1;

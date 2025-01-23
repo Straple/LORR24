@@ -27,7 +27,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -101,6 +101,18 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
+
+enum class MapType {
+    RANDOM,
+    GAME,
+    CITY,
+    WAREHOUSE,
+    SORTATION,
+
+    NONE,
+};
+
+MapType &get_map_type();
 
 /*
 call(0): 10170 / 10385, 1549.94s

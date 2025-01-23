@@ -12,7 +12,23 @@ void init_environment(SharedEnvironment &env) {
     }
     already_init = true;
 
+    if (env.map_name == "warehouse_large.map") {
+        get_map_type() = MapType::WAREHOUSE;
+    } else if (env.map_name == "sortation_large.map") {
+        get_map_type() = MapType::SORTATION;
+    } else if (env.map_name == "brc202d.map") {
+        get_map_type() = MapType::GAME;
+    } else if (env.map_name == "Paris_1_256.map") {
+        get_map_type() = MapType::CITY;
+    } else if (env.map_name == "random-32-32-20.map") {
+        get_map_type() = MapType::RANDOM;
+    } else {
+        get_map_type() = MapType::NONE;
+        FAILED_ASSERT("undefined map");
+    }
+
     get_map() = Map(env);
+    get_guidance_map() = GuidanceMap(get_map_type(), get_map());
 #ifdef ENABLE_GG_SOLVER
     std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
     input >> get_gg();
