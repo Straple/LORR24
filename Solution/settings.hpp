@@ -21,9 +21,9 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
-//#define ENABLE_DEFAULT_SCHEDULER
+#define ENABLE_DEFAULT_SCHEDULER
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
@@ -33,7 +33,7 @@
 
 #define ENABLE_PIBT
 
-//#define ENABLE_DHM
+#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
