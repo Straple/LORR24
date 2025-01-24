@@ -54,7 +54,7 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
     for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
         int loc = env->task_pool[t].locations[i];
-        dist += get_dhm().get(source, loc + 1); // or hm?
+        dist += get_hm().get(source, loc + 1);// or hm?
         source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
     }
     return dist;
@@ -157,31 +157,80 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-        : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
+    : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
 }
 
 void SchedulerSolver::update() {
     desires.resize(env->num_of_agents, -1);
     timestep_updated.resize(desires.size());
     dp.resize(desires.size());
+    timestep_changed_task.resize(desires.size(), -1);
 
     free_robots.clear();
     free_tasks.clear();
+
+    /*for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        // задача уже все
+        if (desires[r] != -1 && env->task_pool.count(desires[r]) == 0) {
+            desires[r] = -1;
+            free_robots.push_back(r);
+        }
+    }*/
+
+    uint32_t SCHEDULER_TIMESTEP_DIFF = 0;
+
+    if (get_map_type() == MapType::WAREHOUSE) {
+        SCHEDULER_TIMESTEP_DIFF = 10;
+    } else if (get_map_type() == MapType::SORTATION) {
+        SCHEDULER_TIMESTEP_DIFF = 10;
+    } else if (get_map_type() == MapType::GAME) {
+        SCHEDULER_TIMESTEP_DIFF = 10;
+    }
+
+    old_desires = desires;
+
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         int t = env->curr_task_schedule[r];
-        if (t == -1
-            #ifndef ENABLE_TRIVIAL_SCHEDULER
-            || env->task_pool.at(t).idx_next_loc == 0
-#endif
-                ) {
+
+        // есть задача и она в процессе выполнения
+        // не можем ее убрать
+        if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
+            continue;
+        }
+        if (
+                // нет задачи
+                !env->task_pool.count(t) ||
+                // есть задача, но мы давно не обновляли ее
+                (timestep_changed_task[r] == -1 || env->curr_timestep - timestep_changed_task[r] >= SCHEDULER_TIMESTEP_DIFF)
+
+                //#ifndef ENABLE_TRIVIAL_SCHEDULER
+                //|| env->task_pool.at(t).idx_next_loc == 0
+                //#endif
+        ) {
             free_robots.push_back(r);
         }
     }
 
 #ifndef ENABLE_TRIVIAL_SCHEDULER
     for (auto &[t, task]: env->task_pool) {
-        if (task.agent_assigned == -1 || task.idx_next_loc == 0) {
-            task.agent_assigned = -1; // IMPORTANT! remove task agent assigned
+        /*if (task.agent_assigned != -1 &&
+            //timestep_changed_task[task.agent_assigned] != -1 &&
+            //env->curr_timestep - timestep_changed_task[task.agent_assigned] < 5
+            ) {
+            continue;
+        }*/
+        int r = task.agent_assigned;
+        if (
+                // нет агента
+                r == -1 ||
+                // иначе он есть, НО
+                (task.idx_next_loc == 0 &&// мы можем поменять задачу
+                 // и хорошо по timestep
+                 (timestep_changed_task[r] == -1 || env->curr_timestep - timestep_changed_task[r] >= SCHEDULER_TIMESTEP_DIFF)//
+                 )
+
+        ) {
+            task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
             free_tasks.push_back(t);
         }
     }
@@ -222,7 +271,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             }
             //ASSERT(task_id < 1e8, "invalid task_id");
         }
-        if(env->task_pool.count(task_id)) {
+        if (env->task_pool.count(task_id)) {
             set(r, task_id);
         }
     }
@@ -265,6 +314,12 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
         set(r, task_id);
         used_task.insert(task_id);
+    }
+
+    for (uint32_t r: free_robots) {
+        if (desires[r] != old_desires[r] && old_desires[r] != -1) {
+            timestep_changed_task[r] = env->curr_timestep;
+        }
     }
 #endif
 

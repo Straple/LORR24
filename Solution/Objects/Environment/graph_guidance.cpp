@@ -123,7 +123,7 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
         set_game();
     } else if (get_map_type() == MapType::CITY) {
         set_city();
-    } else if (get_map_type() == MapType::GAME) {
+    } else if (get_map_type() == MapType::RANDOM) {
         set_default();
     } else {
         FAILED_ASSERT("undefined map");

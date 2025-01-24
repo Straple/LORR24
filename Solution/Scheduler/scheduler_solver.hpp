@@ -12,6 +12,8 @@ class SchedulerSolver {
 
     double cur_score = 0;
 
+    std::vector<uint32_t> old_desires;
+
     // desires[r] = task id
     std::vector<uint32_t> desires;
 
@@ -26,6 +28,9 @@ class SchedulerSolver {
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp;
 
     std::vector<int> timestep_updated;
+
+    // timestep_changed_task[r] = когда была изменена задача у робота r
+    std::vector<int> timestep_changed_task;
 
     SharedEnvironment *env = nullptr;
 

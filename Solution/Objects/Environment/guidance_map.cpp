@@ -178,11 +178,11 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         }
     }
 
-    {
+    /*{
         std::ofstream output("guidance_map");
         output << *this;
     }
-    std::exit(0);
+    std::exit(0);*/
 }
 
 std::ostream &operator<<(std::ostream &output, const GuidanceMap &map) {
