@@ -3,6 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 
 void GuidanceMap::set_random(const Map &map) {
+    std::ifstream input("Solution/Data/guidance_map_random.txt");
+    input >> *this;
 }
 
 void GuidanceMap::set_city(const Map &map) {
@@ -12,6 +14,9 @@ void GuidanceMap::set_game(const Map &map) {
 }
 
 void GuidanceMap::set_warehouse(const Map &map) {
+    std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
+    input >> *this;
+    return;
     for (uint32_t y = 4; y < 493; y += 7) {
         overlay({
                         ">vv<",
@@ -158,9 +163,7 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
     : desired(map.get_rows(), std::string(map.get_cols(), '.')) {
 
     if (type == MapType::RANDOM) {
-        std::ifstream input("Solution/Data/guidance_map_random.txt");
-        input >> *this;
-        //set_random(map);
+        set_random(map);
     } else if (type == MapType::CITY) {
         set_city(map);
     } else if (type == MapType::GAME) {
@@ -178,9 +181,9 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
                 desired[x][y] = '@';
             }
         }
-    }*/
+    }
 
-    /*{
+    {
         std::ofstream output("guidance_map");
         output << *this;
     }
