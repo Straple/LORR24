@@ -5,8 +5,8 @@
 //#include <Objects/Environment/graph.hpp>
 //#include <Objects/Environment/heuristic_matrix.hpp>
 
-uint16_t PENALTY_WEIGHT = 6;
-uint16_t OK_WEIGHT = 2;
+constexpr uint16_t PENALTY_WEIGHT = 6;
+constexpr uint16_t OK_WEIGHT = 2;
 
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
     for (int32_t x = x0; x <= x1; x++) {
@@ -192,6 +192,79 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
         output << *this;
     }
     _exit(0);*/
+}
+
+GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
+    : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
+
+    for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            if (gmap.get(x, y) == '@') {
+                continue;
+            }
+            uint32_t pos = x * cols + y + 1;
+
+            uint32_t dir = 0;
+            if (gmap.get(x, y) == '>') {
+                dir = 0;
+            } else if (gmap.get(x, y) == 'v') {
+                dir = 1;
+            } else if (gmap.get(x, y) == '<') {
+                dir = 2;
+            } else if (gmap.get(x, y) == '^') {
+                dir = 3;
+            } else {
+                FAILED_ASSERT("undefined desired");
+            }
+
+            constexpr uint32_t w1 = 2;
+            constexpr uint32_t w2 = 4;
+            constexpr uint32_t w3 = 6;
+
+            // 0:east >
+            // 1:south v
+            // 2:west <
+            // 3:north ^
+
+            //FW:  0
+            //CR:  1
+            //CCR: 2
+            //W:   3
+
+            // смотрит в нужное направление
+            graph[pos][dir][0] = w1;
+            graph[pos][dir][1] = w3;
+            graph[pos][dir][2] = w3;
+            graph[pos][dir][3] = w2;
+
+            dir = (dir + 1) % 4;
+
+            graph[pos][dir][0] = w3;
+            graph[pos][dir][1] = w3;
+            graph[pos][dir][2] = w1;
+            graph[pos][dir][3] = w2;
+
+            dir = (dir + 1) % 4;
+
+            graph[pos][dir][0] = w3;
+            graph[pos][dir][1] = w1;
+            graph[pos][dir][2] = w1;
+            graph[pos][dir][3] = w2;
+
+            dir = (dir + 1) % 4;
+
+            graph[pos][dir][0] = w3;
+            graph[pos][dir][1] = w1;
+            graph[pos][dir][2] = w3;
+            graph[pos][dir][3] = w2;
+        }
+    }
+
+    {
+        std::ofstream output("graph_guidance");
+        output << *this;
+    }
+    //_exit(0);
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {

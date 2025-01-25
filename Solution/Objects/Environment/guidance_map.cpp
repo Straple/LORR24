@@ -178,17 +178,32 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         }
     }
 
-    /*{
+    {
         std::ofstream output("guidance_map");
         output << *this;
     }
-    std::exit(0);*/
+    //std::exit(0);
+}
+
+uint32_t GuidanceMap::get_rows() const {
+    return desired.size();
+}
+
+uint32_t GuidanceMap::get_cols() const {
+    ASSERT(!desired.empty(), "empty");
+    return desired.back().size();
+}
+
+char GuidanceMap::get(uint32_t x, uint32_t y) const {
+    ASSERT(x < desired.size(), "invalid x");
+    ASSERT(y < desired[x].size(), "invalid y");
+    return desired[x][y];
 }
 
 std::ostream &operator<<(std::ostream &output, const GuidanceMap &map) {
     output << map.desired.size() << ' ' << map.desired.back().size() << '\n';
-    for (uint32_t x = 0; x < map.desired.size(); x++) {
-        output << map.desired[x] << '\n';
+    for (const auto &row: map.desired) {
+        output << row << '\n';
     }
     return output;
 }

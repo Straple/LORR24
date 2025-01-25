@@ -38,16 +38,17 @@ def read(filename):
 def build_svgs():
     # fig, axes = plt.subplots(4, 4, figsize=(10, 10))
     # images = []
-    for i in range(4):
+    for i in range(16):
+        dir = i // 4
+        act = i % 4
         fig, axes = plt.subplots(1, 1, figsize=(10, 10))
-        dir = i  # i // 4
-        act = 0  # i % 4
         map = data[dir][act]
         ax = axes
         print("processing:", dir, act)
-        ax.imshow(map, cmap='viridis')
+        im = ax.imshow(map, cmap='viridis', vmin=mn, vmax=mx)
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
+        fig.colorbar(im, ax=ax)
         plt.tight_layout()
         # plt.show()
         plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
@@ -78,5 +79,5 @@ acts = ["FW", "R", "CR", "W"]
 if __name__ == '__main__':
     data, mn, mx = read('../../graph_guidance')
 
-    paint()
-    #build_svgs()
+    #paint()
+    build_svgs()

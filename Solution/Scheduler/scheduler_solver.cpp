@@ -179,6 +179,7 @@ void SchedulerSolver::update() {
 
     uint32_t SCHEDULER_TIMESTEP_DIFF = 0;
 
+#ifdef ENABLE_SCHEDULER_FREEZE
     if (get_map_type() == MapType::WAREHOUSE) {
         SCHEDULER_TIMESTEP_DIFF = 10;
     } else if (get_map_type() == MapType::SORTATION) {
@@ -186,6 +187,7 @@ void SchedulerSolver::update() {
     } else if (get_map_type() == MapType::GAME) {
         SCHEDULER_TIMESTEP_DIFF = 15;
     }
+#endif
 
     old_desires = desires;
 

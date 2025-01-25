@@ -21,13 +21,13 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -38,13 +38,17 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
 #define ENABLE_PIBTS_TRICK
 
 //#define ENABLE_GG_SOLVER
+
+// если включено, то шедулер не будет трогать робота и задачу,
+// если они менялись несколько шагов назад
+//ENABLE_SCHEDULER_FREEZE
 
 // warehouse:
 // 17080 -> 17485
@@ -65,6 +69,10 @@ WAREHOUSE	126777	0.865
 Total	    304515	9.355
 */
 
+//-i example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 500 -p 1000000000
+// with GuidanceMap: 19428
+// without GuidanceMap: 19552
+
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
 static constexpr uint32_t THREADS = 32;
@@ -73,13 +81,13 @@ static constexpr uint32_t THREADS = 32;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 100;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 200;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
 static constexpr uint32_t INVALID_DIST = 0;
 

@@ -27,12 +27,18 @@ class GuidanceMap {
 
     void set_sortation(const Map &map);
 
-    void overlay(const std::vector<std::string>& image, uint32_t x, uint32_t y);
+    void overlay(const std::vector<std::string> &image, uint32_t x, uint32_t y);
 
 public:
     GuidanceMap() = default;
 
     GuidanceMap(MapType type, const Map &map);
+
+    [[nodiscard]] uint32_t get_rows() const;
+
+    [[nodiscard]] uint32_t get_cols() const;
+
+    [[nodiscard]] char get(uint32_t x, uint32_t y) const;
 
     friend std::ostream &operator<<(std::ostream &output, const GuidanceMap &map);
 };

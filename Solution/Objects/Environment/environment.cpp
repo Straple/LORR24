@@ -34,7 +34,8 @@ void init_environment(SharedEnvironment &env) {
     input >> get_gg();
 #else
     Printer().get() = std::ofstream("printer");
-    get_gg() = GraphGuidance(env);
+    //get_gg() = GraphGuidance(env);
+    get_gg() = GraphGuidance(get_guidance_map());
 #endif
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
