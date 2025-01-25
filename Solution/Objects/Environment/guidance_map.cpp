@@ -158,7 +158,16 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
     : desired(map.get_rows(), std::string(map.get_cols(), '.')) {
 
     if (type == MapType::RANDOM) {
-        set_random(map);
+        //call(0): 2416, 81.0664s
+        //call(1): 4220, 81.2555s
+        //call(2): 5381, 81.4487s
+        //call(3): 6087, 81.5846s
+        //call(4): 5624, 81.8125s
+        //call(5): 4023, 81.9019s
+        //total: 27751
+        std::ifstream input("Solution/Data/guidance_map_random.txt");
+        input >> *this;
+        //set_random(map);
     } else if (type == MapType::CITY) {
         set_city(map);
     } else if (type == MapType::GAME) {
@@ -169,20 +178,20 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         set_sortation(map);
     }
 
-    for (uint32_t x = 0; x < map.get_rows(); x++) {
+    /*for (uint32_t x = 0; x < map.get_rows(); x++) {
         for (uint32_t y = 0; y < map.get_cols(); y++) {
             if (!map.is_free(x * map.get_cols() + y + 1)) {
                 ASSERT(desired[x][y] == '.', "failed to set @");
                 desired[x][y] = '@';
             }
         }
-    }
+    }*/
 
-    {
+    /*{
         std::ofstream output("guidance_map");
         output << *this;
     }
-    //std::exit(0);
+    std::exit(0);*/
 }
 
 uint32_t GuidanceMap::get_rows() const {
@@ -206,6 +215,17 @@ std::ostream &operator<<(std::ostream &output, const GuidanceMap &map) {
         output << row << '\n';
     }
     return output;
+}
+
+std::istream &operator>>(std::istream &input, GuidanceMap &map) {
+    uint32_t rows, cols;
+    input >> rows >> cols;
+    map.desired.resize(rows);
+    for (auto &row: map.desired) {
+        input >> row;
+        ASSERT(row.size() == cols, "invalid sizes");
+    }
+    return input;
 }
 
 GuidanceMap &get_guidance_map() {

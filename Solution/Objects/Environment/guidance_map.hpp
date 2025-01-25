@@ -41,6 +41,8 @@ public:
     [[nodiscard]] char get(uint32_t x, uint32_t y) const;
 
     friend std::ostream &operator<<(std::ostream &output, const GuidanceMap &map);
+
+    friend std::istream &operator>>(std::istream &input, GuidanceMap &map);
 };
 
 GuidanceMap &get_guidance_map();

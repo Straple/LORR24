@@ -33,7 +33,7 @@
 
 #define ENABLE_PIBT
 
-//#define ENABLE_DHM
+#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
@@ -49,9 +49,6 @@
 // если включено, то шедулер не будет трогать робота и задачу,
 // если они менялись несколько шагов назад
 //ENABLE_SCHEDULER_FREEZE
-
-// warehouse:
-// 17080 -> 17485
 
 /*
 v2.4.8 improve DHM
@@ -79,15 +76,15 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 1000;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 100;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 10000;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 1000;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 1500;
 
 static constexpr uint32_t INVALID_DIST = 0;
 

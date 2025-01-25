@@ -204,6 +204,10 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
             }
             uint32_t pos = x * cols + y + 1;
 
+            constexpr uint32_t w1 = 2;
+            constexpr uint32_t w2 = 4;
+            constexpr uint32_t w3 = 6;
+
             uint32_t dir = 0;
             if (gmap.get(x, y) == '>') {
                 dir = 0;
@@ -214,12 +218,35 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
             } else if (gmap.get(x, y) == '^') {
                 dir = 3;
             } else {
-                FAILED_ASSERT("undefined desired");
-            }
+                //FAILED_ASSERT("undefined desired");
 
-            constexpr uint32_t w1 = 2;
-            constexpr uint32_t w2 = 4;
-            constexpr uint32_t w3 = 6;
+                graph[pos][dir][0] = w1;
+                graph[pos][dir][1] = w1;
+                graph[pos][dir][2] = w1;
+                graph[pos][dir][3] = w1;
+
+                dir = (dir + 1) % 4;
+
+                graph[pos][dir][0] = w1;
+                graph[pos][dir][1] = w1;
+                graph[pos][dir][2] = w1;
+                graph[pos][dir][3] = w1;
+
+                dir = (dir + 1) % 4;
+
+                graph[pos][dir][0] = w1;
+                graph[pos][dir][1] = w1;
+                graph[pos][dir][2] = w1;
+                graph[pos][dir][3] = w1;
+
+                dir = (dir + 1) % 4;
+
+                graph[pos][dir][0] = w1;
+                graph[pos][dir][1] = w1;
+                graph[pos][dir][2] = w1;
+                graph[pos][dir][3] = w1;
+                continue;
+            }
 
             // 0:east >
             // 1:south v
@@ -295,6 +322,18 @@ std::istream &operator>>(std::istream &input, GraphGuidance &gg) {
     return input;
 }
 
+uint32_t GraphGuidance::get_size() const {
+    return graph.size();
+}
+
+uint32_t GraphGuidance::get_rows() const {
+    return rows;
+}
+
+uint32_t GraphGuidance::get_cols() const {
+    return cols;
+}
+
 std::ostream &operator<<(std::ostream &output, const GraphGuidance &gg) {
     output << gg.rows << ' ' << gg.cols << '\n';
     for (uint32_t dir = 0; dir < 4; dir++) {
@@ -309,18 +348,6 @@ std::ostream &operator<<(std::ostream &output, const GraphGuidance &gg) {
         }
     }
     return output;
-}
-
-uint32_t GraphGuidance::get_size() const {
-    return graph.size();
-}
-
-uint32_t GraphGuidance::get_rows() const {
-    return rows;
-}
-
-uint32_t GraphGuidance::get_cols() const {
-    return cols;
 }
 
 GraphGuidance &get_gg() {
