@@ -158,13 +158,6 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
     : desired(map.get_rows(), std::string(map.get_cols(), '.')) {
 
     if (type == MapType::RANDOM) {
-        //call(0): 2416, 81.0664s
-        //call(1): 4220, 81.2555s
-        //call(2): 5381, 81.4487s
-        //call(3): 6087, 81.5846s
-        //call(4): 5624, 81.8125s
-        //call(5): 4023, 81.9019s
-        //total: 27751
         std::ifstream input("Solution/Data/guidance_map_random.txt");
         input >> *this;
         //set_random(map);
