@@ -33,7 +33,7 @@ void init_environment(SharedEnvironment &env) {
     std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
     input >> get_gg();
 #else
-    Printer().get() = std::ofstream("printer");
+    Printer().get() = std::ofstream("printer.txt");
     if (get_map_type() == MapType::RANDOM || get_map_type() == MapType::WAREHOUSE) {
         get_gg() = GraphGuidance(get_guidance_map());
     } else {

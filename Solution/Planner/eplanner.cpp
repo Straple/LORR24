@@ -44,7 +44,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
         pibt.simulate_pibt();
         auto time = timer.get_ms();
-        results_pack[thr].emplace_back(pibt.get_score(), time, pibt.get_actions()
+        results_pack[thr].emplace_back(pibt.get_best_score(), time, pibt.get_actions()
 #ifdef ENABLE_PRINT_LOG
                 , pibt.get_desires(), pibt.get_changes(), 0
 #endif

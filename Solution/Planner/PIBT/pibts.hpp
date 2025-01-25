@@ -29,7 +29,7 @@ class PIBTS {
     std::vector<uint32_t> desires;
 
     // neighbours[r] = { neighbours }
-    //std::vector<std::vector<uint32_t>> neighbours;
+    std::vector<std::vector<uint32_t>> neighbors;
 
     // smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired)
     std::vector<std::vector<int32_t>> smart_dist_dp;
@@ -52,6 +52,12 @@ class PIBTS {
     double temp = 1;
 
     double visited_bound = 0.8;
+
+    std::vector<uint32_t> best_desires;
+
+    double best_score = -1;
+
+    bool consider();
 
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
 
@@ -81,16 +87,23 @@ class PIBTS {
     // return 0, if failed
     // return 1, if success+accepted
     // return 2, if success+not accepted
+    uint32_t try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t>& rids, uint32_t &counter, uint32_t depth);
+
+    bool try_rebuild_neighbors(uint32_t r);
+
+    // return 0, if failed
+    // return 1, if success+accepted
+    // return 2, if success+not accepted
     uint32_t build(uint32_t r, uint32_t depth, uint32_t &counter);
 
     bool build(uint32_t r);
+
+    [[nodiscard]] double get_score() const;
 
 public:
     explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed);
 
     void simulate_pibt();
-
-    [[nodiscard]] double get_score() const;
 
     [[nodiscard]] std::vector<Action> get_actions() const;
 
@@ -98,5 +111,5 @@ public:
 
     [[nodiscard]] std::vector<int64_t> get_changes() const;
 
-    [[nodiscard]] double get_kek();
+    [[nodiscard]] double get_best_score() const;
 };
