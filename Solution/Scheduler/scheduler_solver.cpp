@@ -184,7 +184,7 @@ void SchedulerSolver::update() {
     } else if (get_map_type() == MapType::SORTATION) {
         SCHEDULER_TIMESTEP_DIFF = 10;
     } else if (get_map_type() == MapType::GAME) {
-        SCHEDULER_TIMESTEP_DIFF = 10;
+        SCHEDULER_TIMESTEP_DIFF = 15;
     }
 
     old_desires = desires;
