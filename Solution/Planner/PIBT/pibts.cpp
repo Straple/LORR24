@@ -7,10 +7,11 @@
 #include <thread>
 
 bool PIBTS::consider() {
-    if (cur_score > best_score + 1e-6) {
-        best_score = cur_score;
-        best_desires = desires;
-    }
+    // this can be really slow
+    //if (cur_score > best_score + 1e-6) {
+    //    best_score = cur_score;
+    //    best_desires = desires;
+    //}
 
     return old_score + 1e-6 <= cur_score
 // old_score > cur_score
@@ -618,23 +619,17 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         }
     }
 
-    Timer timer;
-
-    // init neighbours
+    //Timer timer;
+    // init neighbors
     {
         neighbors.resize(robots.size());
         // TODO: here swap depth and edge for optimize
 
-        // used_edge[depth][edge] = robot id
-        std::array<std::vector<std::vector<uint32_t>>, DEPTH> used_edge;
+        // used_edge[edge][depth] = robot id
+        std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_edge(get_graph().get_edges_size());
 
-        // used_pos[depth][pos] = robot id
-        std::array<std::vector<std::vector<uint32_t>>, DEPTH> used_pos;
-
-        for (uint32_t depth = 0; depth < DEPTH; depth++) {
-            used_pos[depth].resize(get_graph().get_zipes_size());
-            used_edge[depth].resize(get_graph().get_edges_size());
-        }
+        // used_pos[pos][depth] = robot id
+        std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_pos(get_graph().get_zipes_size());
 
         for (uint32_t r = 0; r < robots.size(); r++) {
             for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
@@ -648,8 +643,8 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                     uint32_t to_edge = edges_path[depth];
                     uint32_t to_pos = poses_path[depth];
 
-                    ASSERT(to_pos < used_pos[depth].size(), "invalid to_pos");
-                    ASSERT(to_edge < used_edge[depth].size(), "invalid to_edge");
+                    ASSERT(to_pos < used_pos.size(), "invalid to_pos");
+                    ASSERT(to_edge < used_edge.size(), "invalid to_edge");
 
                     auto add = [&](std::vector<uint32_t> &vec) {
                         if (std::find(vec.begin(), vec.end(), r) == vec.end()) {
@@ -658,17 +653,17 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                     };
 
                     if (to_edge) {
-                        add(used_edge[depth][to_edge]);
+                        add(used_edge[to_edge][depth]);
                     }
-                    add(used_pos[depth][to_pos]);
+                    add(used_pos[to_pos][depth]);
                 }
             }
         }
 
-        for (uint32_t depth = 0; depth < DEPTH; depth++) {
-            for (uint32_t edge = 1; edge < used_edge[depth].size(); edge++) {
-                for (uint32_t r: used_edge[depth][edge]) {
-                    for (uint32_t r2: used_edge[depth][edge]) {
+        for (uint32_t edge = 1; edge < used_edge.size(); edge++) {
+            for (uint32_t depth = 0; depth < DEPTH; depth++) {
+                for (uint32_t r: used_edge[edge][depth]) {
+                    for (uint32_t r2: used_edge[edge][depth]) {
                         if (r != r2 &&
                             std::find(neighbors[r].begin(), neighbors[r].end(), r2) == neighbors[r].end()) {
                             neighbors[r].push_back(r2);
@@ -676,9 +671,11 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                     }
                 }
             }
-            for (uint32_t pos = 1; pos < used_pos[depth].size(); pos++) {
-                for (uint32_t r: used_pos[depth][pos]) {
-                    for (uint32_t r2: used_pos[depth][pos]) {
+        }
+        for (uint32_t pos = 1; pos < used_pos.size(); pos++) {
+            for (uint32_t depth = 0; depth < DEPTH; depth++) {
+                for (uint32_t r: used_pos[pos][depth]) {
+                    for (uint32_t r2: used_pos[pos][depth]) {
                         if (r != r2 &&
                             std::find(neighbors[r].begin(), neighbors[r].end(), r2) == neighbors[r].end()) {
                             neighbors[r].push_back(r2);
@@ -688,6 +685,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
             }
         }
     }
+    //Printer() << "init neighbors: " << timer << '\n';
 
     for (uint32_t r = 0; r < robots.size(); r++) {
         desires[r] = 0;
@@ -776,6 +774,9 @@ void PIBTS::simulate_pibt() {
     if (best_score > cur_score + 0.1) {
         Printer() << "best better then cur\n";
     }*/
+
+    best_desires = desires;
+    best_score = cur_score;
 }
 
 double PIBTS::get_score() const {

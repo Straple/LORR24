@@ -34,7 +34,9 @@ void init_environment(SharedEnvironment &env) {
     input >> get_gg();
 #else
     Printer().get() = std::ofstream("printer.txt");
-    if (get_map_type() == MapType::RANDOM || get_map_type() == MapType::WAREHOUSE) {
+    // warehouse bad guidance map
+    if (get_map_type() == MapType::RANDOM// || get_map_type() == MapType::WAREHOUSE
+        ) {
         get_gg() = GraphGuidance(get_guidance_map());
     } else {
         get_gg() = GraphGuidance(env);

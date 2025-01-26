@@ -66,7 +66,7 @@ WAREHOUSE	126777	0.865
 Total	    304515	9.355
 */
 
-//-i example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 500 -p 1000000000
+// -i example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 500 -p 1000000000
 // with GuidanceMap: 19428
 // without GuidanceMap: 19552
 
@@ -78,11 +78,11 @@ static constexpr uint32_t THREADS = 32;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 300;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 250;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 150;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
