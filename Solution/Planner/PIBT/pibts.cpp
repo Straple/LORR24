@@ -13,7 +13,7 @@ bool PIBTS::consider() {
     //    best_desires = desires;
     //}
 
-    return old_score + 1e-6 <= cur_score
+    return old_score - 1e-6 <= cur_score
 // old_score > cur_score
 #ifdef ENABLE_PIBTS_ANNEALING
            || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
@@ -621,7 +621,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
 
     //Timer timer;
     // init neighbors
-    {
+    /*{
         neighbors.resize(robots.size());
         // TODO: here swap depth and edge for optimize
 
@@ -684,7 +684,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                 }
             }
         }
-    }
+    }*/
     //Printer() << "init neighbors: " << timer << '\n';
 
     for (uint32_t r = 0; r < robots.size(); r++) {
@@ -761,11 +761,12 @@ void PIBTS::simulate_pibt() {
     temp = 1;
     for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
-        if (rnd.get_d() < 0.5) {
+        try_build(r);
+        /*if (rnd.get_d() < 0.5) {
             try_build(r);
         } else {
             try_rebuild_neighbors(r);
-        }
+        }*/
         temp *= 0.999;
     }
 
