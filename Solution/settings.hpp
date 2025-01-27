@@ -88,6 +88,8 @@ static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
 static constexpr uint32_t INVALID_DIST = 0;
 
+// warehouse и sortation 10к агентов в тестсистеме
+
 uint32_t &get_unique_id();
 
 #define ENABLE_FILEPRINT
