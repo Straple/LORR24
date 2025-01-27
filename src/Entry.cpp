@@ -29,8 +29,11 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
         // RANDOM-03: env->num_of_agents == 400
 
+        // RANDOM-04: env->num_of_agents == 700
+
         ASSERT(env->num_of_agents == 100 || env->num_of_agents == 200 || env->num_of_agents == 300 ||
                env->num_of_agents == 400 || env->num_of_agents == 500 || env->num_of_agents == 600 ||
+               env->num_of_agents == 700 ||
                env->num_of_agents == 800,
                "random map invalid agents num");
     }
