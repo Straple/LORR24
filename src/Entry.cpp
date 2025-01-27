@@ -20,6 +20,11 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
+    if (get_map_type() == MapType::SORTATION || get_map_type() == MapType::WAREHOUSE) {
+        ASSERT(env->num_of_agents == 10'000, "invalid agents num");
+    }
+
+    return;
 #ifdef ENABLE_PRINT_LOG
     static Timer total_timer;
     Timer timer;

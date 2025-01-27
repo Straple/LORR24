@@ -71,7 +71,9 @@ int main(int argc, char **argv) {
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
     get_unique_id() = vm["unique_id"].as<uint32_t>();
+#ifdef ENABLE_PRINT_LOG
     Printer() << "unique_id: " << get_unique_id() << '\n';
+#endif
 
     if (vm.count("help")) {
         std::cout << desc << std::endl;

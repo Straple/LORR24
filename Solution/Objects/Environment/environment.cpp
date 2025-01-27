@@ -27,6 +27,8 @@ void init_environment(SharedEnvironment &env) {
         FAILED_ASSERT("undefined map");
     }
 
+    return;
+
     get_map() = Map(env);
     get_guidance_map() = GuidanceMap(get_map_type(), get_map());
 #ifdef ENABLE_GG_SOLVER
