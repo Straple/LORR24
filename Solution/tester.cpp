@@ -50,19 +50,21 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"Data2023/game.domain/MR23-I-09.json", 5000},
         {"Data2023/warehouse.domain/MR23-I-10.json", 5000},*/
 
+        //call(0): 2406, 80.9614s
+        //call(1): 4270, 81.157s
+        //call(2): 6302, 81.5113s
+        //call(3): 3481, 82.1073s
+        //call(4): 2653, 82.2024s
+        //total: 19112
 
-        {"example_problems/random.domain/random_32_32_20_100.json", 1000},
-        //"example_problems/random.domain/random_32_32_20_100_2.json",
-        {"example_problems/random.domain/random_32_32_20_200.json", 1000},
-        //"example_problems/random.domain/random_32_32_20_200_2.json",
-        {"example_problems/random.domain/random_32_32_20_300.json", 1000},
-        //"example_problems/random.domain/random_32_32_20_300_2.json",
-        {"example_problems/random.domain/random_32_32_20_400.json", 1000},
-        //"example_problems/random.domain/random_32_32_20_400_2.json",
-        {"example_problems/random.domain/random_32_32_20_500.json", 1000},
-        //"example_problems/random.domain/random_32_32_20_500_2.json",
-        {"example_problems/random.domain/random_32_32_20_600.json", 1000},
-        //"example_problems/random.domain/random_32_32_20_600_2.json",
+        {"example_problems/random.domain/random_32_32_20_100.json", 250},
+        {"example_problems/random.domain/random_32_32_20_200.json", 250},
+        //{"example_problems/random.domain/random_32_32_20_300.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_400.json", 400},
+        //{"example_problems/random.domain/random_32_32_20_500.json", 1000},
+        //{"example_problems/random.domain/random_32_32_20_600.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_700.json", 500},
+        {"example_problems/random.domain/random_32_32_20_800.json", 1000},
 };
 
 uint32_t call() {

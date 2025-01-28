@@ -12,19 +12,22 @@ void init_environment(SharedEnvironment &env) {
     }
     already_init = true;
 
-    if (env.map_name == "warehouse_large.map") {
-        get_map_type() = MapType::WAREHOUSE;
-    } else if (env.map_name == "sortation_large.map") {
-        get_map_type() = MapType::SORTATION;
-    } else if (env.map_name == "brc202d.map") {
-        get_map_type() = MapType::GAME;
-    } else if (env.map_name == "Paris_1_256.map") {
-        get_map_type() = MapType::CITY;
-    } else if (env.map_name == "random-32-32-20.map") {
-        get_map_type() = MapType::RANDOM;
-    } else {
-        get_map_type() = MapType::NONE;
-        FAILED_ASSERT("undefined map");
+    // update map type
+    {
+        if (env.map_name == "warehouse_large.map") {
+            get_map_type() = MapType::WAREHOUSE;
+        } else if (env.map_name == "sortation_large.map") {
+            get_map_type() = MapType::SORTATION;
+        } else if (env.map_name == "brc202d.map") {
+            get_map_type() = MapType::GAME;
+        } else if (env.map_name == "Paris_1_256.map") {
+            get_map_type() = MapType::CITY;
+        } else if (env.map_name == "random-32-32-20.map") {
+            get_map_type() = MapType::RANDOM;
+        } else {
+            get_map_type() = MapType::NONE;
+            FAILED_ASSERT("undefined map");
+        }
     }
 
     return;
@@ -38,7 +41,7 @@ void init_environment(SharedEnvironment &env) {
     Printer().get() = std::ofstream("printer.txt");
     // warehouse bad guidance map
     if (get_map_type() == MapType::RANDOM// || get_map_type() == MapType::WAREHOUSE
-        ) {
+            ) {
         get_gg() = GraphGuidance(get_guidance_map());
     } else {
         get_gg() = GraphGuidance(env);
@@ -53,10 +56,10 @@ void init_environment(SharedEnvironment &env) {
     // get_busyness_map() = BusynessMap(get_map());
 
     // generate random agents
-    /*Randomizer rnd(5340000);
+    /*Randomizer rnd(202);
     std::ofstream output("agents.txt");
     std::set<uint32_t> S;
-    for(int i = 0; i < 600; i++){
+    for(int i = 0; i < 800; i++){
         uint32_t pos = 0;
         while(true){
             pos = rnd.get(1, get_map().get_size() - 1);
@@ -75,6 +78,50 @@ void init_environment(SharedEnvironment &env) {
 }
 
 void update_environment(SharedEnvironment &env) {
+    // update test type
+    {
+        if (get_map_type() == MapType::RANDOM) {
+            if (env.num_of_agents == 100) {
+                get_test_type() = TestType::RANDOM_1;
+                ASSERT(env.curr_timestep < 250, "invalid timestep");
+            } else if (env.num_of_agents == 200) {
+                get_test_type() = TestType::RANDOM_2;
+                ASSERT(env.curr_timestep < 250, "invalid timestep");
+            } else if (env.num_of_agents == 400) {
+                get_test_type() = TestType::RANDOM_3;
+                ASSERT(env.curr_timestep < 400, "invalid timestep");
+            } else if (env.num_of_agents == 700) {
+                get_test_type() = TestType::RANDOM_4;
+                ASSERT(env.curr_timestep < 500, "invalid timestep");
+            } else if (env.num_of_agents == 800) {
+                get_test_type() = TestType::RANDOM_5;
+                ASSERT(env.curr_timestep < 1000, "invalid timestep");
+            } else {
+                FAILED_ASSERT("invalid test");
+            }
+        } else if (get_map_type() == MapType::CITY) {
+
+        } else if (get_map_type() == MapType::GAME) {
+            ASSERT(env.num_of_agents <= 1000, "invalid num of agents");
+        } else if (get_map_type() == MapType::WAREHOUSE) {
+            if (env.num_of_agents == 10'000) {
+                get_test_type() = TestType::WAREHOUSE;
+            } else {
+                FAILED_ASSERT("invalid test");
+            }
+        } else if (get_map_type() == MapType::SORTATION) {
+            if (env.num_of_agents == 10'000) {
+                get_test_type() = TestType::SORTATION;
+            } else {
+                FAILED_ASSERT("invalid test");
+            }
+        } else {
+            FAILED_ASSERT("invalid map");
+        }
+    }
+
+    return;
+
     get_robots_handler() = RobotsHandler(env);
 
     static int prev_timestep_updated = -1;

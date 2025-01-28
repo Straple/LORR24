@@ -9,6 +9,7 @@
 #include <Objects/Environment/operations.hpp>
 #include <Objects/Environment/operations_map.hpp>
 #include <Objects/Environment/robot_handler.hpp>
+#include <Objects/Environment/types.hpp>
 
 void init_environment(SharedEnvironment &env);
 

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Objects/Environment/map.hpp>
+#include <Objects/Environment/types.hpp>
+
 #include <settings.hpp>
 
 #include <vector>

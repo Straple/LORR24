@@ -9,8 +9,3 @@ std::ofstream &Printer::get() const {
     static std::ofstream output;
     return output;
 }
-
-MapType &get_map_type() {
-    static MapType type = MapType::NONE;
-    return type;
-}

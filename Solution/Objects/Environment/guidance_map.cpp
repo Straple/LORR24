@@ -160,7 +160,7 @@ void GuidanceMap::overlay(const std::vector<std::string> &image, uint32_t x, uin
 
 
 GuidanceMap::GuidanceMap(MapType type, const Map &map)
-    : desired(map.get_rows(), std::string(map.get_cols(), '.')) {
+        : desired(map.get_rows(), std::string(map.get_cols(), '.')) {
 
     if (type == MapType::RANDOM) {
         set_random(map);
@@ -172,6 +172,8 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         set_warehouse(map);
     } else if (type == MapType::SORTATION) {
         set_sortation(map);
+    } else {
+        FAILED_ASSERT("invalid map");
     }
 
     /*for (uint32_t x = 0; x < map.get_rows(); x++) {

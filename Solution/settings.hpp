@@ -50,29 +50,9 @@
 // если они менялись несколько шагов назад
 //ENABLE_SCHEDULER_FREEZE
 
-/*
-v2.4.8 improve DHM
-Map	        Tasks	Score
-CITY-01	    8341	0.998
-CITY-02	    16189	0.976
-GAME	    9151	0.798
-RANDOM-01	642 	0.985
-RANDOM-02	1129	0.992
-RANDOM-03	2002	0.928
-RANDOM-04	1474	0.868
-RANDOM-05	2102	0.945
-SORTATION	136708	1
-WAREHOUSE	126777	0.865
-Total	    304515	9.355
-*/
-
-// -i example_problems/warehouse.domain/warehouse_large_5000.json -o test.json -s 1000 -t 500 -p 1000000000
-// with GuidanceMap: 19428
-// without GuidanceMap: 19552
-
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 1;
 
 // if -1, then use timer
 // else use steps, without timer
@@ -87,8 +67,6 @@ static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 150;
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
 static constexpr uint32_t INVALID_DIST = 0;
-
-// warehouse и sortation 10к агентов в тестсистеме
 
 uint32_t &get_unique_id();
 
@@ -108,18 +86,6 @@ Printer operator<<(Printer printer, const T &value) {
 #endif
     return printer;
 }
-
-enum class MapType {
-    RANDOM,
-    GAME,
-    CITY,
-    WAREHOUSE,
-    SORTATION,
-
-    NONE,
-};
-
-MapType &get_map_type();
 
 /*
 call(0): 10170 / 10385, 1549.94s
