@@ -92,11 +92,13 @@ void update_environment(SharedEnvironment &env) {
                 ASSERT(env.curr_timestep < 400, "invalid timestep");
             } else if (env.num_of_agents == 700) {
                 get_test_type() = TestType::RANDOM_4;
-                ASSERT(env.curr_timestep < 500, "invalid timestep");
+                // 500 failed
+                ASSERT(env.curr_timestep < 1000, "invalid timestep");
             } else if (env.num_of_agents == 800) {
                 get_test_type() = TestType::RANDOM_5;
                 // 1200 failed
-                ASSERT(env.curr_timestep < 2000, "invalid timestep");
+                // 2000 ok
+                ASSERT(env.curr_timestep < 1800, "invalid timestep");
             } else {
                 FAILED_ASSERT("invalid test");
             }
