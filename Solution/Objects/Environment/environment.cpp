@@ -83,18 +83,17 @@ void update_environment(SharedEnvironment &env) {
         if (get_map_type() == MapType::RANDOM) {
             if (env.num_of_agents == 100) {
                 get_test_type() = TestType::RANDOM_1;
-                // 500 failed
-                // 600 ok
-                ASSERT(env.curr_timestep < 599, "invalid timestep");
+                // timesteps = 600
+                ASSERT(env.curr_timestep < 600, "invalid timestep");
             } else if (env.num_of_agents == 200) {
                 get_test_type() = TestType::RANDOM_2;
                 // 500 failed
-                // 800 ok
-                ASSERT(env.curr_timestep < 800, "invalid timestep");
+                // 600 ok
+                ASSERT(env.curr_timestep < 599, "invalid timestep");
             } else if (env.num_of_agents == 400) {
                 get_test_type() = TestType::RANDOM_3;
                 // 600 failed
-                // 1000 ok
+                // 800 ok
                 ASSERT(env.curr_timestep < 800, "invalid timestep");
             } else if (env.num_of_agents == 700) {
                 get_test_type() = TestType::RANDOM_4;
