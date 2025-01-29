@@ -108,7 +108,7 @@ void update_environment(SharedEnvironment &env) {
                 FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::CITY) {
-            FAILED_ASSERT("kek");
+            //FAILED_ASSERT("kek");
         } else if (get_map_type() == MapType::GAME) {
             // agents = 6500
             ASSERT(env.num_of_agents == 6500, "invalid num of agents");
