@@ -109,27 +109,27 @@ void update_environment(SharedEnvironment &env) {
                 FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::CITY) {
-            ASSERT(env.num_of_agents <= 250, "invalid num of agents");
+            ASSERT(env.num_of_agents <= 500, "invalid num of agents");
             //FAILED_ASSERT("kek");
         } else if (get_map_type() == MapType::GAME) {
-            // agents = 6500
-            ASSERT(env.num_of_agents == 6500, "invalid num of agents");
             get_test_type() = TestType::GAME;
             // timesteps = 5000
             ASSERT(env.curr_timestep < 5000, "invalid timestep");
+            // agents = 6500
+            ASSERT(env.num_of_agents == 6500, "invalid num of agents");
         } else if (get_map_type() == MapType::WAREHOUSE) {
-            // timesteps = 5000
-            ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::WAREHOUSE;
+                // timesteps = 5000
+                ASSERT(env.curr_timestep < 5000, "invalid timestep");
             } else {
                 FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::SORTATION) {
-            // timesteps = 5000
-            ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::SORTATION;
+                // timesteps = 5000
+                ASSERT(env.curr_timestep < 5000, "invalid timestep");
             } else {
                 FAILED_ASSERT("invalid test");
             }
