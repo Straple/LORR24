@@ -78,6 +78,9 @@ void init_environment(SharedEnvironment &env) {
 }
 
 void update_environment(SharedEnvironment &env) {
+    double task_reveal = env.task_pool.size() * 1.0 / env.num_of_agents;
+    ASSERT(std::abs(task_reveal - 1.5) < 1e-3, "invalid task reveal");
+
     // update test type
     {
         if (get_map_type() == MapType::RANDOM) {
@@ -121,8 +124,8 @@ void update_environment(SharedEnvironment &env) {
                 FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::SORTATION) {
-            // 5000 ok
-            ASSERT(env.curr_timestep < 4999, "invalid timestep");
+            // timesteps = 5000
+            ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::SORTATION;
             } else {
