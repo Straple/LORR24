@@ -113,8 +113,8 @@ void update_environment(SharedEnvironment &env) {
             // timesteps = 5000
             ASSERT(env.curr_timestep < 5000, "invalid timestep");
         } else if (get_map_type() == MapType::WAREHOUSE) {
-            // 5000 ok
-            ASSERT(env.curr_timestep < 4999, "invalid timestep");
+            // timesteps = 5000
+            ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::WAREHOUSE;
             } else {
