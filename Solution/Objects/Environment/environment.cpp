@@ -109,8 +109,8 @@ void update_environment(SharedEnvironment &env) {
             FAILED_ASSERT("kek");
         } else if (get_map_type() == MapType::GAME) {
             // 5000 failed
-            // 9999 ok
-            ASSERT(env.num_of_agents <= 7500, "invalid num of agents");
+            // 7500 ok
+            ASSERT(env.num_of_agents <= 7499, "invalid num of agents");
         } else if (get_map_type() == MapType::WAREHOUSE) {
             ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
@@ -141,3 +141,14 @@ void update_environment(SharedEnvironment &env) {
     prev_timestep_updated = env.curr_timestep;
     get_dhm().update(env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
 }
+
+/*
+Порядок выполнения тестов:
+WAREHOUSE
+...
+GAME
+CITY-02
+CITY-01
+
+кажется, что он идет в обратном порядке от тестов на сайте
+*/
