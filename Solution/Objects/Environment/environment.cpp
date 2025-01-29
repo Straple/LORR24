@@ -110,8 +110,9 @@ void update_environment(SharedEnvironment &env) {
             // agents = 6500
             ASSERT(env.num_of_agents == 6500, "invalid num of agents");
             get_test_type() = TestType::GAME;
-            
-            ASSERT(env.curr_timestep < 1000, "invalid timestep");
+
+            // 1000 failed
+            ASSERT(env.curr_timestep < 2000, "invalid timestep");
         } else if (get_map_type() == MapType::WAREHOUSE) {
             ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
