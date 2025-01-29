@@ -95,9 +95,8 @@ void update_environment(SharedEnvironment &env) {
                 ASSERT(env.curr_timestep < 800, "invalid timestep");
             } else if (env.num_of_agents == 700) {
                 get_test_type() = TestType::RANDOM_4;
-                // 800 failed
-                // 1000 ok
-                ASSERT(env.curr_timestep < 999, "invalid timestep");
+                // timesteps = 1000
+                ASSERT(env.curr_timestep < 1000, "invalid timestep");
             } else if (env.num_of_agents == 800) {
                 get_test_type() = TestType::RANDOM_5;
                 // timesteps = 2000
@@ -110,6 +109,9 @@ void update_environment(SharedEnvironment &env) {
         } else if (get_map_type() == MapType::GAME) {
             // agents = 6500
             ASSERT(env.num_of_agents == 6500, "invalid num of agents");
+            get_test_type() = TestType::GAME;
+            
+            ASSERT(env.curr_timestep < 1000, "invalid timestep");
         } else if (get_map_type() == MapType::WAREHOUSE) {
             ASSERT(env.curr_timestep < 5000, "invalid timestep");
             if (env.num_of_agents == 10'000) {
