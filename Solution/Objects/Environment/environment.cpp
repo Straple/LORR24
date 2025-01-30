@@ -150,7 +150,8 @@ void update_environment(SharedEnvironment &env) {
     if(get_map_type() == MapType::RANDOM) {
         ASSERT(tasks_size.size() <= 5, "invalid task size");
     } else if(get_map_type() == MapType::GAME) {
-        ASSERT(tasks_size.size() <= 2, "invalid task size");
+        // <= 2 ok
+        ASSERT(tasks_size.size() == 1, "invalid task size");
     } else{
         ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
     }
