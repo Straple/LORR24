@@ -82,10 +82,6 @@ void update_environment(SharedEnvironment &env) {
     // true everywhere
     ASSERT(std::abs(task_reveal - 1.5) < 1e-3, "invalid task reveal");
 
-    for(auto &[t, task] : env.task_pool){
-         ASSERT(task.locations.size() == 2, "invalid task size");   
-    }
-
     // update test type
     {
         if (get_map_type() == MapType::RANDOM) {
@@ -143,6 +139,14 @@ void update_environment(SharedEnvironment &env) {
             }
         } else {
             FAILED_ASSERT("invalid map");
+        }
+    }
+
+    for(auto &[t, task] : env.task_pool) {
+        if(get_test_type() == TestType::RANDOM_5) {
+            ASSERT(task.locations.size() == 1, "invalid task size");
+        } else{
+            ASSERT(task.locations.size() == 2, "invalid task size");
         }
     }
 
