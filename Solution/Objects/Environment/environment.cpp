@@ -147,7 +147,7 @@ void update_environment(SharedEnvironment &env) {
         tasks_size.insert(static_cast<int>(task.locations.size()));
     }
 
-    if(get_test_type() == TestType::RANDOM_5) {
+    if(get_map_type() == MapType::RANDOM) {
         ASSERT(tasks_size.size() <= 5, "invalid task size");
     } else{
         ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
