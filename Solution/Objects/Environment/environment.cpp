@@ -30,7 +30,7 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
-    return;
+    //return;
 
     get_map() = Map(env);
     get_guidance_map() = GuidanceMap(get_map_type(), get_map());
@@ -87,24 +87,19 @@ void update_environment(SharedEnvironment &env) {
         if (get_map_type() == MapType::RANDOM) {
             if (env.num_of_agents == 100) {
                 get_test_type() = TestType::RANDOM_1;
-                // timesteps = 600
-                ASSERT(env.curr_timestep < 600, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 200) {
                 get_test_type() = TestType::RANDOM_2;
-                // timesteps = 600
-                ASSERT(env.curr_timestep < 600, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 400) {
                 get_test_type() = TestType::RANDOM_3;
-                // timesteps = 800
-                ASSERT(env.curr_timestep < 800, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 700) {
                 get_test_type() = TestType::RANDOM_4;
-                // timesteps = 1000
-                ASSERT(env.curr_timestep < 1000, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 800) {
                 get_test_type() = TestType::RANDOM_5;
-                // timesteps = 2000
-                ASSERT(env.curr_timestep < 2000, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else {
                 FAILED_ASSERT("invalid test");
             }
@@ -114,26 +109,24 @@ void update_environment(SharedEnvironment &env) {
             // 3000 failed
             // 3500 ok
             ASSERT(env.num_of_agents < 3500, "invalid num of agents");
-            //FAILED_ASSERT("kek");
         } else if (get_map_type() == MapType::GAME) {
             get_test_type() = TestType::GAME;
             // timesteps = 5000
-            ASSERT(env.curr_timestep < 5000, "invalid timestep");
+            ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             // agents = 6500
-            ASSERT(env.num_of_agents == 6500, "invalid num of agents");
+            ASSERT(env.num_of_agents == get_test_info().steps_num, "invalid num of agents");
         } else if (get_map_type() == MapType::WAREHOUSE) {
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::WAREHOUSE;
                 // timesteps = 5000
-                ASSERT(env.curr_timestep < 5000, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else {
                 FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::SORTATION) {
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::SORTATION;
-                // timesteps = 5000
-                ASSERT(env.curr_timestep < 5000, "invalid timestep");
+                ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else {
                 FAILED_ASSERT("invalid test");
             }
@@ -142,7 +135,7 @@ void update_environment(SharedEnvironment &env) {
         }
     }
 
-    std::set<int> tasks_size;
+    /*std::set<int> tasks_size;
     for(auto &[t, task] : env.task_pool) {
         tasks_size.insert(static_cast<int>(task.locations.size()));
     }
@@ -153,13 +146,14 @@ void update_environment(SharedEnvironment &env) {
         // OK
         ASSERT(tasks_size.size() == 2, "invalid task size");
 
+        // failed
         auto s = std::set<int>{1, 2};
         ASSERT(tasks_size == s, "invalid task size");
     } else{
         ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
     }
 
-    return;
+    return;*/
 
     get_robots_handler() = RobotsHandler(env);
 

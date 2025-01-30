@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Objects/Environment/map.hpp>
-#include <Objects/Environment/types.hpp>
+#include <Objects/Environment/info.hpp>
 
 #include <settings.hpp>
 

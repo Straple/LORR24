@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <array>
+
 enum class MapType {
     RANDOM,
     GAME,
@@ -28,3 +31,9 @@ enum class TestType {
 };
 
 TestType &get_test_type();
+
+struct TestInfo {
+    uint32_t steps_num = 0;
+};
+
+TestInfo get_test_info();

@@ -31,17 +31,20 @@ RobotsHandler::RobotsHandler(SharedEnvironment &env) {
         ASSERT(Position(target, 1).is_valid(), "invalid");
         ASSERT(Position(target, 2).is_valid(), "invalid");
         ASSERT(Position(target, 3).is_valid(), "invalid");
-        uint32_t priority = 0;//get_dhm().get(node, target);
+        uint32_t task_dist = 0;
         {
             uint32_t node = robots[r].node;
             for (int i = task.idx_next_loc; i < task.locations.size(); i++) {
                 int to_pos = task.locations[i] + 1;
-                priority += get_hm().get(node, to_pos);
+                task_dist += get_hm().get(node, to_pos);
                 node = get_graph().get_node(Position(to_pos, 0));
             }
         }
+        // TODO:
+        // if task_dist + env.curr_timestep > get_test_info().steps_num
+        // then this robot is free
         robots[r].target = target;
-        robots[r].priority = priority;
+        robots[r].priority = task_dist;
     }
 }
 

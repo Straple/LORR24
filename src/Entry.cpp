@@ -21,31 +21,9 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
-    {
-        update_environment(*env);
-        return;
-    }
-    /*if (get_map_type() == MapType::SORTATION || get_map_type() == MapType::WAREHOUSE) {
-        ASSERT(env->num_of_agents == 10'000, "invalid agents num");
-    } else if (get_map_type() == MapType::RANDOM) {
 
-        // failed for RANDOM-04
-        //ASSERT(env->num_of_agents == 100 || env->num_of_agents == 200 || env->num_of_agents == 400 || env->num_of_agents == 600 || env->num_of_agents == 800, "random map invalid agents num");
+    update_environment(*env);
 
-        // RANDOM-01: env->num_of_agents == 100
-        // RANDOM-02: env->num_of_agents == 200
-        // RANDOM-03: env->num_of_agents == 400
-        // RANDOM-04: env->num_of_agents == 700
-        // RANDOM-05: env->num_of_agents == 800
-
-        ASSERT(env->num_of_agents == 100 ||
-               env->num_of_agents == 200 ||
-               env->num_of_agents == 400 ||
-               env->num_of_agents == 700 ||
-               env->num_of_agents == 800,
-               "random map invalid agents num");
-    }
-    return;*/
 #ifdef ENABLE_PRINT_LOG
     static Timer total_timer;
     Timer timer;
