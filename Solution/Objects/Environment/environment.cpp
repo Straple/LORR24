@@ -148,7 +148,7 @@ void update_environment(SharedEnvironment &env) {
     }
 
     if(get_test_type() == TestType::RANDOM_5) {
-        ASSERT(tasks_size.size() == 1, "invalid task size");
+        ASSERT(tasks_size.size() == 2, "invalid task size");
     } else{
         ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
     }
