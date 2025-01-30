@@ -57,14 +57,11 @@ std::vector<std::tuple<std::string, int>> tests = {
         //call(4): 2653, 82.2024s
         //total: 19112
 
-        {"example_problems/random.domain/random_32_32_20_100.json", 600},
-        {"example_problems/random.domain/random_32_32_20_200.json", 600},
-        //{"example_problems/random.domain/random_32_32_20_300.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_400.json", 800},
-        //{"example_problems/random.domain/random_32_32_20_500.json", 1000},
-        //{"example_problems/random.domain/random_32_32_20_600.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_700.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_800.json", 2000},
+{"example_problems/random.domain/random_32_32_20_100.json", 600},
+{"example_problems/random.domain/random_32_32_20_200.json", 600},
+{"example_problems/random.domain/random_32_32_20_400.json", 800},
+{"example_problems/random.domain/random_32_32_20_700.json", 1000},
+{"example_problems/random.domain/random_32_32_20_800.json", 2000},
 };
 
 uint32_t call() {

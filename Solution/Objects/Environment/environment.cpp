@@ -5,6 +5,9 @@
 #include <Tools/tools.hpp>
 #include <settings.hpp>
 
+#include "heuristics.h"
+#include "planner.h"
+
 void init_environment(SharedEnvironment &env) {
     static bool already_init = false;
     if (already_init) {
@@ -54,6 +57,22 @@ void init_environment(SharedEnvironment &env) {
     get_operations() = OperationsGenerator().get();
     get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());
+
+#ifdef ENABLE_DEFAULT_PLANNER
+    DefaultPlanner::initialize(100000, &env);
+    for (uint32_t pos = 0; pos < get_map().get_size(); pos++) {
+        if (!get_map().is_free(pos)) {
+            continue;
+        }
+        for (uint32_t to = 0; to < get_map().get_size(); to++) {
+            if (!get_map().is_free(to)) {
+                continue;
+            }
+            DefaultPlanner::get_h(&env, pos, to);
+        }
+    }
+
+#endif
 
     // generate random agents
     /*Randomizer rnd(202);

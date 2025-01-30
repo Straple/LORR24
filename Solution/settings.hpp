@@ -21,24 +21,24 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-//#define ENABLE_DEFAULT_PLANNER
+#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
 #define ENABLE_PIBT
 
-#define ENABLE_DHM
+//#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -62,9 +62,9 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 150;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 200;
 
 static constexpr uint32_t INVALID_DIST = 0;
 
@@ -99,9 +99,7 @@ total: 17377
 
 /*
 TODO:
--12) для S трека нужно заранее инициализировать полностью всю матрицу расстояний
--11) имеет смысл также для random сделать так: сказать, что мы знаем когда конец и если агент не сможет выполнить задачу до этого момента, то у него нет задачи
-     таким образом под конец шага мы уменьшим колво активных роботов, что должно улучшить скор
+-11) для S трека нужно заранее инициализировать полностью всю матрицу расстояний
 -10) поиграться с GG, добавить GG в корзинки для warehouse и sortation. Попробовать сделать GG, которое говорит
      в какое направление тут нужно: -1 если ни в какое, 0-3 направления. Тогда если делать действие в другое, то штраф.
      Таким образом веса будут иметь не только операции FW, но и остальные
@@ -153,6 +151,8 @@ TODO:
 
 
 UPD:
+*)  имеет смысл также для random сделать так: сказать, что мы знаем когда конец и если агент не сможет выполнить задачу до этого момента, то у него нет задачи
+    таким образом под конец шага мы уменьшим колво активных роботов, что должно улучшить скор
 *)  WWW: мы должны были выяснить что сделать за эти WW. Мы должны перебрать CWW, RWW, RRW и взять лучший и сделать его
 *)  (static_cast<int32_t>(robots.size()) - weight[r])
     может быть слишком большая разница между первым и последним

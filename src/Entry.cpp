@@ -21,15 +21,15 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
-
-    update_environment(*env);
-
 #ifdef ENABLE_PRINT_LOG
     static Timer total_timer;
     Timer timer;
     Printer() << "\n";
     Printer() << "Timestep: " << env->curr_timestep << '\n';
 #endif
+
+    update_environment(*env);
+
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
 
