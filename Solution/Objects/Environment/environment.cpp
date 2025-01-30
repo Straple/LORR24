@@ -152,8 +152,9 @@ void update_environment(SharedEnvironment &env) {
     } else if(get_map_type() == MapType::GAME) {
         // OK
         ASSERT(tasks_size.size() == 2, "invalid task size");
-        
-        ASSERT(tasks_size == std::set<int>{1, 2}, "invalid task size");
+
+        auto s = std::set<int>{1, 2};
+        ASSERT(tasks_size == s, "invalid task size");
     } else{
         ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
     }
