@@ -82,6 +82,10 @@ void update_environment(SharedEnvironment &env) {
     // true everywhere
     ASSERT(std::abs(task_reveal - 1.5) < 1e-3, "invalid task reveal");
 
+    for(auto &[t, task] : env.task_pool){
+         ASSERT(task.locations.size() == 2, "invalid task size");   
+    }
+
     // update test type
     {
         if (get_map_type() == MapType::RANDOM) {
@@ -109,9 +113,10 @@ void update_environment(SharedEnvironment &env) {
                 FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::CITY) {
+            FAILED_ASSERT("TODO");
             // CITY-02:
             // 3000 failed
-            // 4000 ok
+            // 3500 ok
             ASSERT(env.num_of_agents < 3500, "invalid num of agents");
             //FAILED_ASSERT("kek");
         } else if (get_map_type() == MapType::GAME) {
