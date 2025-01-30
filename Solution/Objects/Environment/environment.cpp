@@ -142,12 +142,15 @@ void update_environment(SharedEnvironment &env) {
         }
     }
 
+    std::set<int> tasks_size;
     for(auto &[t, task] : env.task_pool) {
-        if(get_test_type() == TestType::RANDOM_5) {
-            ASSERT(task.locations.size() == 3, "invalid task size");
-        } else{
-            ASSERT(task.locations.size() == 2, "invalid task size");
-        }
+        tasks_size.insert(static_cast<int>(task.locations.size()));
+    }
+
+    if(get_test_type() == TestType::RANDOM_5) {
+        ASSERT(tasks_size.size() == 1, "invalid task size");
+    } else{
+        ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
     }
 
     return;
