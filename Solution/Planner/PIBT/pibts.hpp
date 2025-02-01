@@ -114,5 +114,7 @@ public:
 
     uint32_t step = 0;
 
+#ifdef ENABLE_PRINT_LOG
     std::stringstream log;
+#endif
 };

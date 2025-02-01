@@ -91,10 +91,10 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     }
 #ifdef ENABLE_PRINT_LOG
     Printer() << "\nbest: " << best_score << '\n';
-#endif
-
     Printer() << "best log:\n" << std::get<6>(results[0]) << '\n';
     Printer() << "worst log:\n" << std::get<6>(results.back()) << '\n';
+#endif
+
 
 #ifdef ENABLE_PRINT_LOG
     static std::vector<uint32_t> total_desires(get_operations().size());
