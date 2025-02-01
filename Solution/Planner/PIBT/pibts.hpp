@@ -3,13 +3,6 @@
 #include <Objects/Basic/randomizer.hpp>
 #include <Planner/PIBT/pibt2.hpp>
 
-#include <atomic>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
-
-// 1573 -> 1662 -> 1750 -> 1781
-
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 // Solver mode
@@ -97,8 +90,6 @@ class PIBTS {
 
     bool build(uint32_t r);
 
-    [[nodiscard]] double get_score() const;
-
 public:
     explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed);
 
@@ -110,7 +101,7 @@ public:
 
     [[nodiscard]] std::vector<int64_t> get_changes() const;
 
-    [[nodiscard]] double get_best_score() const;
+    [[nodiscard]] double get_score() const;
 
     uint32_t step = 0;
 

@@ -140,8 +140,8 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 #endif
 
 #ifdef ENABLE_PRINT_LOG
-    Printer() << "workload: " << workload << '\n';
-    Printer() << "power: " << power << '\n';
+    //Printer() << "workload: " << workload << '\n';
+    //Printer() << "power: " << power << '\n';
 #endif
 
     // set weights
