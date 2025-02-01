@@ -41,8 +41,7 @@ class PIBTS {
 
     std::vector<uint32_t> order;
 
-    std::vector<uint32_t> weight;
-    uint32_t max_weight = 0;
+    std::vector<double> robot_power;
 
     std::vector<uint32_t> visited;
     uint32_t visited_counter = 1;

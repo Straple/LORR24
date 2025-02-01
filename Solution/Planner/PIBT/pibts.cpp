@@ -143,10 +143,7 @@ int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
     int32_t diff = get_smart_dist(r, 0) - get_smart_dist(r, desired);
-    double power = (max_weight - weight[r]) * 1.0 / max_weight;
-    //power = (power * power * power);
-    power = power * power;
-    cur_score += sign * diff * power;
+    cur_score += sign * diff * robot_power[r];
 }
 
 void PIBTS::add_path(uint32_t r) {
@@ -489,7 +486,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         used_edge.resize(get_graph().get_edges_size(), value);
     }
 
-    // build order and weight
+    // build order and power
     {
         order.resize(robots.size());
         iota(order.begin(), order.end(), 0);
@@ -497,7 +494,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
             return robots[lhs].priority < robots[rhs].priority;
         });
 
-        weight.resize(robots.size());
+        std::vector<int32_t> weight(robots.size());
 
         /*uint32_t prev = 0;
         uint32_t w = 0;
@@ -513,7 +510,15 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         for (uint32_t i = 0; i < robots.size(); i++) {
             weight[order[i]] = i;
         }
-        max_weight = robots.size() + 1;
+        int32_t max_weight = robots.size() + 1;
+
+        robot_power.resize(robots.size());
+        //const double workload = robots.size() * 1.0 / get_map().get_count_free();
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            double power = (max_weight - weight[r]) * 1.0 / max_weight;
+            power = power * power;
+            robot_power[r] = power;
+        }
     }
 
     smart_dist_dp.resize(robots.size());
