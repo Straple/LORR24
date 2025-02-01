@@ -20,17 +20,6 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
     Timer timer;
 
-    /*{
-        //Randomizer rnd(42);
-        double old_score = 10'000;
-        double temp = 0.005;
-        for (double cur_score = 8'000; cur_score <= 12'000; cur_score += 100) {
-            std::cout << cur_score << ' ' << std::exp(-((old_score - cur_score) / old_score) / temp) << '\n';
-            //std::pow((old_score - cur_score) / old_score, 0.1) << '\n';
-        }
-        std::exit(0);
-    }*/
-
     plan.assign(env->num_of_agents, Action::W);
 
 #ifdef ENABLE_PIBT

@@ -144,8 +144,8 @@ int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
     int32_t diff = get_smart_dist(r, 0) - get_smart_dist(r, desired);
     double power = (max_weight - weight[r]) * 1.0 / max_weight;
-    //power = std::exp(2 * (power + 1));
-    power = (power * power * power);
+    //power = (power * power * power);
+    power = power * power;
     cur_score += sign * diff * power;
 }
 
