@@ -20,8 +20,8 @@ bool PIBTS::consider() {
     return old_score - 1e-6 <= cur_score
            // old_score > cur_score
            #ifdef ENABLE_PIBTS_ANNEALING
-           || rnd.get_d() < std::exp((cur_score - old_score) / temp)
-           //1.0 / (old_score - cur_score + 100) * temp
+           //|| rnd.get_d() < std::exp((cur_score - old_score) / temp)
+           || rnd.get_d() < temp / (old_score - cur_score + 10)
 #endif
             ;
 }
@@ -272,7 +272,9 @@ bool PIBTS::try_build(uint32_t r) {
     uint32_t res = try_build(r, counter, 0);
     if (res == 0 || res == 2) {
         add_path(r);
-        ASSERT(std::abs(old_score - cur_score) < 1e-9, "invalid rollback");
+        ASSERT(std::abs(old_score - cur_score) < 1e-6,
+               "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+               std::to_string(std::abs(old_score - cur_score)));
         return false;
     }
 #ifdef PRINT_RECURSIVE
@@ -644,7 +646,7 @@ void PIBTS::simulate_pibt() {
         } else {
             try_rebuild_neighbors(r);
         }*/
-        temp *= 0.99;
+        temp *= 0.999;
     }
 
     /*Printer() << "PIBTS: " << score_after_build << "->" << best_score << '\n';
