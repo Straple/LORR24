@@ -27,7 +27,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -80,7 +80,7 @@ template<typename T>
 Printer operator<<(Printer printer, const T &value) {
 #ifdef ENABLE_FILEPRINT
     printer.get() << value;
-    std::cout << value;
+    //std::cout << value;
 #else
     std::cout << value;
 #endif
@@ -104,6 +104,12 @@ call(2): 5079, 65.2713s
 call(3): 3809, 82.0288s
 call(4): 4857, 164.302s
 total: 17730
+call(0): 1386, 48.6596s
+call(1): 2520, 48.7911s
+call(2): 5123, 65.2698s
+call(3): 3760, 82.0136s
+call(4): 4948, 164.319s
+total: 17737
 
 DHM
 call(0): 1435, 48.6835s

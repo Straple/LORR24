@@ -20,6 +20,17 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
     Timer timer;
 
+    /*{
+        //Randomizer rnd(42);
+        double old_score = 10'000;
+        double temp = 0.005;
+        for (double cur_score = 8'000; cur_score <= 12'000; cur_score += 100) {
+            std::cout << cur_score << ' ' << std::exp(-((old_score - cur_score) / old_score) / temp) << '\n';
+            //std::pow((old_score - cur_score) / old_score, 0.1) << '\n';
+        }
+        std::exit(0);
+    }*/
+
     plan.assign(env->num_of_agents, Action::W);
 
 #ifdef ENABLE_PIBT
@@ -28,28 +39,28 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     pibt.simulate_pibt();
     plan = pibt.get_actions();*/
 
+    // (score, actions)
+    using ItemType = std::tuple<double, std::vector<Action>
+#ifdef ENABLE_PRINT_LOG
+            // time, desires, changes, step, log_str
+            , int, std::vector<uint32_t>, std::vector<int64_t>, uint32_t, std::string
+#endif
+    >;
+
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
-    // (score, time, actions, desires, changes)
-    std::vector<std::vector<std::tuple<double, int, std::vector<Action>
-#ifdef ENABLE_PRINT_LOG
-            , std::vector<uint32_t>, std::vector<int64_t>, uint32_t
-#endif
-    >>> results_pack(THR);
+    std::vector<std::vector<ItemType>> results_pack(THR);
 
     auto do_work = [&](uint32_t thr, uint64_t seed) {
-        //while (get_now() < end_time) {
         Timer timer;
         PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
         pibt.simulate_pibt();
         auto time = timer.get_ms();
-        results_pack[thr].emplace_back(pibt.get_best_score(), time, pibt.get_actions()
+        results_pack[thr].emplace_back(pibt.get_best_score(), pibt.get_actions()
 #ifdef ENABLE_PRINT_LOG
-                , pibt.get_desires(), pibt.get_changes(), pibt.step
+                , time, pibt.get_desires(), pibt.get_changes(), pibt.step, pibt.log.str()
 #endif
         );
-        //    seed = seed * 736 + 202;
-        //}
     };
 
     static Randomizer rnd(228);
@@ -61,11 +72,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         threads[thr].join();
     }
 
-    std::vector<std::tuple<double, double, std::vector<Action>
-#ifdef ENABLE_PRINT_LOG
-            , std::vector<uint32_t>, std::vector<int64_t>, double
-#endif
-    >> results;
+    std::vector<ItemType> results;
     for (uint32_t thr = 0; thr < THR; thr++) {
         for (auto &item: results_pack[thr]) {
             results.emplace_back(std::move(item));
@@ -80,9 +87,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "RESULTS(" << results.size() << "): ";
 #endif
-    for (const auto &[score, time, actions
+    for (const auto &[score, actions
 #ifdef ENABLE_PRINT_LOG
-                , desires, changes, steps
+                , time, desires, changes, steps, log_str
 #endif
         ]: results) {
 #ifdef ENABLE_PRINT_LOG
@@ -96,6 +103,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #ifdef ENABLE_PRINT_LOG
     Printer() << "\nbest: " << best_score << '\n';
 #endif
+
+    Printer() << "best log:\n" << std::get<6>(results[0]) << '\n';
+    Printer() << "worst log:\n" << std::get<6>(results.back()) << '\n';
 
 #ifdef ENABLE_PRINT_LOG
     static std::vector<uint32_t> total_desires(get_operations().size());

@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// 1573 -> 1662 -> 1750 -> 1781
+
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W
 // Solver mode
@@ -112,4 +114,6 @@ public:
     [[nodiscard]] double get_best_score() const;
 
     uint32_t step = 0;
+
+    std::stringstream log;
 };
