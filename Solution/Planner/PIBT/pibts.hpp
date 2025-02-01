@@ -51,8 +51,6 @@ class PIBTS {
 
     double temp = 1;
 
-    double visited_bound = 0.8;
-
     std::vector<uint32_t> best_desires;
 
     double best_score = -1;
@@ -112,4 +110,6 @@ public:
     [[nodiscard]] std::vector<int64_t> get_changes() const;
 
     [[nodiscard]] double get_best_score() const;
+
+    uint32_t step = 0;
 };

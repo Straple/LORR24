@@ -4,7 +4,6 @@
 #include <Objects/Environment/environment.hpp>
 #include <Planner/PIBT/pibt.hpp>
 #include <Planner/PIBT/pibt2.hpp>
-#include <Planner/PIBT/pibt3.hpp>
 #include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 
@@ -31,10 +30,10 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
     // [thr] = { (score, time, plan) }
     constexpr uint32_t THR = THREADS;
-    // (score, time, actions, desires, changes, kek)
+    // (score, time, actions, desires, changes)
     std::vector<std::vector<std::tuple<double, int, std::vector<Action>
 #ifdef ENABLE_PRINT_LOG
-            , std::vector<uint32_t>, std::vector<int64_t>, double
+            , std::vector<uint32_t>, std::vector<int64_t>, uint32_t
 #endif
     >>> results_pack(THR);
 
@@ -46,7 +45,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         auto time = timer.get_ms();
         results_pack[thr].emplace_back(pibt.get_best_score(), time, pibt.get_actions()
 #ifdef ENABLE_PRINT_LOG
-                , pibt.get_desires(), pibt.get_changes(), 0
+                , pibt.get_desires(), pibt.get_changes(), pibt.step
 #endif
         );
         //    seed = seed * 736 + 202;
@@ -83,11 +82,11 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif
     for (const auto &[score, time, actions
 #ifdef ENABLE_PRINT_LOG
-                , desires, changes, kek
+                , desires, changes, steps
 #endif
         ]: results) {
 #ifdef ENABLE_PRINT_LOG
-        Printer() << "(" << score << ", " << time << ", " << kek << ") ";
+        Printer() << "(" << score << ", " << time << ", " << steps << ") ";
 #endif
         if (best_score < score) {
             best_score = score;

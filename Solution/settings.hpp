@@ -21,24 +21,24 @@
 
 // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 1000 -t 500 -p 1800000
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
 #define ENABLE_PIBT
 
-//#define ENABLE_DHM
+#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -48,7 +48,7 @@
 
 // если включено, то шедулер не будет трогать робота и задачу,
 // если они менялись несколько шагов назад
-//ENABLE_SCHEDULER_FREEZE
+//#define ENABLE_SCHEDULER_FREEZE
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
@@ -89,6 +89,23 @@ Printer operator<<(Printer printer, const T &value) {
 
 
 /*
+веса операций + без DHM
+call(0): 1412, 48.6616s
+call(1): 2583, 48.7563s
+call(2): 3867, 65.2351s
+call(3): 3184, 82.056s
+call(4): 4863, 164.495s
+total: 15909
+
+веса операций + DHM
+call(0): 1429, 48.6814s
+call(1): 2556, 48.7928s
+call(2): 5079, 65.2713s
+call(3): 3809, 82.0288s
+call(4): 4857, 164.302s
+total: 17730
+
+DHM
 call(0): 1435, 48.6835s
 call(1): 2539, 48.7773s
 call(2): 5086, 65.3003s

@@ -4,7 +4,11 @@
 #include <Objects/Containers/dsu.hpp>
 #include <Objects/Environment/environment.hpp>
 
+#include <settings.hpp>
+
 #include <thread>
+
+//#define PRINT_RECURSIVE
 
 bool PIBTS::consider() {
     // this can be really slow
@@ -14,9 +18,10 @@ bool PIBTS::consider() {
     //}
 
     return old_score - 1e-6 <= cur_score
-// old_score > cur_score
-#ifdef ENABLE_PIBTS_ANNEALING
-           || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
+           // old_score > cur_score
+           #ifdef ENABLE_PIBTS_ANNEALING
+           || rnd.get_d() < std::exp((cur_score - old_score) / temp)
+           //1.0 / (old_score - cur_score + 100) * temp
 #endif
             ;
 }
@@ -109,6 +114,27 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             dist = std::min(dist, static_cast<int32_t>(get_dhm().get(node, robots[r].target)));
         }
     }
+
+    static std::vector<int32_t> add_weights = {
+            -20, //WWW
+            15, //FFF
+            13, //FFW
+            11, //FWW
+            5, //FRF
+            5, //FCF
+            2, //RFW
+            2, //CFW
+            4, //RFF
+            4, //CFF
+            1, //RRF
+            3, //WFW
+            7, //FWF
+            6, //WFF
+            1, //WWF
+            2, //RWF
+            2, //CWF
+    };
+    dist = dist * 10 - add_weights[desired];
     return dist;
 }
 
@@ -117,9 +143,7 @@ int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
-    int32_t old_dist = get_smart_dist(r, 0);// get_dhm().get(robots[r].node, robots[r].target);
-    int32_t cur_dist = get_smart_dist(r, desired);
-    int32_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
+    int32_t diff = get_smart_dist(r, 0) - get_smart_dist(r, desired);
     double power = std::sqrt((max_weight - weight[r]) * 1.0 / robots.size());
     cur_score += sign * diff * power;
 }
@@ -188,7 +212,15 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         if (to_r == -1) {
             add_path(r);
             if (consider()) {
-                //Printer() << "accept try_build: " << old_score << "->" << cur_score << ", depth: " << depth << ", count: " << counter << " | " << r;
+#ifdef PRINT_RECURSIVE
+                if(std::abs(old_score - cur_score) > 1e-6) {
+                    Printer() << "accept try_build: " << old_score << "->" << cur_score << ", depth: " << depth
+                              << ", count: "
+                              << counter << " | ";
+                    //Printer() << " (" << r << ", " << get_operations()[desired] << ", "
+                    //          << (get_smart_dist(r, 0) - get_smart_dist(r, desired)) << ")";
+                }
+#endif
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -208,7 +240,12 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
 
             uint32_t res = try_build(to_r, ++counter, depth + 1);
             if (res == 1) {
-                //Printer() << ' ' << r;
+#ifdef PRINT_RECURSIVE
+                /*if(std::abs(old_score - cur_score) > 1e-6) {
+                    Printer() << " (" << r << ", " << get_operations()[desired] << ", "
+                              << (get_smart_dist(r, 0) - get_smart_dist(r, desired)) << ")";
+                }*/
+#endif
                 return res;
             } else if (res == 2) {
                 remove_path(r);
@@ -238,11 +275,16 @@ bool PIBTS::try_build(uint32_t r) {
         ASSERT(std::abs(old_score - cur_score) < 1e-9, "invalid rollback");
         return false;
     }
-    //Printer() << '\n';
+#ifdef PRINT_RECURSIVE
+    if(std::abs(old_score - cur_score) > 1e-6) {
+        Printer() << '\n';
+    }
+#endif
     return true;
 }
 
-uint32_t PIBTS::try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t> &rids, uint32_t &counter, uint32_t depth) {
+uint32_t
+PIBTS::try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t> &rids, uint32_t &counter, uint32_t depth) {
     if (id == rids.size()) {
         // все поставили
         if (consider()) {
@@ -313,7 +355,9 @@ bool PIBTS::try_rebuild_neighbors(uint32_t r) {
         for (uint32_t r: rids) {
             add_path(r);
         }
-        ASSERT(std::abs(old_score - cur_score) < 1e-9, "invalid rollback");
+        ASSERT(std::abs(old_score - cur_score) < 1e-6,
+               "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+               std::to_string(std::abs(old_score - cur_score)));
         return false;
     }
     return true;
@@ -330,172 +374,21 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     visited[r] = visited_counter;
     uint32_t old_desired = desires[r];
 
-    // smart version
-    // (priority, desired, r2, desired2, to_r)
-    /*std::vector<std::tuple<int64_t, uint32_t, uint32_t, uint32_t, uint32_t>> steps;
-    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
-        desires[r] = desired;
-        if (!validate_path(r, desires[r])) {
-            continue;
-        }
-        uint32_t to_r = get_used(r);
-        if (to_r == -2) {
-            continue;
-        }
-        if (to_r != -1 && desires[to_r] != 0) {
-            //continue;
-        }
-        if (to_r != -1 && visited[to_r] == visited_counter) {
-            continue;
-        }
-        int64_t priority = get_smart_dist(r, desired);
-        steps.emplace_back(priority, desired, -1, -1, to_r);
-    }
-
-    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
-        desires[r] = desired;
-        if (!validate_path(r, desired)) {
-            continue;
-        }
-        //for (uint32_t r2: neighbours[r]) {
-        if(neighbours[r].empty()){
-            continue;
-        }
-        uint32_t r2 = rnd.get(neighbours[r]);
-        {
-            ASSERT(r != r2, "invalid neighbours");
-            uint32_t old_desired2 = desires[r2];
-            remove_path(r2);
-            for (uint32_t desired2 = 0; desired2 < get_operations().size(); desired2++) {
-                desires[r2] = desired2;
-                if (!validate_path(r2, desired2)) {
-                    continue;
-                }
-
-                uint32_t used = get_used(r);
-                uint32_t used2 = get_used(r2);
-                if (used == -2 || used2 == -2) {
-                    continue;
-                }
-                if (used != -1 && used2 != -1 && used != used2) {
-                    continue;
-                }
-
-                uint32_t to_r = used;
-                if (to_r == -1) {
-                    to_r = used2;
-                }
-
-                if (to_r != -1 && visited[to_r] == visited_counter) {
-                    continue;
-                }
-
-                if (to_r != -1) {
-                    remove_path(to_r);
-                }
-                add_path(r);
-                if (get_used(r2) == r) {
-                    remove_path(r);
-                    if (to_r != -1) {
-                        add_path(to_r);
-                    }
-                    continue;
-                }
-
-                // здесь я могу добавить путь для r и r2 с такими desired и desired2
-                // а также тут есть to_r, который мы уже построим рекурсивно
-
-                int64_t priority = get_smart_dist(r, desired) + get_smart_dist(r2, desired2);
-                steps.emplace_back(priority, desired, r2, desired2, to_r);
-
-                remove_path(r);
-                if (to_r != -1) {
-                    add_path(to_r);
-                }
-            }
-            desires[r2] = old_desired2;
-            add_path(r2);
-        }
-    }
-
-    std::stable_sort(steps.begin(), steps.end());
-
-    for (auto [priority, desired, r2, desired2, to_r]: steps) {
-        uint32_t old_desired2 = -1;
-        if(r2 != -1){
-            old_desired2 = desires[r2];
-        }
-        desires[r] = desired;
-        if (r2 != -1) {
-            remove_path(r2);
-            desires[r2] = desired2;
-        }
-
-        if (to_r == -1) {
-            add_path(r);
-            if (r2 != -1) {
-                add_path(r2);
-            }
-            if (old_score - 1e-6 <= cur_score
-                // old_score > cur_score
-                #ifdef ENABLE_PIBTS_ANNEALING
-                || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
-#endif
-                    ) {
-                return 1;// accepted
-            } else {
-                remove_path(r);
-                desires[r] = old_desired;
-                if (r2 != -1) {
-                    remove_path(r2);
-                    desires[r2] = old_desired2;
-                    add_path(r2);
-                }
-                return 2;// not accepted
-            }
-        } else {
-            remove_path(to_r);
-            add_path(r);
-            if(r2 != -1) {
-                add_path(r2);
-            }
-
-            uint32_t res = build(to_r, depth + 1, ++counter);
-            if (res == 1) {
-                return res;
-            } else if (res == 2) {
-                remove_path(r);
-                if(r2 != -1) {
-                    remove_path(r2);
-                }
-                add_path(to_r);
-                desires[r] = old_desired;
-                if(r2 != -1) {
-                    desires[r2] = old_desired2;
-                    add_path(r2);
-                }
-                return res;
-            }
-
-            remove_path(r);
-            if(r2 != -1) {
-                remove_path(r2);
-            }
-            add_path(to_r);
-            if(r2 != -1) {
-                desires[r2] = old_desired2;
-                add_path(r2);
-            }
-        }
-    }*/
-
     for (uint32_t desired: robot_desires[r]) {
         desires[r] = desired;
         uint32_t to_r = get_used(r);
         if (to_r == -1) {
             add_path(r);
             if (consider()) {
-                //Printer() << "accept build: " << old_score << "->" << cur_score << ", depth: " << depth << ", count: " << counter << " | " << r;
+#ifdef PRINT_RECURSIVE
+                if(std::abs(old_score - cur_score) > 1e-6) {
+                    Printer() << "accept build: " << old_score << "->" << cur_score << ", depth: " << depth
+                              << ", count: "
+                              << counter << " | ";
+                    //Printer() << " (" << r << ", " << get_operations()[desired] << ", "
+                    //          << (get_smart_dist(r, 0) - get_smart_dist(r, desired)) << ")";
+                }
+#endif
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -515,10 +408,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
             // и этот x построил to_r
             if (desires[to_r] != 0
-#ifdef ENABLE_PIBTS_TRICK
-                && rnd.get_d() < visited_bound
+                #ifdef ENABLE_PIBTS_TRICK
+                && rnd.get_d() < 0.8
 #endif
-            ) {
+                    ) {
                 continue;
             }
 
@@ -527,7 +420,12 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
             uint32_t res = build(to_r, depth + 1, ++counter);
             if (res == 1) {
-                //Printer() << ' ' << r;
+#ifdef PRINT_RECURSIVE
+                if(std::abs(old_score - cur_score) > 1e-6) {
+                    //Printer() << " (" << r << ", " << get_operations()[desired] << ", "
+                    //          << (get_smart_dist(r, 0) - get_smart_dist(r, desired)) << ")";
+                }
+#endif
                 return res;
             } else if (res == 2) {
                 remove_path(r);
@@ -554,15 +452,21 @@ bool PIBTS::build(uint32_t r) {
     uint32_t res = build(r, 0, counter);
     if (res == 0 || res == 2) {
         add_path(r);
-        ASSERT(std::abs(old_score - cur_score) < 1e-9, "invalid rollback");
+        ASSERT(std::abs(old_score - cur_score) < 1e-6,
+               "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+               std::to_string(std::abs(old_score - cur_score)));
         return false;
     }
-    //Printer() << '\n';
+#ifdef PRINT_RECURSIVE
+    if(std::abs(old_score - cur_score) > 1e-6) {
+        Printer() << '\n';
+    }
+#endif
     return true;
 }
 
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
-    : robots(robots), end_time(end_time), rnd(seed) {
+        : robots(robots), end_time(end_time), rnd(seed) {
 
     /*if (rnd.get_d() < 0.5) {
         visited_bound = 2;
@@ -711,39 +615,12 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
 }
 
 void PIBTS::simulate_pibt() {
-    // PIBT
-    /*const bool skip_with_init_desired = rnd.get_d() < 0.5;
-    for (uint32_t r: order) {
-        if (get_now() >= end_time) {
-            break;
-        }
-        if (desires[r] != 0 && skip_with_init_desired) {
-            continue;
-        }
-        build(r);
-    }
-
-    //Printer() << "PIBTS: " << cur_score;
-    std::vector<std::thread> threads(2);
-    for (uint32_t thr = 0; thr < threads.size(); thr++) {
-        threads[thr] = std::thread(
-                [&](uint32_t thr) {
-                    do_work(thr);
-                },
-                thr);
-    }
-    for (uint32_t thr = 0; thr < threads.size(); thr++) {
-        threads[thr].join();
-    }*/
-    //Printer() << '\n';
-    //Printer() << "PIBTS version: " << version << '\n';
-
     // TODO: подобрать 0.5
     const bool skip_with_init_desired =
 #ifdef ENABLE_PIBTS_TRICK
             rnd.get_d() < 0.5;
 #else
-            false;
+    false;
 #endif
     temp = 0;
     for (uint32_t r: order) {
@@ -758,8 +635,8 @@ void PIBTS::simulate_pibt() {
 
     double score_after_build = best_score;
 
-    temp = 1;
-    for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
+    temp = 0.3;
+    for (step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
         try_build(r);
         /*if (rnd.get_d() < 0.5) {
@@ -767,7 +644,7 @@ void PIBTS::simulate_pibt() {
         } else {
             try_rebuild_neighbors(r);
         }*/
-        temp *= 0.999;
+        temp *= 0.99;
     }
 
     /*Printer() << "PIBTS: " << score_after_build << "->" << best_score << '\n';

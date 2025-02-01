@@ -11,7 +11,9 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     //std::system("mkdir Tmp");
     int ret_code = std::system(
-            ("./cmake-build-release-remote-host/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 --unique_id " + std::to_string(test_id) + " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+            ("./cmake-build-release-remote-host/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
+             ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 --unique_id " + std::to_string(test_id) +
+             " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
     ASSERT(ret_code == 0, "invalid ret code");
 
@@ -21,13 +23,13 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
     try {
         data = json::parse(input);
 
-        if(data["numEntryTimeouts"] != 0){
+        if (data["numEntryTimeouts"] != 0) {
             std::cout << "\nENTRY TIMEOUT" << std::endl;
         }
-        if(data["numPlannerErrors"] != 0){
+        if (data["numPlannerErrors"] != 0) {
             std::cout << "\nPLANNER ERROR" << std::endl;
         }
-        if(data["numScheduleErrors"] != 0){
+        if (data["numScheduleErrors"] != 0) {
             std::cout << "\nSCHEDULER ERROR" << std::endl;
         }
         value = data["numTaskFinished"];
@@ -57,11 +59,11 @@ std::vector<std::tuple<std::string, int>> tests = {
         //call(4): 2653, 82.2024s
         //total: 19112
 
-{"example_problems/random.domain/random_32_32_20_100.json", 600},
-{"example_problems/random.domain/random_32_32_20_200.json", 600},
-{"example_problems/random.domain/random_32_32_20_400.json", 800},
-{"example_problems/random.domain/random_32_32_20_700.json", 1000},
-{"example_problems/random.domain/random_32_32_20_800.json", 2000},
+        {"example_problems/random.domain/random_32_32_20_100.json", 600},
+        {"example_problems/random.domain/random_32_32_20_200.json", 600},
+        {"example_problems/random.domain/random_32_32_20_400.json", 800},
+        {"example_problems/random.domain/random_32_32_20_700.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_800.json", 2000},
 };
 
 uint32_t call() {
