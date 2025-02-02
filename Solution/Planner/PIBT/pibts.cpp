@@ -502,7 +502,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
             weight[r] = w;
             prev = robots[r].priority;
         }
-        max_weight = w + 1;*/
+        int32_t max_weight = w + 1;*/
 
         for (uint32_t i = 0; i < robots.size(); i++) {
             weight[order[i]] = i;
@@ -510,10 +510,14 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         int32_t max_weight = robots.size() + 1;
 
         robot_power.resize(robots.size());
-        //const double workload = robots.size() * 1.0 / get_map().get_count_free();
+        const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            power = power * power;
+            if (workload < 0.5) {
+                power = 1;
+            } else {
+                power = power * power;
+            }
             robot_power[r] = power;
         }
     }
