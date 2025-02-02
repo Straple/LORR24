@@ -15,6 +15,8 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
              ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 --unique_id " + std::to_string(test_id) +
              " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
+    //("./build/lifelong -i example_problems/" + test + " -o Tmp/test" + std::to_string(test_id) + ".json -s 1000 -t 10000 -p 100000000 > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
+
     ASSERT(ret_code == 0, "invalid ret code");
 
     json data;

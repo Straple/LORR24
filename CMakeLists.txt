@@ -18,7 +18,7 @@ endif ()
 # Print the value of PYTHON
 message(STATUS "PYTHON: ${PYTHON}")
 
-#SET(CMAKE_BUILD_TYPE "RELEASE")
+# SET(CMAKE_BUILD_TYPE "RELEASE")
 
 IF (NOT CMAKE_BUILD_TYPE)
     # SET(CMAKE_BUILD_TYPE "DEBUG")
@@ -31,6 +31,26 @@ ENDIF ()
 #set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-fsanitize=address" HAS_ASAN)
+
+     # Enable AddressSanitizer
+     set(SANITIZE_FLAGS "-fsanitize=address")
+
+     # Add debug symbols if this is a debug build
+     set(DEBUG_FLAGS "-g")
+
+     # Add the sanitizer and debug flags only for Debug configurations
+     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${SANITIZE_FLAGS} ${DEBUG_FLAGS}")
+     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${SANITIZE_FLAGS} ${DEBUG_FLAGS}")
+
+     # Optionally set other linker flags if needed
+     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${SANITIZE_FLAGS}")
+
+
+
 
 include_directories("inc")
 
@@ -150,6 +170,5 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES
      ${CMAKE_BINARY_DIR}/build;
      ${CMAKE_BINARY_DIR}/*.so"
         )
-
 
 

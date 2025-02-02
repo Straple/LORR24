@@ -9,6 +9,12 @@
 #include <atomic>
 #include <thread>
 #include <unordered_map>
+<<<<<<< HEAD
+=======
+#include <unordered_set>
+#include "Scheduler/journey_graph.hpp"
+#include "hungarian.hpp"
+>>>>>>> 912e00c (Jorney Graph)
 
 MyScheduler::MyScheduler(SharedEnvironment *env) : env(env), solver(env) {
 
@@ -177,6 +183,197 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
     TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
 
     std::vector<uint32_t> free_robots, free_tasks;
+<<<<<<< HEAD
+=======
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        uint32_t t = env->curr_task_schedule[r];
+        if (t == -1) {
+            free_robots.push_back(r);
+        }
+    }
+    for (auto &[t, task]: env->task_pool) {
+        if (task.agent_assigned == -1) {
+            free_tasks.push_back(t);
+        }
+    }
+
+    if (free_robots.empty() || free_tasks.empty()) {
+        return proposed_schedule;
+    }
+
+    // dp[r] = отсортированный вектор (priority, task_id1, task_id2)
+    static std::vector<std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>> dp(env->num_of_agents);
+
+    // для свободного робота будем поддерживать расстояния от него до всех задач
+    // и будем постепенно обновлять это множество
+
+    constexpr static uint32_t MAX_SCORE = -1;
+
+    auto get_dist_to_start = [&](uint32_t r, uint32_t t1, uint32_t t2) {
+        ASSERT(env->task_pool[t1].idx_next_loc == 0, "invalid idx next loc");
+        ASSERT(env->task_pool[t2].idx_next_loc == 0, "invalid idx next loc");
+
+        uint32_t source = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        uint32_t loc = env->task_pool.at(t1).locations[0] + 1;
+        return get_hm().get(source, loc);
+    };
+
+    auto get_dist = [&](uint32_t r, uint32_t t1, uint32_t t2) {
+        ASSERT(env->task_pool[t1].idx_next_loc == 0, "invalid idx next loc");
+        ASSERT(env->task_pool[t2].idx_next_loc == 0, "invalid idx next loc");
+
+        uint32_t node = get_graph().get_node(
+                Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
+        uint32_t res = 0;
+        for (int loc: env->task_pool[t1].locations) {
+            res += get_dhm().get(node, loc + 1);
+            node = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
+        }
+        for (int loc: env->task_pool[t2].locations) {
+            res += get_dhm().get(node, loc + 1);
+            node = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
+        }
+        return res;
+    };
+
+    static std::vector<int> timestep_updated(free_robots.size(), -1);
+
+    // обновляет множество расстояний
+    auto rebuild = [&](uint32_t r) {
+        dp[r].clear();
+
+        for (uint32_t t1: free_tasks) {
+            for (uint32_t t2: free_tasks) {
+                if (t1 != t2) {
+                    dp[r].emplace_back(get_dist(r, t1, t2), t1, t2);
+                }
+            }
+        }
+        std::sort(dp[r].begin(), dp[r].end());
+        timestep_updated[r] = env->curr_timestep;
+    };
+
+    std::vector<uint32_t> order = free_robots;
+    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return timestep_updated[lhs] < timestep_updated[rhs];
+    });
+
+    {
+        auto do_work = [&](uint32_t thr) {
+            for (uint32_t i = thr; i < order.size(); i += THREADS) {
+                if (get_now() >= end_time) {
+                    break;
+                }
+                rebuild(order[i]);
+            }
+        };
+
+        std::vector<std::thread> threads(THREADS);
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr] = std::thread(do_work, thr);
+        }
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr].join();
+        }
+    }
+
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "free robots: " << free_robots.size() << '\n';
+    Printer() << "free tasks: " << free_tasks.size() << '\n';
+#endif
+
+    auto done_proposed_schedule = proposed_schedule;
+    {
+        static std::vector<uint32_t> used_task_t(500'000);// max task available
+
+        // (dist, r, index)
+        std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
+        for (uint32_t r: free_robots) {
+            if (!dp[r].empty()) {
+                Heap.push({std::get<0>(dp[r][0]), r, 0});
+            }
+        }
+
+        while (!Heap.empty()) {
+            auto [dist, r, index] = Heap.top();
+            Heap.pop();
+
+            uint32_t t1 = std::get<1>(dp[r][index]);
+            uint32_t t2 = std::get<2>(dp[r][index]);
+            ASSERT(dist == std::get<0>(dp[r][index]), "invalid dist");
+
+            // not used in this timestep
+            if (used_task_t[t1] == launch_num ||
+                used_task_t[t2] == launch_num ||
+                // this task is available
+                !env->task_pool.count(t1) || !env->task_pool.count(t2) ||
+                // robot already used this task
+                env->task_pool[t1].agent_assigned != -1 || env->task_pool[t2].agent_assigned != -1) {
+
+                if (index + 1 < dp[r].size()) {
+                    Heap.push({std::get<0>(dp[r][index + 1]), r, index + 1});
+                }
+
+                continue;
+            }
+
+            ASSERT(env->task_pool.count(t1), "no contains");
+            ASSERT(env->task_pool.count(t2), "no contains");
+            ASSERT(env->task_pool[t1].agent_assigned == -1, "already assigned");
+            ASSERT(env->task_pool[t2].agent_assigned == -1, "already assigned");
+            ASSERT(used_task_t[t1] < launch_num, "already used");
+            ASSERT(used_task_t[t2] < launch_num, "already used");
+
+            proposed_schedule[r] = t1;
+            used_task_t[t1] = launch_num;
+            used_task_t[t2] = launch_num;
+            if (get_dist_to_start(r, t1, t2) <= 1) {
+                done_proposed_schedule[r] = t1;
+            }
+        }
+    }
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "Scheduler: " << timer << '\n';
+#endif
+    return done_proposed_schedule;
+}
+
+int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
+    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    uint32_t loc = env->task_pool[t].locations[0] + 1;
+    return get_hm().get(source, loc);
+}
+
+int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
+    uint32_t source = get_graph().get_node(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+    ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+    uint32_t loc = env->task_pool[t].locations[0] + 1;
+    return get_dhm().get(source, loc);// Dynamic Heuristic Matrix
+}
+
+std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
+
+    Timer timer;
+
+    for (size_t i = 0; i < schedule.size(); i++){
+        schedule[i] = -1;
+    }
+    auto& jg = get_jg();
+    for (const auto task_id: env->new_tasks){
+        jg.AddTask(task_id, env->task_pool[task_id]);
+    }
+    for (const auto robot_id: env->new_freeagents){
+        jg.Complete(robot_id);
+    }
+
+    jg.ProccessOptimizationQ(100);
+
+    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
+>>>>>>> 912e00c (Jorney Graph)
 
     struct Entity {
         uint32_t cordinate;
@@ -190,24 +387,48 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
 
     std::vector<Entity> xs;
     std::vector<Entity> ys;
+
+
+    std::vector<size_t> free_robots = jg.GetFreeRobots();
+    std::vector<size_t> free_tasks = jg.GetAvailableStarts();
+
+ 
+    // if (true) {
+    //     std::cout << "IM HERE" << std::endl;
+    // }
+
+    size_t fr_robots = 0;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         uint32_t t = env->curr_task_schedule[r];
         if (t == -1) {
-            auto pos = Position(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(),
-                          free_robots.size(), true});
-            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(),
-                          free_robots.size(), true});
-            free_robots.push_back(r);
+            fr_robots++;
         }
     }
+    size_t fr_tasks = 0;
     for (auto &[t, task]: env->task_pool) {
         if (task.agent_assigned == -1) {
-            xs.push_back({Position(env->task_pool[t].locations[0] + 1, 0).get_x(), free_tasks.size(), false});
-            ys.push_back({Position(env->task_pool[t].locations[0] + 1, 0).get_y(), free_tasks.size(), false});
-            free_tasks.push_back(t);
+            fr_tasks++;
         }
     }
+
+    for (size_t i = 0; i < free_robots.size(); ++i){
+        const auto r = free_robots[i];
+            assert(env->curr_task_schedule[r] == -1);
+            auto pos = Position(env->curr_states[r].location + 1, env->curr_states[r].orientation);
+            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(),
+                            i, true});
+            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(),
+                            i, true});
+    }
+    for (size_t i = 0; i < free_tasks.size(); ++i){
+        const auto t = free_tasks[i];
+        auto& task = env->task_pool[t];
+        assert(task.agent_assigned == -1);
+        xs.push_back({Position(env->task_pool[t].locations[0] + 1, 0).get_x(), i, false});
+        ys.push_back({Position(env->task_pool[t].locations[0] + 1, 0).get_y(), i, false});
+    }
+    // assert(fr_robots == free_robots.size());
+    // assert(free_tasks.size() == fr_tasks);
 
     int THREADS_TO_USE = THREADS;
     if (free_robots.size() * free_robots.size() * free_tasks.size() < 40'000'000) {
@@ -237,19 +458,21 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
                 curr_size++;
             }
             if (curr_size > Y_PART_SIZE) {
-                curr_size = 0;
                 curr_part++;
                 assert(curr_part < DEVIDE_Y);
+                curr_size = 0;
             }
 
             if (ys[i].is_robot) {
+                if (ys[i].index >= robot_distrib.size()){
+                    assert(false);
+                }
                 robot_distrib[ys[i].index].first = curr_part;
             } else {
                 task_distrib[ys[i].index].first = curr_part;
             }
         }
     }
-
 
     {
         const size_t X_PART_SIZE = (free_robots.size() + DEVIDE_X - 1) / DEVIDE_X;
@@ -272,7 +495,6 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
             }
         }
     }
-
 
     // {
     //     const size_t Y_PART_SIZE = (ys.size()+DEVIDE_Y-1)/DEVIDE_Y;
@@ -320,7 +542,6 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
     for (size_t i = 0; i < robot_distrib.size(); ++i) {
         devided_robots[robot_distrib[i].first][robot_distrib[i].second].push_back(i);
     }
-
     for (size_t i = 0; i < task_distrib.size(); ++i) {
         assert(task_distrib[i].first != -1);
         assert(task_distrib[i].second != -1);
@@ -365,7 +586,6 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
         }
     };
 
-
     std::vector<std::thread> threads;
     for (size_t y = 0; y < DEVIDE_Y; y++) {
         for (size_t x = 0; x < DEVIDE_X; x++) {
@@ -377,9 +597,48 @@ void MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
         thr.join();
     }
 
+<<<<<<< HEAD
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Scheduler: " << timer << '\n';
 #endif
+=======
+    for (size_t r = 0; r < schedule.size(); r++) {
+        int task_id = schedule[r];
+        if (task_id != -1) {
+            auto dist = get_dist_to_start(r, task_id, env);
+            auto free = jg.IsTaskFree(task_id);
+            // if (dist <= 3){
+            //     std::cout << "LESS" << std::endl;
+            // }
+            // std::cout << " R: " << r << " tid: " << task_id << " " << dist << " " << free << std::endl;
+            if (dist <= 3 && free) {
+                //std::cout << "CLAIMING: " << r << " " << task_id << "!" << std::endl;
+                jg.Claim(r, task_id);
+            }
+        }
+    }
+
+
+
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "Scheduler: " << timer << '\n';
+#endif
+
+    std::vector<int> done_proposed_schedule = jg.GetDoneProposedSchedule();
+    for (size_t i = 0; i < done_proposed_schedule.size(); i++){
+        if (done_proposed_schedule[i] != -1){
+            assert(schedule[i] == -1 || done_proposed_schedule[i] == schedule[i]);
+            schedule[i] = done_proposed_schedule[i];
+        }
+    }
+
+    // for (size_t i = 0; i < done_proposed_schedule.size(); ++i){
+    //     std::cout << i << ": " << done_proposed_schedule[i] << " " << schedule[i] << std::endl;
+    // }
+    jg.OutDBG();
+    return done_proposed_schedule;
+>>>>>>> 912e00c (Jorney Graph)
 }
 
 void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
@@ -395,10 +654,16 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     }*/
 
     Timer timer;
+<<<<<<< HEAD
     solver_schedule(time_limit, proposed_schedule);
     // auto res = greedy_schedule(time_limit, proposed_schedule);
+=======
+    auto old_schedule = proposed_schedule;
+    //auto res = solver_schedule(time_limit, proposed_schedule); // 5324
+    // auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
+>>>>>>> 912e00c (Jorney Graph)
     // auto res = greedy_schedule_double(time_limit, proposed_schedule);
-    // auto res = artem_schedule(time_limit, proposed_schedule);
+    auto res = artem_schedule(time_limit, proposed_schedule);
 
     /*std::set<uint32_t> used_tasks;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
