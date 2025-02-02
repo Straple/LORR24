@@ -90,6 +90,7 @@ uint32_t PIBTS::get_used(uint32_t r) const {
 
 int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     int32_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
+    //int32_t dist = get_dhmr().get(r, desired);
 
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
@@ -513,7 +514,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            if (workload < 0.5) {
+            if (workload < 0.5 && get_test_type() != TestType::GAME) {
                 power = 1;
             } else {
                 power = power * power;

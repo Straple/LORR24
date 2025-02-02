@@ -87,8 +87,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
 #ifdef ENABLE_PRINT_LOG
         Printer() << "\nbest: " << best_score << '\n';
-        Printer() << "best log:\n" << std::get<6>(results[0]) << '\n';
-        Printer() << "worst log:\n" << std::get<6>(results.back()) << '\n';
+        //Printer() << "best log:\n" << std::get<6>(results[0]) << '\n';
+        //Printer() << "worst log:\n" << std::get<6>(results.back()) << '\n';
 #endif
 
 

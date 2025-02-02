@@ -19,17 +19,12 @@ class DynamicHeuristicMatrix {
     // weights[node][action] = addition weight for (pos, dir) -> action
     std::vector<std::array<int32_t, 4>> weights;
 
-    constexpr static inline uint32_t ROBOT_PATH_DEPTH = 4;
-
-    // robot_paths[r]
-    std::vector<std::array<uint32_t, ROBOT_PATH_DEPTH>> robot_paths;
-
     void rebuild(uint32_t source, uint32_t timestep);
 
 public:
     DynamicHeuristicMatrix() = default;
 
-    explicit DynamicHeuristicMatrix(const Map &map, const Graph &graph);
+    DynamicHeuristicMatrix(const Map &map, const Graph &graph);
 
     void update(SharedEnvironment &env, TimePoint end_time);
 

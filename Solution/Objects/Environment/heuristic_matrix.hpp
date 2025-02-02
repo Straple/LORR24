@@ -18,10 +18,9 @@ public:
     // [[nodiscard]] uint32_t get(uint32_t source, uint32_t target) const;
 
     // source is graph node
-    // dest is map pos
+    // target is map pos
     // if dest is NONE(zero), then returns INVALID_DIST
     [[nodiscard]] uint32_t get(uint32_t source, uint32_t target) const;
-    //[[nodiscard]] uint32_t get_to_pos(uint32_t source, uint32_t target) const;
 };
 
 HeuristicMatrix &get_hm();

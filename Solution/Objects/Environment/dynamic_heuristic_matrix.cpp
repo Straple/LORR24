@@ -146,7 +146,7 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
 
     // set weights
     {
-        robot_paths.resize(get_robots_handler().size());
+        //robot_paths.resize(get_robots_handler().size());
 
         for (auto &weight: weights) {
             for (uint32_t action = 0; action < 4; action++) {

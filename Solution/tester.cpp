@@ -52,18 +52,43 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"Data2023/game.domain/MR23-I-09.json", 5000},
         {"Data2023/warehouse.domain/MR23-I-10.json", 5000},*/
 
-        //call(0): 2406, 80.9614s
-        //call(1): 4270, 81.157s
-        //call(2): 6302, 81.5113s
-        //call(3): 3481, 82.1073s
-        //call(4): 2653, 82.2024s
-        //total: 19112
-
-        {"example_problems/random.domain/random_32_32_20_100.json", 600},
+        /*{"example_problems/random.domain/random_32_32_20_100.json", 600},
         {"example_problems/random.domain/random_32_32_20_200.json", 600},
         {"example_problems/random.domain/random_32_32_20_400.json", 800},
         {"example_problems/random.domain/random_32_32_20_700.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_800.json", 2000},
+        {"example_problems/random.domain/random_32_32_20_800.json", 2000},*/
+
+/*
+без DHM
+call(0): 2344, 81.1565s
+call(1): 4283, 81.3892s
+call(2): 5295, 81.6076s
+call(3): 4630, 81.7764s
+call(4): 5251, 82.0631s
+call(5): 4317, 82.2454s
+call(6): 4035, 82.4149s
+call(7): 2839, 82.5492s
+total: 32994
+
+DHM
+call(0): 2388, 81.1487s
+call(1): 4221, 81.3912s
+call(2): 5418, 81.6306s
+call(3): 6251, 81.7905s
+call(4): 5314, 82.0746s
+call(5): 4870, 82.2144s
+call(6): 4099, 82.3886s
+call(7): 3014, 82.4356s
+total: 35575
+*/
+        {"example_problems/random.domain/random_32_32_20_100.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_200.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_300.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_400.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_500.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_600.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_700.json", 1000},
+        {"example_problems/random.domain/random_32_32_20_800.json", 1000},
 };
 
 uint32_t call() {
