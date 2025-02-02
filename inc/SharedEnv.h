@@ -12,7 +12,7 @@ typedef std::unordered_map<int, Task> TaskPool;
 
 class SharedEnvironment {
 public:
-    int num_of_agents = 0;
+    int num_of_agents;
     int rows;
     int cols;
     std::string map_name;
