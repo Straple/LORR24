@@ -287,10 +287,10 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
         }
     }
 
-    {
+    /*{
         std::ofstream output("graph_guidance");
         output << *this;
-    }
+    }*/
     //_exit(0);
 }
 

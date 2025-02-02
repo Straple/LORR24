@@ -42,7 +42,7 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 5'000;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
 

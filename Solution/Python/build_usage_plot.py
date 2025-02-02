@@ -83,9 +83,9 @@ if __name__ == '__main__':
 
     data, mn, mx = read('../../meta')
 
-    build2("../../")
+    #build2("../../")
 
-    """fig, axes = plt.subplots(5, 5, figsize=(10, 10))
+    fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []
     for i in range(25):
         dir = i // 5
@@ -102,4 +102,4 @@ if __name__ == '__main__':
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
     plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
-    plt.show()"""
+    plt.show()
