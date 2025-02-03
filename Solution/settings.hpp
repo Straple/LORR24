@@ -24,7 +24,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
