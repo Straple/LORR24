@@ -14,9 +14,9 @@ void GuidanceMap::set_game(const Map &map) {
 }
 
 void GuidanceMap::set_warehouse(const Map &map) {
-    /*std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
+    std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
     input >> *this;
-    return;*/
+    return;
 
     for (uint32_t y = 4; y < 493; y += 7) {
         overlay({
@@ -121,6 +121,14 @@ void GuidanceMap::set_warehouse(const Map &map) {
         overlay(std::vector(132, std::string("^")), 4, y);
     }
 
+    for(uint32_t y = 11; y < 490; y += 8){
+        overlay(std::vector(5, std::string("v")), 3, y);
+    }
+
+    for(uint32_t y = 15; y < 490; y += 8){
+        overlay(std::vector(5, std::string("^")), 3, y);
+    }
+
     // маленькие края
     {
         overlay(std::vector(1, std::string("^v>^")), 3, 4);
@@ -186,10 +194,10 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         }
     }
 
-    {
+    /*{
         std::ofstream output("Solution/Data/guidance_map_warehouse.txt");
         output << *this;
-    }
+    }*/
     //std::exit(0);
 }
 

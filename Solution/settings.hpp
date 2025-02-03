@@ -64,7 +64,6 @@ template<typename T>
 Printer operator<<(Printer printer, const T &value) {
 #ifdef ENABLE_FILEPRINT
     printer.get() << value;
-    printer.get().flush();
     std::cout << value;
 #else
     std::cout << value;
