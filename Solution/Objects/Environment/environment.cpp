@@ -182,7 +182,7 @@ void update_environment(SharedEnvironment &env) {
     prev_timestep_updated = env.curr_timestep;
     get_dhm().update(env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
 
-    get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
+    //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
 }
 
 /*

@@ -33,6 +33,8 @@
 @@.............@..@.........@>>^
 
 -i example_problems/random.domain/random_32_32_20_400.json -o test.json -s 1000 -t 130 -p 1000000000
+без DHM
+PIBTS_STEPS = 5000
 revealed:
 5092, 91s
 5420, 80s
