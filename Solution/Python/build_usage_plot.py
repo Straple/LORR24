@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
     #build2("../../")
 
-    fig, axes = plt.subplots(5, 5, figsize=(10, 10))
+    '''fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []
     for i in range(25):
         dir = i // 5
@@ -102,4 +102,22 @@ if __name__ == '__main__':
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
     plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
+    plt.show()'''
+
+    fig, axes = plt.subplots(1, 1, figsize=(10, 10))
+    images = []
+    dir = 4
+    act = 4
+    map = data[dir][act]
+    ax = axes
+    # print(dir, act, map)
+    images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
+    ax.set_title(dirs[dir] + " & " + acts[act])
+    ax.axis('off')
+    fig.colorbar(images[-1], ax=ax)
+
+    # plt.plot(np.where(map == -500, map, None), color="red", label="1")
+
+    # fig.colorbar(images[-1], ax=axes.ravel().tolist())
+    #plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
     plt.show()

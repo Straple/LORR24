@@ -90,7 +90,6 @@ uint32_t PIBTS::get_used(uint32_t r) const {
 
 int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     int32_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
-    //int32_t dist = get_dhmr().get(r, desired);
 
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
@@ -112,6 +111,13 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
         }
     }
 
+    //for (uint32_t i = 0; i < op.size(); i++) {
+    //    dist += get_graph().get_weight(get_omap().get_nodes_path(robots[r].node, desired)[i], op[i]);
+    //}
+
+    // без add_weights 5628
+
+    // 6268 ->
     static std::vector<int32_t> add_weights = {
             -20, //WWW
             15, //FFF

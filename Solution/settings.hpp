@@ -11,7 +11,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -22,9 +22,9 @@
 //#define ENABLE_DHM
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-//#define BUILD_META_INFO
+#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -42,7 +42,7 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 5'000;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
 
