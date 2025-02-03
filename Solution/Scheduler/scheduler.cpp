@@ -743,13 +743,8 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     }*/
 
     Timer timer;
-    //solver_schedule(time_limit, proposed_schedule);
-    // auto res = greedy_schedule(time_limit, proposed_schedule);
-    //auto old_schedule = proposed_schedule;
-    //auto res = solver_schedule(time_limit, proposed_schedule); // 5324
-    // auto res = greedy_schedule(time_limit, proposed_schedule); // 5237
-    // auto res = greedy_schedule_double(time_limit, proposed_schedule);
-    artem_schedule(time_limit, proposed_schedule);
+    solver_schedule(time_limit, proposed_schedule);
+    //artem_schedule(time_limit, proposed_schedule);
 
     /*std::set<uint32_t> used_tasks;
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
