@@ -22,5 +22,5 @@ public:
 
     void greedy_schedule(int time_limit, std::vector<int> &proposed_schedule);
 
-    void artem_schedule(int time_limit, std::vector<int> &proposed_schedule);
+    std::vector<int> artem_schedule(int time_limit, std::vector<int> &proposed_schedule);
 };

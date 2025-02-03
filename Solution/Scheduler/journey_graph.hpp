@@ -42,7 +42,6 @@ struct Edge{
     size_t get_to_path_size; // path_size to get to the start of the task
     size_t task_path_size; // path_size to complete task
     size_t task_id;
-    size_t task_from = -1;
     size_t node_from;
     size_t node_to;
 
@@ -63,7 +62,7 @@ struct Node{
     uint32_t pos; // WITH + 1
     NODE_TYPE type;
     size_t paired_id; // id of second node (nodes adds in pairs)
-    size_t edge_taken = -1; // every end node is a task, every task is should be completed somewhen
+    size_t edge = -1; // every end node is a task, every task is should be completed somewhen
     bool is_deleted = false;
     std::vector<size_t> edges; // out edges only (NOT USED)
 };
@@ -76,9 +75,10 @@ enum class TASK_STATUS {
 };
 
 
-
 const size_t NOT_FIRST_SEGMENT = -1;
 const size_t HANGING_PATH = -2;
+
+class JourneyGraph;
 
 struct PathSegment{
     size_t edge_id;
@@ -91,11 +91,16 @@ struct PathSegment{
     }
 
     bool IsStart(){
-        assert((prev == nullptr) == (path_id != NOT_FIRST_SEGMENT));
+        if (prev == nullptr){
+            assert(path_id != NOT_FIRST_SEGMENT);
+        } else {
+            assert(path_id == NOT_FIRST_SEGMENT);
+        }
+        // assert((prev != nullptr) == (path_id == NOT_FIRST_SEGMENT || path_id == HANGING_PATH));
         return prev == nullptr;
     }
     bool IsHanging(){
-        return path_id = HANGING_PATH;
+        return path_id == HANGING_PATH;
     }
 
     size_t GetPathId(){
@@ -104,10 +109,12 @@ struct PathSegment{
     }
 
     void Hang(){
-        path_id = HANGING_PATH;
+        // std::cout << "HANG " << edge_id << std::endl;
         if (IsStart()){
+            path_id = HANGING_PATH;
             return;
         }
+        path_id = HANGING_PATH;
         prev->next = nullptr;
         prev = nullptr;
     }
@@ -118,26 +125,41 @@ struct PathSegment{
         }
     }
 
+    bool TryToFindCycle(PathSegment* rhs){
+        if (rhs == this){
+            return true;
+        }
+        while (rhs->next){
+            rhs = rhs->next;
+            if (rhs == this){
+                return true;
+            }
+        }
+        return false;
+    }
+
     void Connect(PathSegment* rhs){
         assert(IsTerminal());
         assert(rhs);
         assert(rhs->IsHanging());
+        if (TryToFindCycle(rhs)){
+            assert(false);
+        }
         next = rhs;
         rhs->path_id = NOT_FIRST_SEGMENT;
         rhs->prev = this;
     }
 
 
-    PathSegment(size_t edge_id, size_t path_id, PathSegment* prev = nullptr, PathSegment* next = nullptr): edge_id(edge_id), next(next), prev(prev) {}
-
+    PathSegment(size_t edge_id, size_t path_id, JourneyGraph& jg, PathSegment* prev = nullptr, PathSegment* next = nullptr);
 };
-class JourneyGraph;
 
 
 struct Path{
     size_t full_length = 0;
     PathSegment* start;
-    PathSegment* end;
+    PathSegment* end; // useless
+    size_t taken_by = -1;
     bool is_deleted = false; // dont need(?)
 
     Path(PathSegment* start_segment, JourneyGraph& jg);
@@ -145,16 +167,18 @@ struct Path{
     void Delete(){
         assert(!is_deleted);
         is_deleted = true;
-        start->path_id = -1;
+        // if (!IsEmpty()){
+        //     start->path_id = -1;
+        // }
     }
     void Pop(){
-        PathSegment* new_start;
+        PathSegment* new_start = nullptr;
         if (!start->IsTerminal()){
-            start->next->path_id = start->path_id;
-            start->HangNext();
             new_start = start->next;
-            delete start;
+            start->HangNext();
+            new_start->path_id = start->path_id;
         }
+        delete start; // TODO ADD BACK
         start = new_start;
     }
 
@@ -163,7 +187,8 @@ struct Path{
     }
 };
 
-const int CLOSEST_AMOUNT = 5;
+const int CLOSEST_AMOUNT = 15;
+const int MAX_PATH_SIZE = 2;
 
 
 class JourneyGraph {
@@ -175,12 +200,14 @@ public:
     std::unordered_map<size_t, std::pair<size_t, size_t>> task_to_nodes; // get start and end nodes ids by task id
     std::unordered_map<size_t, TASK_STATUS> task_statuses; // ~?
     std::vector<size_t> assigned_path; // ? TO WHOM - TO TASK;
-    std::unordered_map<EdgeDefinition, size_t, EdgeDefinitionHasher> edge_to_num; // edge defenition to edge_id
+    int total_paths = 0;
+    size_t total_robots = 0;
+    // std::unordered_map<EdgeDefinition, size_t, EdgeDefinitionHasher> edge_to_num; // edge defenition to edge_id
 
     std::queue<size_t> optimization_q;
 
     JourneyGraph(){};
-    JourneyGraph(SharedEnvironment* env): env(env){
+    JourneyGraph(SharedEnvironment* env): env(env), total_robots(env->num_of_agents){
         assigned_path.resize(env->num_of_agents, -1);
     };
 
@@ -188,8 +215,8 @@ public:
         std::priority_queue<pair<size_t, size_t>> closest;
         for (size_t n_id = 0; n_id < nodes.size(); ++n_id){
             auto & node = nodes[n_id];
-            if (node.type == type){
-                closest.push({-get_dist(pos, node.pos), n_id});
+            if (node.type == type && !node.is_deleted){
+                closest.push({get_dist(pos, node.pos), n_id});
                 if (closest.size() > CLOSEST_AMOUNT){
                     closest.pop();
                 }
@@ -200,6 +227,7 @@ public:
             closest_tasks.push_back(closest.top().second);
             closest.pop();
         }
+
         return closest_tasks;
     }
 
@@ -215,16 +243,155 @@ public:
         // for every node from nearest find next node (by path, if there is any)
     }
 
+    void ProccessOptimizationQ(size_t time_limit){
+        Timer timer;
+        // #ifdef ENABLE_PRINT_LOG
+                Printer() << "Current optimization_q size: " << optimization_q.size() << '\n';
+        // #endif
+        size_t completed_tasks = 0;
+        while (!optimization_q.empty()){
+            size_t node_id = optimization_q.front();
+            optimization_q.pop();
+            RunOptimize(node_id);
+            completed_tasks++;
+            if (timer.get_ms() >= time_limit*0.9) break;;
+        }
+        // #ifdef ENABLE_PRINT_LOG
+                Printer() << "Optimization tasks completed: " << completed_tasks << " tasks left: " << optimization_q.size()  << '\n';
+        // #endif
+    }
+
+
+
+
+    void Claim(size_t r, size_t t) { // Robots claims task;
+        auto start_node = task_to_nodes[t].first;
+        auto segment = GetNodePathSegment(start_node);
+        assert(segment->IsStart());
+        DeleteNode(start_node);
+        if (assigned_path[r] == segment->path_id) return;
+        assert(assigned_path[r] == -1);
+        assigned_path[r] = segment->path_id;
+        paths[segment->path_id].taken_by = r;
+    }
+
+    bool IsTaskFree(size_t t) { // Robots claims task;
+        auto start_node = task_to_nodes[t].first;
+        auto segment = GetNodePathSegment(start_node);
+        assert(segment->IsStart());
+        return paths[segment->path_id].taken_by == -1;
+    }
+
+    size_t GetPerfomingTask(size_t r){
+        if (assigned_path[r] == -1) return -1;
+        return edges[paths[assigned_path[r]].start->edge_id].task_id;
+    }
+
+    void Complete(size_t r){
+        size_t task_id = GetPerfomingTask(r);
+        if (task_id == -1) return;
+        Compelete(r, task_id);
+        auto path_id = assigned_path[r];
+        paths[path_id].Pop();
+        if (paths[path_id].IsEmpty()){
+            // std::cout << "Deleting " <<  path_id << " as completed fully" << std::endl;
+            assigned_path[r] = -1;
+            DeletePath(path_id);
+        } else {
+            assert(paths[path_id].start->path_id == path_id);
+            Claim(r, edges[paths[path_id].start->edge_id].task_id);
+        }
+    }
+
+    std::vector<size_t> GetAvailableStarts(){
+        std::vector<size_t> result;
+        // std::unordered_map<size_t, size_t> kkk;
+        for (size_t i = 0; i < paths.size(); ++i){
+            if (paths[i].is_deleted || paths[i].taken_by != -1) continue;
+            result.push_back(nodes[edges[paths[i].start->edge_id].node_from].task_id);
+            // if (kkk.find(result.back()) != kkk.end()){
+            //     assert(false);
+            // }
+            // kkk[result.back()] = i;
+        }
+        std::sort(result.begin(), result.end());
+        return result;
+    }
+
+    std::vector<size_t> GetFreeRobots(){
+        std::vector<size_t> free_robots;
+        for (size_t i = 0; i < assigned_path.size(); i++){
+            if (assigned_path[i] == -1){
+                free_robots.push_back(i);
+            }
+        }
+        return free_robots;
+    }
+
+    std::vector<int> GetDoneProposedSchedule(){
+        std::vector<int> done_proposed_schedule(assigned_path.size(), -1);
+        for (size_t i = 0; i < done_proposed_schedule.size(); ++i){
+            if (assigned_path[i] != -1){
+                done_proposed_schedule[i] = edges[paths[assigned_path[i]].start->edge_id].task_id;
+            }
+        }
+        return done_proposed_schedule;
+    }
+
+    PathSegment* findLastSegmentInPath(PathSegment* segment) {
+        PathSegment* curr_segment = segment;
+        size_t iters = 0;
+        while (curr_segment->next){
+            curr_segment = curr_segment->next;
+            iters++;
+            if (iters > 10'000) {
+                std::cerr << "INFINITE CYCLE" << std::endl;
+                exit(1);
+            }
+        }
+        return curr_segment;
+    }
+
+    void OutDBG(){
+        size_t total_paths = 0;
+        size_t total_assigned_paths = 0;
+        std::map<size_t, size_t> path_sizes;
+        for (size_t i = 0; i < paths.size(); ++i){
+            if (!paths[i].is_deleted){
+                total_paths++;
+                if (paths[i].taken_by){
+                    total_assigned_paths++;
+                }
+                size_t len = GetSegmentIndex(paths[i].start) + 1;
+                path_sizes[len]++;
+            }
+        }
+        std::cout << "----------------" << std::endl;
+        std::cout << "total_paths: " << total_paths << std::endl;
+        std::cout << "total_assigned_paths: " << total_assigned_paths << std::endl;
+        for (const auto [len, cnt]: path_sizes){
+            std::cout << "len: " << len << " cnt: " << cnt << std::endl;
+        }
+        std::cout << "----------------" << std::endl;
+    }
+
+private:
+
     size_t CreateSimplePath(size_t edge_id){
         const size_t path_id = paths.size();
-        auto* segment = new PathSegment(edge_id, path_id);
+        auto* segment = new PathSegment(edge_id, path_id, *this);
         Path path(segment, *this);
         paths.push_back(path);
+        total_paths++;
+    
         return path_id;
     }
 
     size_t CreatePath(PathSegment* segment){
+        assert(segment->prev == nullptr);
+        // std::cout << "Creating plan with segment of edge: " << segment->edge_id << std::endl;
         const size_t path_id = paths.size();
+        segment->path_id = path_id;
         Path path(segment, *this);
         paths.push_back(path);
         return path_id;
@@ -239,51 +406,52 @@ public:
 
         return {start_n_id, end_n_id};
     }
-    
+
     // Adds edge from one NODE_TYPE::end to another NODE_TYPE::end. Using paired node to calc distance
     size_t AddEdge(const size_t node_from, const size_t node_to) {
-        size_t task_from = nodes[node_from].task_id;
         size_t task_to = nodes[node_to].task_id;
         assert(nodes[node_to].type == NODE_TYPE::end);
-        size_t get_to_path_size = 0;
+        size_t get_to_path_size = get_dist(nodes[node_from].pos, nodes[nodes[node_to].paired_id].pos);
         size_t task_path_size = 0;
-        if (task_from != -1){
-            size_t get_to_path_size = get_dist(nodes[node_from].pos, nodes[nodes[node_to].paired_id].pos);
-            assert(nodes[node_from].type == NODE_TYPE::end);
-        }
+
         auto& task = env->task_pool[nodes[node_to].task_id];
         for (size_t i = 0; i+1 < task.locations.size(); i++){
             task_path_size += get_dist(task.locations[i]+1, task.locations[i+1]+1);
         }
-        Edge edge{.get_to_path_size = get_to_path_size, .task_path_size = task_path_size, .task_id = task_from, .task_from = task_to, .node_from = node_from, .node_to = node_to};
+        Edge edge{.get_to_path_size = get_to_path_size, .task_path_size = task_path_size, .task_id = task_to, .node_from = node_from, .node_to = node_to};
         size_t edge_id = edges.size();
         edges.push_back(edge);
 
-        nodes[node_to].edge_taken = edge_id;
+        nodes[node_to].edge = edge_id;
+        nodes[node_from].edge = edge_id;
 
-        edge_to_num[{.from = nodes[node_from].task_id, .to = nodes[node_to].task_id}] = edge_id; // ???
+        // edge_to_num[{.from = nodes[node_from].n, .to = nodes[node_to].task_id}] = edge_id; // ???
         return edge_id;
     }
 
-    PathSegment* findLastSegmentInPath(PathSegment* segment) {
+    size_t GetSegmentIndex(PathSegment* segment) { // 
         PathSegment* curr_segment = segment;
         size_t iters = 0;
-        while (segment->next){
-            curr_segment = segment->next;
+        while (curr_segment->next){
+            curr_segment = curr_segment->next;
             iters++;
             if (iters > 10'000) {
                 std::cerr << "INFINITE CYCLE" << std::endl;
                 exit(1);
             }
         }
-        return curr_segment;
+        return iters;
+        }
+
+        bool SegmentsOnSamePath(PathSegment* f, PathSegment* s){
+        return findLastSegmentInPath(f) == findLastSegmentInPath(s);
     }
 
-    size_t GetSegmentIndex(PathSegment* segment) { // 
+    size_t GetSegmentIndexLeft(PathSegment* segment) { // Oposite way
         PathSegment* curr_segment = segment;
         size_t iters = 0;
-        while (segment->next){
-            curr_segment = segment->next;
+        while (curr_segment->prev){
+            curr_segment = curr_segment->prev;
             iters++;
             if (iters > 10'000) {
                 std::cerr << "INFINITE CYCLE" << std::endl;
@@ -293,17 +461,21 @@ public:
         return iters;
     }
 
-    bool SegmentsOnSamePath(PathSegment* f, PathSegment* s){
-        return findLastSegmentInPath(f) == findLastSegmentInPath(s);
-    }
-
     void DeletePath(size_t path_id) {
         assert(path_id < paths.size());
-        paths[path_id].is_deleted = true;
+        for (size_t i = 0; i < assigned_path.size(); ++i){
+            if (assigned_path[i] == path_id){
+                // std::cout << "Deleting claimed path" << std::endl;
+                assert(false);
+            }
+        }
+        // std::cout << "Delete path (" << path_id << ")" << std::endl;
+        paths[path_id].Delete();
     }
 
     void DeleteNode(size_t node_id) {
         assert(node_id < nodes.size());
+        // std::cout << "Delete node (" << node_id << ")" << std::endl;
         nodes[node_id].is_deleted = true;
         // paths[path_id].is_deleted = true;
     }
@@ -314,26 +486,10 @@ public:
         if (nodes[node_id].type == NODE_TYPE::start){
             node_id = nodes[node_id].paired_id;
         }
-        return edges[nodes[node_id].edge_taken].path_segment;
+        assert(nodes[node_id].edge >= 0 && nodes[node_id].edge < edges.size());
+        return edges[nodes[node_id].edge].path_segment;
     }
 
-    void ProccessOptimizationQ(size_t time_limit){
-        Timer timer;
-        #ifdef ENABLE_PRINT_LOG
-                Printer() << "Current optimization_q size: " << optimization_q.size() << '\n';
-        #endif
-        size_t completed_tasks = 0;
-        while (!optimization_q.empty()){
-            size_t node_id = optimization_q.front();
-            optimization_q.pop();
-            RunOptimize(node_id);
-            completed_tasks++;
-            if (timer.get_ms() >= time_limit*0.9) break;;
-        }
-        #ifdef ENABLE_PRINT_LOG
-                Printer() << "Optimization tasks completed: " << completed_tasks << " tasks left: " << optimization_q.size()  << '\n';
-        #endif
-    }
 
     void RunOptimize(size_t node_id){
         const auto nearest_starts = FindClosest(nodes[node_id].pos, NODE_TYPE::start); // ближайшие началы к старту этой задаче
@@ -345,9 +501,13 @@ public:
         size_t dead_ends = 0;
         for (const auto near_finish: nearest_finishes){
             auto segment = GetNodePathSegment(near_finish);
+            assert(segment != nullptr);
             left_half.push_back(near_finish);
             if (!segment->IsTerminal()){
-                right_half.push_back(edges[segment->next->edge_id].node_to);
+                const auto node_candidate = edges[segment->next->edge_id].node_from;
+                if (!nodes[node_candidate].is_deleted){
+                    right_half.push_back(node_candidate);
+                }
             } else {
                 dead_ends++;
             }
@@ -356,8 +516,12 @@ public:
         for (const auto near_start: nearest_starts){
             auto segment = GetNodePathSegment(near_start);
             right_half.push_back(near_start);
+            // std::cout << "ACCCESING SEGMENT OF " << near_start << " " << nodes[near_start].paired_id << std::endl;
             if (!segment->IsStart()){
-                left_half.push_back(edges[segment->prev->edge_id].node_to);
+                const auto node_candidate = edges[segment->prev->edge_id].node_to;
+                if (!nodes[node_candidate].is_deleted){
+                    left_half.push_back(node_candidate);
+                }
             } 
         }
         make_unique(left_half);
@@ -388,12 +552,16 @@ public:
                     dist_matrix[i+1][g+1] = Hungarian::UNWANTED;
                 } else {
                     auto left_segment = GetNodePathSegment(left_half[i]);
-                    auto right_segment = GetNodePathSegment(right_half[i]);
-                    int weight_to_set = (int)get_dist(nodes[left_half[i]].pos, nodes[right_half[i]].pos);
+                    auto right_segment = GetNodePathSegment(right_half[g]);
+                    int weight_to_set = (int)get_dist(nodes[left_half[i]].pos, nodes[right_half[g]].pos);
                     if (SegmentsOnSamePath(left_segment, right_segment)){
-                        if (GetSegmentIndex(left_segment) >= GetSegmentIndex(right_segment)){
+                        if (GetSegmentIndex(left_segment) <= GetSegmentIndex(right_segment)){
                             weight_to_set = Hungarian::FORBID;
                         }
+                    }
+                    size_t len_will_be = GetSegmentIndexLeft(left_segment) + 1 + GetSegmentIndex(right_segment) + 1;
+                    if (len_will_be > MAX_PATH_SIZE) {
+                        weight_to_set = Hungarian::UNWANTED;
                     }
                     dist_matrix[i+1][g+1] = weight_to_set;
                 }
@@ -401,12 +569,23 @@ public:
         }
         auto ans = Hungarian::DoHungarian(dist_matrix);
         if (!Hungarian::CheckIfAssigmentCorrect(dist_matrix, ans)){
+            for (size_t i = 0; i < dist_matrix.size(); i++){
+                for (size_t g = 0; g < dist_matrix.size(); g++){
+                    std::cout << dist_matrix[i][g] << " ";
+                }
+                std::cout << endl;
+            }
+            std::cout << endl;
+            for (size_t i = 0; i < ans.size(); i++){
+                std::cout << ans[i] << " ";
+            }
+            std::cout << endl;
             std::cerr << "Wrong Assigment!" << std::endl;
             return;
         }
         std::vector<bool> newly_hung (right_half.size(), false);
         for (size_t i = 1; i < ans.size(); ++i){
-            auto left_segment = GetNodePathSegment(left_half[i]);
+            auto left_segment = GetNodePathSegment(left_half[i-1]);
             if (right_half[ans[i]-1] == -1){
                 if (!left_segment->IsTerminal()){
                     size_t right_ind = right_half_value_to_index[edges[left_segment->next->edge_id].node_from];
@@ -414,80 +593,78 @@ public:
                     left_segment->HangNext();
                 }
             } else {
-               auto right_segment = GetNodePathSegment(right_half[ans[i]-1]);
-               if (left_segment->next == right_segment){
+                if (nodes[right_half[ans[i]-1]].is_deleted){
+                    assert(false);
+                }
+                auto right_segment = GetNodePathSegment(right_half[ans[i]-1]);
+                size_t len_will_be = GetSegmentIndexLeft(left_segment) + 1 + GetSegmentIndex(right_segment) + 1;
+                if (len_will_be > MAX_PATH_SIZE) {
+                    continue;
+                }
+                if (SegmentsOnSamePath(left_segment, right_segment) && (GetSegmentIndex(left_segment) <=  GetSegmentIndex(right_segment))){
+                    continue;
+                }
+
+                if (left_segment->next == right_segment){
                     // nothing changed
                     continue;
-               }
-               if (right_segment->IsStart() && right_segment->IsHanging()){
-                    if (!right_segment->IsHanging()){
-                        paths[right_segment->GetPathId()].Delete();
+                }
+                if (total_paths <= total_robots && right_segment->IsStart()){
+                    std::cout << "REJECTED CAUSE WILL ELIMINATE PATH " << total_paths << " " << total_robots << std::endl;;
+                    continue;
+                }
+                
+                if (right_segment->IsStart()){
+                    //std::cout << "DELETING: " << right_segment->GetPathId() << std::endl;
+                    if (!right_segment->IsHanging()){ 
+                        DeletePath(right_segment->GetPathId());
                         right_segment->Hang(); // Already hanging, but here we just setting path_id to hanging
+
+                        // TODO: DONT NEED? LIKELY 
+                        size_t right_ind = right_half_value_to_index[edges[right_segment->edge_id].node_from];
+                        newly_hung[right_ind] = false;
+                    } else {
+                        size_t right_ind = right_half_value_to_index[edges[right_segment->edge_id].node_from];
+                        newly_hung[right_ind] = false;
                     }
-               } else {
+                } else {
                     right_segment->Hang();
-               }
+                    total_paths++;
+                }
 
                 if (!left_segment->IsTerminal()){
                     size_t right_ind = right_half_value_to_index[edges[left_segment->next->edge_id].node_from];
                     newly_hung[right_ind] = true;
                     left_segment->HangNext();
                 }
+                
+                std::cout << SegmentsOnSamePath(left_segment, right_segment) << " | " <<  GetSegmentIndex(left_segment) << " <?" << GetSegmentIndex(right_segment) << std::endl;
+
                 left_segment->Connect(right_segment);
+                total_paths--;
             }
         }
         // create paths for hanging
         for (size_t i = 0; i < newly_hung.size(); ++i){
-            if (newly_hung[i] == true){
+            if (newly_hung[i]){
+                // std::cout << "CREATING NEWLY HUNG" << std::endl;
                 CreatePath(GetNodePathSegment(right_half[i]));
             }
         }
-        // TODO MAKE SURE ALL (NOT ALL ACTUALLY) NODES PASSED IN THIS FUNCTION
     }
 
-
-
-    void Claim(size_t r, size_t t) { // Robots claims task;
-        auto start_node = task_to_nodes[t].first;
-        auto segment = GetNodePathSegment(start_node);
-        assert(segment->IsStart());
-        assigned_path[r] = segment->path_id;
-        DeleteNode(start_node);
-    }
-
-    size_t GetPerfomingTask(size_t r){
-        if (assigned_path[r] != -1) return -1;
-        return edges[paths[assigned_path[r]].start->edge_id].task_id;
-    }
-
-    void Complete(size_t r){
-        size_t task_id = GetPerfomingTask(r);
-        if (task_id == -1) return;
-        Compelete(r, task_id);
-        auto path_id = assigned_path[r];
-        paths[path_id].Pop();
-        if (paths[path_id].IsEmpty()){
-            assigned_path[r] = -1;
-            DeletePath(path_id);
-        }
-    }
     void Compelete(size_t r, size_t t) { // Robots claims task;
         auto start_node = task_to_nodes[t].first;
         auto segment = GetNodePathSegment(start_node);
         assert(segment->IsStart());
+        assert(assigned_path[r] == segment->path_id);
         assigned_path[r] = segment->path_id;
-        DeleteNode(start_node);
+        // DeleteNode(start_node);
+        DeleteNode(task_to_nodes[t].second);
+        assert(nodes[task_to_nodes[t].second].is_deleted);
+        DeleteNode(task_to_nodes[t].second);
     }
 
-    std::vector<size_t> GetFreeRobots(){
-        std::vector<size_t> free_robots;
-        for (size_t i = 0; i < assigned_path.size(); i++){
-            if (assigned_path[i] == -1){
-                free_robots.push_back(i);
-            }
-        }
-        return free_robots;
-    }
 
 
 };

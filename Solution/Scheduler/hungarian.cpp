@@ -5,9 +5,12 @@
 namespace Hungarian{
 
 std::vector<int> DoHungarian(const std::vector<std::vector<int>> &a){
-    int n = a.size();
+    int n = a.size() - 1;
+    if (n == 0){
+        return {};
+    }
     assert(n > 0);
-    int m = a[0].size();
+    int m = a[0].size() - 1;
     vector<int> u(n + 1), v(m + 1), p(m + 1), way(m + 1);
     for (int i = 1; i <= n; ++i) {
         p[0] = i;
