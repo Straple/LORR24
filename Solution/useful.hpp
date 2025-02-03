@@ -276,9 +276,10 @@ total: 347037
 //без DHM
 //tasks: 32958
 //score: 163558
-//без DHM
 //tasks: 33010
 //score: 163573
+//tasks: 33097
+//score: 164165
 //DHM:
 //tasks: 30533
 //score: 151892
