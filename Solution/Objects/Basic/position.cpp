@@ -9,7 +9,7 @@ Position::Position(uint32_t pos, uint32_t dir)
       dir(dir) {
     ASSERT(0 <= pos && pos < get_map().get_size(), "invalid pos");
     ASSERT(0 <= x && x < get_map().get_cols(), "invalid x");
-    ASSERT(0 <= y && y < get_map().get_cols(), "invalid y");
+    ASSERT(0 <= y && y < get_map().get_rows(), "invalid y");
     ASSERT(0 <= dir && dir < 4, "invalid dir");
 }
 
@@ -17,8 +17,8 @@ Position::Position(uint32_t x, uint32_t y, uint32_t dir)
     : x(x),
       y(y),
       dir(dir) {
-    ASSERT(0 <= x && x < get_map().get_cols(), "invalid x");
-    ASSERT(0 <= y && y < get_map().get_cols(), "invalid y");
+    ASSERT(0 <= x && x < get_map().get_cols(), "invalid x: " + std::to_string(x));
+    ASSERT(0 <= y && y < get_map().get_rows(), "invalid y: " + std::to_string(y));
     ASSERT(0 <= dir && dir < 4, "invalid dir");
 }
 
