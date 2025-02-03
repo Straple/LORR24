@@ -11,7 +11,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_HEURISTIC_MATRIX
 
@@ -42,15 +42,15 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 5'000;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 200;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 50;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 200;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 50;
 
 static constexpr uint32_t INVALID_DIST = 0;
 

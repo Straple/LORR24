@@ -43,7 +43,7 @@ void init_environment(SharedEnvironment &env) {
 #else
     Printer().get() = std::ofstream("printer.txt");
     // warehouse bad guidance map
-    if (get_map_type() == MapType::RANDOM){
+    if (get_map_type() == MapType::RANDOM || get_map_type() == MapType::WAREHOUSE){
         get_gg() = GraphGuidance(get_guidance_map());
     } else {
         get_gg() = GraphGuidance(env);
@@ -74,10 +74,10 @@ void init_environment(SharedEnvironment &env) {
 #endif
 
     // generate random agents
-    /*Randomizer rnd(202);
+    /*Randomizer rnd(86124);
     std::ofstream output("agents.txt");
     std::set<uint32_t> S;
-    for(int i = 0; i < 800; i++){
+    for(int i = 0; i < 10'000; i++){
         uint32_t pos = 0;
         while(true){
             pos = rnd.get(1, get_map().get_size() - 1);
