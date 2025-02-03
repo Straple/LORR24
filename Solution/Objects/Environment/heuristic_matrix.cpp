@@ -47,7 +47,6 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 }
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
-#ifdef ENABLE_HEURISTIC_MATRIX
     matrix.resize(get_map().get_size());
 
     auto do_work = [&](uint32_t thr) {
@@ -65,7 +64,6 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
-#endif
 }
 
 uint32_t HeuristicMatrix::get(uint32_t source, uint32_t target) const {

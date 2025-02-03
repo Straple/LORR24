@@ -11,9 +11,7 @@
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
-//#define ENABLE_ASSERT
-
-#define ENABLE_HEURISTIC_MATRIX
+#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
@@ -24,7 +22,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -44,11 +42,11 @@ static constexpr uint32_t THREADS = 32;
 // else use steps, without timer
 static constexpr uint32_t PIBTS_STEPS = -1;
 
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 50;
+static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 
-static constexpr uint32_t DHM_REBUILD_COUNT = MAX_CONST;
+static constexpr uint32_t DHM_REBUILD_COUNT = 0;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 400;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
@@ -66,6 +64,7 @@ template<typename T>
 Printer operator<<(Printer printer, const T &value) {
 #ifdef ENABLE_FILEPRINT
     printer.get() << value;
+    printer.get().flush();
     std::cout << value;
 #else
     std::cout << value;

@@ -14,9 +14,10 @@ void GuidanceMap::set_game(const Map &map) {
 }
 
 void GuidanceMap::set_warehouse(const Map &map) {
-    std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
+    /*std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
     input >> *this;
-    return;
+    return;*/
+
     for (uint32_t y = 4; y < 493; y += 7) {
         overlay({
                         ">vv<",
@@ -151,8 +152,8 @@ void GuidanceMap::overlay(const std::vector<std::string> &image, uint32_t x, uin
     for (uint32_t dx = 0; dx < image.size(); dx++) {
         for (uint32_t dy = 0; dy < image[dx].size(); dy++) {
             ASSERT(x + dx < desired.size(), "invalid x");
-            ASSERT(y + dy < desired[0].size(), "invalid y");
-            ASSERT(desired[x + dx][y + dy] == '.', "already set");
+            ASSERT(y + dy < desired[x + dx].size(), "invalid y");
+            //ASSERT(desired[x + dx][y + dy] == '.', "already set");
             desired[x + dx][y + dy] = image[dx][dy];
         }
     }
@@ -176,7 +177,7 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         FAILED_ASSERT("invalid map");
     }
 
-    /*for (uint32_t x = 0; x < map.get_rows(); x++) {
+    for (uint32_t x = 0; x < map.get_rows(); x++) {
         for (uint32_t y = 0; y < map.get_cols(); y++) {
             if (!map.is_free(x * map.get_cols() + y + 1)) {
                 ASSERT(desired[x][y] == '.', "failed to set @");
@@ -186,10 +187,10 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
     }
 
     {
-        std::ofstream output("guidance_map");
+        std::ofstream output("Solution/Data/guidance_map_warehouse.txt");
         output << *this;
     }
-    std::exit(0);*/
+    //std::exit(0);
 }
 
 uint32_t GuidanceMap::get_rows() const {

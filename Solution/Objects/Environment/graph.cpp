@@ -84,7 +84,7 @@ Position Graph::get_pos(uint32_t node) const {
 
 uint32_t Graph::get_node(const Position &pos) const {
     ASSERT(pos.is_valid(), "invalid position");
-    ASSERT(0 <= pos.get_pos() && pos.get_pos() < pos_to_node.size(), "invalid pos");
+    ASSERT(0 <= pos.get_pos() && pos.get_pos() < pos_to_node.size(), "invalid pos: " + std::to_string(pos.get_x()) + " " + std::to_string(pos.get_y()) + " " + std::to_string(pos.get_dir()));
     ASSERT(0 <= pos.get_dir() && pos.get_dir() < 4, "invalid dir");
     return pos_to_node[pos.get_pos()][pos.get_dir()];
 }
