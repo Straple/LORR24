@@ -670,10 +670,10 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 
 #endif
 
-    // std::vector<int> free_tasks_length(free_tasks.size());
-    // for (int i = 0; i < free_tasks.size(); ++i){
-    //     free_tasks_length[i] = calc_full_distance(env->task_pool[free_tasks[i]]);
-    // }
+    std::vector<int> free_tasks_length(free_tasks.size());
+    for (int i = 0; i < free_tasks.size(); ++i){
+        free_tasks_length[i] = calc_full_distance(env->task_pool[free_tasks[i]]);
+    }
 
     auto RunHungary = [&](size_t y, size_t x) {
         const auto &tasks = devided_tasks[y][x];
@@ -684,8 +684,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(tasks.size() + 1, 0));
         for (int i = 0; i < rb; i++) {
             for (int g = 0; g < tasks.size(); g++) {
-                // + free_tasks_length[tasks[g]];
-                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env);
+                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env) + free_tasks_length[tasks[g]];;
             }
         }
         auto ans = Hungarian::DoHungarian(dist_matrix);
