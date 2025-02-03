@@ -38,7 +38,8 @@ void SchedulerSolver::rebuild_dp(TimePoint end_time) {
         threads[thr].join();
     }
 #ifdef ENABLE_PRINT_LOG
-    Printer() << "SchedulerSolver::rebuild_dp: " << counter << "/" << order.size() << ", " << timer << '\n';
+    Printer() << "SchedulerSolver::rebuild_dp: " << counter << "/" << order.size() << " ("
+              << counter * 100.0 / order.size() << "%), " << timer << '\n';
 #endif
 }
 
@@ -51,12 +52,9 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
         return 1e6;
     }
     uint32_t dist = 0;
-    uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
-    for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
-        int loc = env->task_pool[t].locations[i];
-        dist += get_hm().get(source, loc + 1);
-        source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
-    }
+    uint32_t source = get_robots_handler().get_robot(r).node;
+    dist += get_hm().get(source, task_target[t]);
+    dist += dist_dp[t];
     return dist;
 }
 
@@ -245,6 +243,24 @@ void SchedulerSolver::update() {
     }
     validate();
 #endif
+
+    for (uint32_t t: free_tasks) {
+        if (dist_dp.size() <= t) {
+            dist_dp.resize(t + 1, -1);
+            task_target.resize(t + 1);
+        }
+        auto &task = env->task_pool[t];
+        task_target[t] = task.locations[0] + 1;
+        if (dist_dp[t] == -1) {
+            uint32_t d = 0;
+            for (int i = 0; i + 1 < task.locations.size(); i++) {
+                int source = task.locations[i] + 1;
+                int target = task.locations[i + 1] + 1;
+                d += get_hm().get(get_graph().get_node(Position(source, 0)), target);
+            }
+            dist_dp[t] = d;
+        }
+    }
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "free robots: " << free_robots.size() << '\n';

@@ -34,6 +34,12 @@ class SchedulerSolver {
 
     SharedEnvironment *env = nullptr;
 
+    // dist_dp[t] = расстояние задачи
+    std::vector<uint32_t> dist_dp;
+
+    // dist_dp[t] = цель задачи (pos)
+    std::vector<uint32_t> task_target;
+
     double temp = 1;
 
     void rebuild_dp(uint32_t r);
