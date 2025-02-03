@@ -248,9 +248,9 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
                 continue;
             }
 
-            // 0:east >
+            // 0:east  >
             // 1:south v
-            // 2:west <
+            // 2:west  <
             // 3:north ^
 
             //FW:  0
@@ -259,31 +259,35 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
             //W:   3
 
             // смотрит в нужное направление
-            graph[pos][dir][0] = w1;
-            graph[pos][dir][1] = w3;
-            graph[pos][dir][2] = w3;
-            graph[pos][dir][3] = w2;
+            // >
+            graph[pos][dir][0] = w1; // FW
+            graph[pos][dir][1] = w3; // CR
+            graph[pos][dir][2] = w3; // CCR
+            graph[pos][dir][3] = w1; // W
 
             dir = (dir + 1) % 4;
 
-            graph[pos][dir][0] = w3;
-            graph[pos][dir][1] = w3;
-            graph[pos][dir][2] = w1;
-            graph[pos][dir][3] = w2;
+            // v
+            graph[pos][dir][0] = w3; // FW
+            graph[pos][dir][1] = w3; // CR
+            graph[pos][dir][2] = w1; // CCR
+            graph[pos][dir][3] = w1; // W
 
             dir = (dir + 1) % 4;
 
-            graph[pos][dir][0] = w3;
-            graph[pos][dir][1] = w1;
-            graph[pos][dir][2] = w1;
-            graph[pos][dir][3] = w2;
+            // <
+            graph[pos][dir][0] = w3; // FW
+            graph[pos][dir][1] = w1; // CR
+            graph[pos][dir][2] = w1; // CCR
+            graph[pos][dir][3] = w1; // W
 
             dir = (dir + 1) % 4;
 
-            graph[pos][dir][0] = w3;
-            graph[pos][dir][1] = w1;
-            graph[pos][dir][2] = w3;
-            graph[pos][dir][3] = w2;
+            // ^
+            graph[pos][dir][0] = w3; // FW
+            graph[pos][dir][1] = w1; // CR
+            graph[pos][dir][2] = w3; // CCR
+            graph[pos][dir][3] = w1; // W
         }
     }
 
