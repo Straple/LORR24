@@ -111,13 +111,6 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
         }
     }
 
-    //for (uint32_t i = 0; i < op.size(); i++) {
-    //    dist += get_graph().get_weight(get_omap().get_nodes_path(robots[r].node, desired)[i], op[i]);
-    //}
-
-    // без add_weights 5628
-
-    // 6268 ->
     static std::vector<int32_t> add_weights = {
             -20, //WWW
             15, //FFF
@@ -520,9 +513,27 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            if (workload < 0.5 && get_test_type() != TestType::GAME) {
+            if (get_test_type() == TestType::WAREHOUSE) {
+                // power = 1; // 34645
+                // power = power; // 34908
+                // power = power * power; // 34333
+            } else if (get_test_type() == TestType::SORTATION) {
+                // power = power;
+            } else if (get_test_type() == TestType::CITY_1) {
+                //power = power;
+            } else if (get_test_type() == TestType::CITY_1) {
+                power = power * power;
+            } else if (get_test_type() == TestType::GAME) {
+                power = power * power;
+            } else if (get_test_type() == TestType::RANDOM_1) {
                 power = 1;
-            } else {
+            } else if (get_test_type() == TestType::RANDOM_2) {
+                power = 1;
+            } else if (get_test_type() == TestType::RANDOM_3) {
+                // power = power;
+            } else if (get_test_type() == TestType::RANDOM_4) {
+                power = power * power;
+            } else if (get_test_type() == TestType::RANDOM_5) {
                 power = power * power;
             }
             robot_power[r] = power;

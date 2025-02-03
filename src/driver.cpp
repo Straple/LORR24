@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
         {
             using json = nlohmann::basic_json<nlohmann::ordered_map>;
             json data;
-            std::ifstream input("test.json");
+            std::ifstream input(vm["output"].as<std::string>());
             try {
                 data = json::parse(input);
             } catch (const json::parse_error &error) {
@@ -205,7 +205,7 @@ int main(int argc, char **argv) {
             finished_tasks = data["numTaskFinished"];
         }
 
-        std::ifstream input("meta");
+        /*std::ifstream input("meta");
         // [pos][dir][action]
         Meta meta(get_gg().get_size());
 
@@ -235,10 +235,10 @@ int main(int argc, char **argv) {
             score -= calc(dir, 2);
             score -= calc(dir, 3) * 2;
         }
-        score += finished_tasks * 5;
+        score += finished_tasks * 5;*/
 
         Printer() << "tasks: " << finished_tasks << '\n';
-        Printer() << "score: " << score << '\n';
+        //Printer() << "score: " << score << '\n';
     }
 
     _exit(0);

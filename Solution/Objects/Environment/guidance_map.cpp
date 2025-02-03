@@ -188,7 +188,7 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
     for (uint32_t x = 0; x < map.get_rows(); x++) {
         for (uint32_t y = 0; y < map.get_cols(); y++) {
             if (!map.is_free(x * map.get_cols() + y + 1)) {
-                ASSERT(desired[x][y] == '.', "failed to set @");
+                ASSERT(desired[x][y] == '.' || desired[x][y] == '@', "failed to set @");
                 desired[x][y] = '@';
             }
         }

@@ -275,5 +275,5 @@ total: 347037
 //-i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 500 -p 1000000000
 //без DHM
 //time:  469.818s
-//tasks: 34633
-//score: 171688
+//tasks: 34908
+//score: 173063
