@@ -66,27 +66,6 @@ std::vector<Operation> OperationsGenerator::get() {
         }
     }
 
-    auto kek = [&](Operation op) {
-        int cnt = 0;
-        for (int i = 0; i < op.size(); i++) {
-            cnt += op[i] == Action::FW;
-        }
-        return cnt;
-    };
-
-    //call(0): 2391, 15.1243s
-    //call(1): 4116, 25.4063s
-    //call(2): 5165, 45.2252s
-    //call(3): 5766, 58.3878s
-    //call(4): 4479, 100.457s
-    //call(5): 4025, 186.126s
-    //total: 25942
-    //std::stable_sort(pool.begin(), pool.end(), [&](auto lhs, auto rhs){
-    //    return kek(lhs) < kek(rhs);
-    //});
-
-    //std::reverse(pool.begin(), pool.end());
-
     // add WWW
     {
         Operation op;

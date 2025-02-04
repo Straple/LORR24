@@ -93,6 +93,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
 
 #ifdef ENABLE_PRINT_LOG
+        static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
+        static std::vector<int> prev_desired(env->num_of_agents, 0);
         static std::vector<uint32_t> total_desires(get_operations().size());
         static std::vector<int64_t> total_changes(get_operations().size());
         for (uint32_t r = 0; r < env->num_of_agents; r++) {
@@ -104,11 +106,32 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
             total_desires[desired]++;
             total_changes[desired] += change;
+
+            operation_matrix[prev_desired[r]][desired]++;
+            prev_desired[r] = desired;
         }
         Printer() << "Desires:\n";
         for (uint32_t d = 0; d < total_desires.size(); d++) {
             Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
         }
+
+        if(env->curr_timestep == 999) {
+            std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
+            Printer() << "Operation matrix:\n";
+            for (uint32_t d = 0; d < get_operations().size(); d++) {
+                for (uint32_t k = 0; k < get_operations().size(); k++) {
+                    Printer() << operation_matrix[d][k] << ' ';
+                    pool.emplace_back(operation_matrix[d][k], d, k);
+                }
+                Printer() << '\n';
+            }
+
+            std::sort(pool.begin(), pool.end());
+            for (auto [count, d, k]: pool) {
+                Printer() << get_operations()[d] << "->" << get_operations()[k] << ": " << count << '\n';
+            }
+        }
+
 #endif
 
     }

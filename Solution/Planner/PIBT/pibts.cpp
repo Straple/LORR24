@@ -111,7 +111,26 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
         }
     }
 
-    static std::vector<int32_t> add_weights = {
+    //call(0): 2379, 80.9529s
+    //call(1): 4351, 81.1586s
+    //call(2): 5572, 81.3614s
+    //call(3): 5277, 81.5561s
+    //call(4):
+    int32_t add_w = 0;
+    for (uint32_t i = 0; i < op.size(); i++) {
+        if (op[i] == Action::W) {
+            add_w -= 1;
+        } else if (op[i] == Action::FW) {
+            add_w += 4;
+        } else if (op[i] == Action::CR || op[i] == Action::CCR) {
+            add_w -= 1;
+        } else {
+            FAILED_ASSERT("invalid action");
+        }
+    }
+    dist = dist * 10 - add_w;
+
+    /*static std::vector<int32_t> add_weights = {
             -20, //WWW
             15, //FFF
             13, //FFW
@@ -130,7 +149,7 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             2, //RWF
             2, //CWF
     };
-    dist = dist * 10 - add_weights[desired];
+    dist = dist * 10 - add_weights[desired];*/
     return dist;
 }
 
@@ -520,7 +539,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
             } else if (get_test_type() == TestType::SORTATION) {
                 // power = power;
             } else if (get_test_type() == TestType::CITY_1) {
-                //power = power;
+                // power = power;
             } else if (get_test_type() == TestType::CITY_1) {
                 power = power * power;
             } else if (get_test_type() == TestType::GAME) {
