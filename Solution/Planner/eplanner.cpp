@@ -39,6 +39,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         PIBTS main_pibt_solver(get_robots_handler().get_robots(), end_time);
 
         auto do_work = [&](uint32_t thr, uint64_t seed) {
+            //while(get_now() < end_time) {
             Timer timer;
             PIBTS pibt = main_pibt_solver;
             pibt.solve(seed);
@@ -48,6 +49,8 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
                     , time, pibt.get_desires(), pibt.get_changes(), pibt.step//, pibt.log.str()
 #endif
             );
+            //    seed = (seed * 78124) ^ 182745123;
+            //}
         };
 
         static Randomizer rnd(228);
