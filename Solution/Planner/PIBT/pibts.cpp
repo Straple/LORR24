@@ -130,6 +130,11 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     }
     dist = dist * 10 - add_w;
 
+    //call(0): 2379, 80.9443s
+    //call(1): 4383, 81.1557s
+    //call(2): 5690, 81.3479s
+    //call(3): 6169, 81.4829s
+    //call(4): 5875, 81.7694s
     /*static std::vector<int32_t> add_weights = {
             -20, //WWW
             15, //FFF

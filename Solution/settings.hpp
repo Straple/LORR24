@@ -5,7 +5,7 @@
 #include <iostream>
 #include <set>
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
