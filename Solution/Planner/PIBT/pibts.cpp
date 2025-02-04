@@ -468,7 +468,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
     visited[r] = 0;
     desires[r] = old_desired;
-    return false;
+    return 0;
 }
 
 bool PIBTS::build(uint32_t r) {
