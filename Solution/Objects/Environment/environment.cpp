@@ -45,7 +45,7 @@ void init_environment(SharedEnvironment &env) {
     // warehouse bad guidance map
     if (get_map_type() == MapType::RANDOM
     // TODO: GuidanceMap для warehouse довольно плох
-     || get_map_type() == MapType::WAREHOUSE
+     //|| get_map_type() == MapType::WAREHOUSE
     ){
         get_gg() = GraphGuidance(get_guidance_map());
     } else {

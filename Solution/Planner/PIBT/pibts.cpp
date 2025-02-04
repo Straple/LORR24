@@ -117,7 +117,7 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     //call(2): 5572, 81.3614s
     //call(3): 5277, 81.5561s
     //call(4):
-    int32_t add_w = 0;
+    /*int32_t add_w = 0;
     for (uint32_t i = 0; i < op.size(); i++) {
         if (op[i] == Action::W) {
             add_w -= 1;
@@ -129,14 +129,14 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             FAILED_ASSERT("invalid action");
         }
     }
-    dist = dist * 10 - add_w;
+    dist = dist * 10 - add_w;*/
 
     //call(0): 2379, 80.9443s
     //call(1): 4383, 81.1557s
     //call(2): 5690, 81.3479s
     //call(3): 6169, 81.4829s
     //call(4): 5875, 81.7694s
-    /*static std::vector<int32_t> add_weights = {
+    static std::vector<int32_t> add_weights = {
             -20, //WWW
             15, //FFF
             13, //FFW
@@ -155,7 +155,7 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             2, //RWF
             2, //CWF
     };
-    dist = dist * 10 - add_weights[desired];*/
+    dist = dist * 10 - add_weights[desired];
     return dist;
 }
 
