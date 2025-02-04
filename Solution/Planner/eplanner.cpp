@@ -29,21 +29,23 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         using ItemType = std::tuple<double, std::vector<Action>
 #ifdef ENABLE_PRINT_LOG
                 // time, desires, changes, step, log_str
-                , int, std::vector<uint32_t>, std::vector<int64_t>, uint32_t, std::string
+                , int, std::vector<uint32_t>, std::vector<int64_t>, uint32_t//, std::string
 #endif
         >;
 
         constexpr uint32_t THR = THREADS;
         std::vector<std::vector<ItemType>> results_pack(THR);
 
+        PIBTS main_pibt_solver(get_robots_handler().get_robots(), end_time);
+
         auto do_work = [&](uint32_t thr, uint64_t seed) {
             Timer timer;
-            PIBTS pibt(get_robots_handler().get_robots(), end_time, seed);
-            pibt.simulate_pibt();
+            PIBTS pibt = main_pibt_solver;
+            pibt.solve(seed);
             auto time = timer.get_ms();
             results_pack[thr].emplace_back(pibt.get_score(), pibt.get_actions()
 #ifdef ENABLE_PRINT_LOG
-                    , time, pibt.get_desires(), pibt.get_changes(), pibt.step, pibt.log.str()
+                    , time, pibt.get_desires(), pibt.get_changes(), pibt.step//, pibt.log.str()
 #endif
             );
         };
@@ -74,7 +76,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 #endif
         for (const auto &[score, actions
 #ifdef ENABLE_PRINT_LOG
-                    , time, desires, changes, steps, log_str
+                    , time, desires, changes, steps//, log_str
 #endif
             ]: results) {
 #ifdef ENABLE_PRINT_LOG
@@ -115,7 +117,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
         }
 
-        if(env->curr_timestep == 999) {
+        if (env->curr_timestep == 999) {
             std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
             Printer() << "Operation matrix:\n";
             for (uint32_t d = 0; d < get_operations().size(); d++) {

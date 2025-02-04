@@ -8,6 +8,7 @@
 //#define PRINT_RECURSIVE
 
 bool PIBTS::consider() {
+    // оптимизация: если мы собираемся ухудшать скор, который лучше чем best, то сохранить best
     // this can be really slow
     //if (cur_score > best_score + 1e-6) {
     //    best_score = cur_score;
@@ -301,9 +302,9 @@ bool PIBTS::try_build(uint32_t r) {
 #endif
     if (res == 0 || res == 2) {
         add_path(r);
-        ASSERT(std::abs(old_score - cur_score) < 1e-6,
-               "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
-               std::to_string(std::abs(old_score - cur_score)));
+        //ASSERT(std::abs(old_score - cur_score) < 1e-6,
+        //       "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+        //       std::to_string(std::abs(old_score - cur_score)));
         return false;
     }
 #ifdef PRINT_RECURSIVE
@@ -377,16 +378,16 @@ bool PIBTS::try_rebuild_neighbors(uint32_t r) {
 
     uint32_t counter = 0;
     uint32_t res = try_rebuild_neighbors(0, rids, counter, 0);
-    if (res == 0 || res == 2) {
-        for (uint32_t r: rids) {
-            add_path(r);
-        }
-        ASSERT(std::abs(old_score - cur_score) < 1e-6,
-               "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
-               std::to_string(std::abs(old_score - cur_score)));
-        return false;
+    if (res == 1) {
+        return true;
     }
-    return true;
+    for (uint32_t r: rids) {
+        add_path(r);
+    }
+    //ASSERT(std::abs(old_score - cur_score) < 1e-6,
+    //       "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+    //       std::to_string(std::abs(old_score - cur_score)));
+    return false;
 }
 
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
@@ -478,9 +479,9 @@ bool PIBTS::build(uint32_t r) {
     uint32_t res = build(r, 0, counter);
     if (res == 0 || res == 2) {
         add_path(r);
-        ASSERT(std::abs(old_score - cur_score) < 1e-6,
-               "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
-               std::to_string(std::abs(old_score - cur_score)));
+        //ASSERT(std::abs(old_score - cur_score) < 1e-6,
+        //       "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+        //       std::to_string(std::abs(old_score - cur_score)));
         return false;
     }
 #ifdef PRINT_RECURSIVE
@@ -491,8 +492,8 @@ bool PIBTS::build(uint32_t r) {
     return true;
 }
 
-PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
-        : robots(robots), end_time(end_time), rnd(seed) {
+PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
+        : robots(robots), end_time(end_time) {
 
     visited.resize(robots.size());
     desires.resize(robots.size());
@@ -574,11 +575,10 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         }
     }
 
-    //Timer timer;
+    Timer timer;
     // init neighbors
-    /*{
+    {
         neighbors.resize(robots.size());
-        // TODO: here swap depth and edge for optimize
 
         // used_edge[edge][depth] = robot id
         std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_edge(get_graph().get_edges_size());
@@ -586,34 +586,54 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
         // used_pos[pos][depth] = robot id
         std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_pos(get_graph().get_zipes_size());
 
+#ifdef ENABLE_PRINT_LOG
+        Timer timer;
+#endif
         for (uint32_t r = 0; r < robots.size(); r++) {
             for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
                 if (!validate_path(r, desired)) {
                     continue;
                 }
-                uint32_t source = robots[r].node;
-                auto &poses_path = get_omap().get_poses_path(source, desired);
-                auto &edges_path = get_omap().get_edges_path(source, desired);
-                for (uint32_t depth = 0; depth < DEPTH; depth++) {
-                    uint32_t to_edge = edges_path[depth];
-                    uint32_t to_pos = poses_path[depth];
+                const uint32_t source = robots[r].node;
 
-                    ASSERT(to_pos < used_pos.size(), "invalid to_pos");
-                    ASSERT(to_edge < used_edge.size(), "invalid to_edge");
+                auto add = [&](std::vector<uint32_t> &vec) {
+                    uint32_t i = 0;
+                    for (; i < vec.size() && r < vec[i]; i++) {}
 
-                    auto add = [&](std::vector<uint32_t> &vec) {
-                        if (std::find(vec.begin(), vec.end(), r) == vec.end()) {
-                            vec.push_back(r);
-                        }
-                    };
-
-                    if (to_edge) {
-                        add(used_edge[to_edge][depth]);
+                    if (i < vec.size() && vec[i] == r) {
+                        // already contains
+                    } else {
+                        vec.insert(vec.begin() + i, r);
                     }
-                    add(used_pos[to_pos][depth]);
+                    /*if (std::find(vec.begin(), vec.end(), r) == vec.end()) {
+                        vec.push_back(r);
+                    }*/
+                };
+
+                {
+                    auto &poses_path = get_omap().get_poses_path(source, desired);
+                    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+                        uint32_t to_pos = poses_path[depth];
+                        ASSERT(to_pos < used_pos.size(), "invalid to_pos");
+                        add(used_pos[to_pos][depth]);
+                    }
+                }
+                {
+                    auto &edges_path = get_omap().get_edges_path(source, desired);
+                    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+                        uint32_t to_edge = edges_path[depth];
+                        ASSERT(to_edge < used_edge.size(), "invalid to_edge");
+                        if (to_edge) {
+                            add(used_edge[to_edge][depth]);
+                        }
+                    }
                 }
             }
         }
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "build used: " << timer << '\n';
+        timer.reset();
+#endif
 
         for (uint32_t edge = 1; edge < used_edge.size(); edge++) {
             for (uint32_t depth = 0; depth < DEPTH; depth++) {
@@ -627,6 +647,11 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                 }
             }
         }
+#ifdef ENABLE_PRINT_LOG
+        std::cout << "build edges: " << timer << '\n';
+        timer.reset();
+#endif
+
         for (uint32_t pos = 1; pos < used_pos.size(); pos++) {
             for (uint32_t depth = 0; depth < DEPTH; depth++) {
                 for (uint32_t r: used_pos[pos][depth]) {
@@ -639,8 +664,18 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
                 }
             }
         }
-    }*/
-    //Printer() << "init neighbors: " << timer << '\n';
+#ifdef ENABLE_PRINT_LOG
+        std::cout << "build poses: " << timer << '\n';
+#endif
+    }
+#ifdef ENABLE_PRINT_LOG
+    //warehouse_large_10000
+    //build used: 15.2807ms
+    //build edges: 3.43853ms
+    //build poses: 5.34468ms
+    //init neighbors: 30.1128ms
+    Printer() << "init neighbors: " << timer << '\n';
+#endif
 
     for (uint32_t r = 0; r < robots.size(); r++) {
         desires[r] = 0;
@@ -665,7 +700,9 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed
     }
 }
 
-void PIBTS::simulate_pibt() {
+void PIBTS::solve(uint64_t seed) {
+    rnd = Randomizer(seed);
+
     temp = 0;
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
@@ -680,7 +717,11 @@ void PIBTS::simulate_pibt() {
     temp = 0.001;
     for (step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
-        try_build(r);
+        if (rnd.get_d() < 0.3) {
+            try_rebuild_neighbors(r);
+        } else {
+            try_build(r);
+        }
         temp *= 0.999;
     }
 

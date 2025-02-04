@@ -91,9 +91,9 @@ class PIBTS {
     bool build(uint32_t r);
 
 public:
-    explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed);
+    explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time);
 
-    void simulate_pibt();
+    void solve(uint64_t seed);
 
     [[nodiscard]] std::vector<Action> get_actions() const;
 
@@ -106,6 +106,6 @@ public:
     uint32_t step = 0;
 
 #ifdef ENABLE_PRINT_LOG
-    std::stringstream log;
+    //std::stringstream log;
 #endif
 };
