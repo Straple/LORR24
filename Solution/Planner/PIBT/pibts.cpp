@@ -538,27 +538,25 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            if (get_test_type() == TestType::WAREHOUSE) {
-                // power = 1; // 34645
-                // power = power; // 34908
-                // power = power * power; // 34333
-            } else if (get_test_type() == TestType::SORTATION) {
-                // power = power;
-            } else if (get_test_type() == TestType::CITY_1) {
-                // power = power;
-            } else if (get_test_type() == TestType::CITY_1) {
+            if (get_test_type() == TestType::CITY_1) {
+                power = power * power;
+            } else if (get_test_type() == TestType::CITY_2) {
                 power = power * power;
             } else if (get_test_type() == TestType::GAME) {
                 power = power * power;
             } else if (get_test_type() == TestType::RANDOM_1) {
-                power = 1;
+                power = power * power;
             } else if (get_test_type() == TestType::RANDOM_2) {
-                power = 1;
+                power = power * power;
             } else if (get_test_type() == TestType::RANDOM_3) {
-                // power = power;
+                power = power * power;
             } else if (get_test_type() == TestType::RANDOM_4) {
                 power = power * power;
             } else if (get_test_type() == TestType::RANDOM_5) {
+                power = power * power;
+            } else if (get_test_type() == TestType::SORTATION) {
+                power = power * power;
+            } else if (get_test_type() == TestType::WAREHOUSE) {
                 power = power * power;
             }
             robot_power[r] = power;
