@@ -8,6 +8,28 @@
 #include "heuristics.h"
 #include "planner.h"
 
+void init_default_planner(SharedEnvironment &env) {
+#if defined(ENABLE_DEFAULT_PLANNER) || defined(ENABLE_DEFAULT_SCHEDULER)
+    Timer timer;
+    DefaultPlanner::initialize(100000, &env);
+    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
+        if (!get_map().is_free(pos)) {
+            continue;
+        }
+        for (uint32_t to = 1; to < get_map().get_size(); to++) {
+            if (!get_map().is_free(to)) {
+                continue;
+            }
+            DefaultPlanner::get_h(&env, pos - 1, to - 1);
+        }
+    }
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "init_default_planner: " << timer << '\n';
+#endif
+
+#endif
+}
+
 void init_environment(SharedEnvironment &env) {
     static bool already_init = false;
     if (already_init) {
@@ -60,21 +82,7 @@ void init_environment(SharedEnvironment &env) {
     get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());
 
-#ifdef ENABLE_DEFAULT_PLANNER
-    DefaultPlanner::initialize(100000, &env);
-    for (uint32_t pos = 0; pos < get_map().get_size(); pos++) {
-        if (!get_map().is_free(pos)) {
-            continue;
-        }
-        for (uint32_t to = 0; to < get_map().get_size(); to++) {
-            if (!get_map().is_free(to)) {
-                continue;
-            }
-            DefaultPlanner::get_h(&env, pos, to);
-        }
-    }
-
-#endif
+    init_default_planner(env);
 
     // generate random agents
     /*Randomizer rnd(86124);

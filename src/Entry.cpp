@@ -33,6 +33,17 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
 
+#ifdef ENABLE_PRINT_LOG
+    {
+        uint32_t cnt = 0;
+        for (uint32_t r = 0; r < proposed_schedule.size(); r++) {
+            cnt += proposed_schedule[r] != -1;
+        }
+        Printer() << "Scheduler robots init: " << cnt << "/" << proposed_schedule.size() << " ("
+                  << cnt * 100.0 / proposed_schedule.size() << "%)\n";
+    }
+#endif
+
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
 
