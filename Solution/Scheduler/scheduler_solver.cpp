@@ -54,7 +54,7 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t dist = 0;
     uint32_t source = get_robots_handler().get_robot(r).node;
     dist += get_hm().get(source, task_target[t]);
-    dist += dist_dp[t];
+    //dist += dist_dp[t];
     return dist;
 }
 
