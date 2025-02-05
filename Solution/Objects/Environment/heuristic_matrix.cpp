@@ -1,6 +1,7 @@
 #include <Objects/Environment/heuristic_matrix.hpp>
 
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Basic/time.hpp>
 #include <Objects/Containers/linear_heap.hpp>
 #include <settings.hpp>
 
@@ -28,13 +29,15 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
         }
         visited[node] = true;
 
-        uint32_t inv = graph.get_node(graph.get_pos(node).rotate().rotate());
+        uint32_t inv = graph.get_to_node(graph.get_to_node(node, 1), 1);
+        //graph.get_node(graph.get_pos(node).rotate().rotate());
         dists[inv] = dist;
 
         for (uint32_t action = 0; action < 3 /*WITHOUT WAIT = 3*/; action++) {
             uint32_t to = graph.get_to_node(node, action);
             if (to && !visited[to]) {
-                uint32_t to_inv = graph.get_node(graph.get_pos(to).rotate().rotate());
+                uint32_t to_inv = graph.get_to_node(graph.get_to_node(to, 1), 1);
+                //graph.get_node(graph.get_pos(to).rotate().rotate());
                 uint64_t to_dist = dist + graph.get_weight(node, action);
                 ASSERT(to_dist == static_cast<uint16_t>(to_dist), "dist overflow");
                 if (dists[to_inv] > to_dist) {
@@ -47,6 +50,9 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 }
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
+#ifdef ENABLE_PRINT_LOG
+    Timer timer;
+#endif
     matrix.resize(get_map().get_size());
 
     auto do_work = [&](uint32_t thr) {
@@ -64,6 +70,10 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
+#ifdef ENABLE_PRINT_LOG
+    // HM init: 60.5735s -> 49.3102s -> 44.5356s
+    Printer() << "HM init: " << timer << '\n';
+#endif
 }
 
 uint32_t HeuristicMatrix::get(uint32_t source, uint32_t target) const {
