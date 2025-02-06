@@ -79,17 +79,23 @@ void init_environment(SharedEnvironment &env) {
     get_guidance_map() = GuidanceMap(get_map_type(), get_map());
     // warehouse bad guidance map
     if (get_map_type() == MapType::RANDOM
-    // TODO: GuidanceMap для warehouse довольно плох
-     //|| get_map_type() == MapType::WAREHOUSE
-    ){
+        // TODO: GuidanceMap для warehouse довольно плох
+        //|| get_map_type() == MapType::WAREHOUSE
+            ) {
         get_gg() = GraphGuidance(get_guidance_map());
     } else {
         get_gg() = GraphGuidance(env);
     }
-    /*{
-        std::ofstream kek("my_gg");
-        kek << get_gg();
-    }*/
+    // init operations weights
+    {
+        std::stringstream input("17 -200 150 130 110 50 50 20 20 40 40 10 30 70 60 10 20 20");
+        uint32_t k = 0;
+        input >> k;
+        get_operations_weights().resize(k);
+        for (int &x: get_operations_weights()) {
+            input >> x;
+        }
+    }
 #endif
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
