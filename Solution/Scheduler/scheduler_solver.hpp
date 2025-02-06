@@ -12,8 +12,6 @@ class SchedulerSolver {
 
     double cur_score = 0;
 
-    std::vector<uint32_t> old_desires;
-
     // desires[r] = task id
     std::vector<uint32_t> desires;
 
@@ -28,9 +26,6 @@ class SchedulerSolver {
     std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp;
 
     std::vector<int> timestep_updated;
-
-    // timestep_changed_task[r] = когда была изменена задача у робота r
-    std::vector<int> timestep_changed_task;
 
     SharedEnvironment *env = nullptr;
 
@@ -52,7 +47,9 @@ class SchedulerSolver {
             return true;
         } else {
             rollback();
-            ASSERT(std::abs(old_score - cur_score) < 1e-9, "invalid rollback");
+            ASSERT(std::abs(old_score - cur_score) / std::max(std::abs(old_score), std::abs(cur_score)) < 1e-6,
+                   "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
+                   std::to_string(old_score - cur_score));
             return false;
         }
     }

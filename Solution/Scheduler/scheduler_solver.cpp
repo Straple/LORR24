@@ -155,40 +155,18 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-    : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
+        : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
 }
 
 void SchedulerSolver::update() {
     desires.resize(env->num_of_agents, -1);
     timestep_updated.resize(desires.size());
     dp.resize(desires.size());
-    timestep_changed_task.resize(desires.size(), -1);
 
     free_robots.clear();
     free_tasks.clear();
 
-    /*for (uint32_t r = 0; r < env->num_of_agents; r++) {
-        // задача уже все
-        if (desires[r] != -1 && env->task_pool.count(desires[r]) == 0) {
-            desires[r] = -1;
-            free_robots.push_back(r);
-        }
-    }*/
-
-    uint32_t SCHEDULER_TIMESTEP_DIFF = 0;
-
-#ifdef ENABLE_SCHEDULER_FREEZE
-    if (get_map_type() == MapType::WAREHOUSE) {
-        SCHEDULER_TIMESTEP_DIFF = 10;
-    } else if (get_map_type() == MapType::SORTATION) {
-        SCHEDULER_TIMESTEP_DIFF = 10;
-    } else if (get_map_type() == MapType::GAME) {
-        SCHEDULER_TIMESTEP_DIFF = 15;
-    }
-#endif
-
-    old_desires = desires;
-
+    // build free_robots
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         int t = env->curr_task_schedule[r];
 
@@ -198,52 +176,30 @@ void SchedulerSolver::update() {
             continue;
         }
         if (
-                // нет задачи
-                !env->task_pool.count(t) ||
-                // есть задача, но мы давно не обновляли ее
-                (timestep_changed_task[r] == -1 || env->curr_timestep - timestep_changed_task[r] >= SCHEDULER_TIMESTEP_DIFF)
-
+            // нет задачи
+                !env->task_pool.count(t)
                 //#ifndef ENABLE_TRIVIAL_SCHEDULER
-                //|| env->task_pool.at(t).idx_next_loc == 0
-                //#endif
-        ) {
+                || env->task_pool.at(t).idx_next_loc == 0
+            //#endif
+                ) {
             free_robots.push_back(r);
         }
     }
 
-#ifndef ENABLE_TRIVIAL_SCHEDULER
+    // build free_tasks
     for (auto &[t, task]: env->task_pool) {
-        /*if (task.agent_assigned != -1 &&
-            //timestep_changed_task[task.agent_assigned] != -1 &&
-            //env->curr_timestep - timestep_changed_task[task.agent_assigned] < 5
-            ) {
-            continue;
-        }*/
         int r = task.agent_assigned;
         if (
-                // нет агента
-                r == -1 ||
-                // иначе он есть, НО
-                (task.idx_next_loc == 0 &&// мы можем поменять задачу
-                 // и хорошо по timestep
-                 (timestep_changed_task[r] == -1 || env->curr_timestep - timestep_changed_task[r] >= SCHEDULER_TIMESTEP_DIFF)//
-                 )
-
-        ) {
+                r == -1 || // нет агента
+                task.idx_next_loc == 0 // мы можем поменять задачу
+                ) {
             task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
             free_tasks.push_back(t);
         }
     }
     //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
 
-    cur_score = 0;
-    for (uint32_t r: free_robots) {
-        desires[r] = -1;
-        cur_score += get_dist(r, desires[r]);
-    }
-    validate();
-#endif
-
+    // build dist_dp, task_target
     for (uint32_t t: free_tasks) {
         if (dist_dp.size() <= t) {
             dist_dp.resize(t + 1, -1);
@@ -261,6 +217,17 @@ void SchedulerSolver::update() {
             dist_dp[t] = d;
         }
     }
+
+    for (uint32_t t: free_tasks) {
+        task_to_robot[t] = -1;
+    }
+
+    cur_score = 0;
+    for (uint32_t r: free_robots) {
+        desires[r] = -1;
+        cur_score += get_dist(r, desires[r]);
+    }
+    validate();
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "free robots: " << free_robots.size() << '\n';
@@ -334,11 +301,8 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         used_task.insert(task_id);
     }
 
-    for (uint32_t r: free_robots) {
-        if (desires[r] != old_desires[r] && old_desires[r] != -1) {
-            timestep_changed_task[r] = env->curr_timestep;
-        }
-    }
+    validate();
+
 #endif
 
 #ifdef ENABLE_PRINT_LOG

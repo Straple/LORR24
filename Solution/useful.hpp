@@ -278,3 +278,8 @@ total: 347037
 //tasks: 35056
 //enable try_rebuild_neigbors
 //tasks: 35025
+
+//tasks: 34067, SCHEDULER_LNS_TIME = 100
+
+//tasks: 34422, SCHEDULER_LNS_TIME = 0
+//tasks: 22155 без GG

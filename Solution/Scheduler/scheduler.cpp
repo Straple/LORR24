@@ -42,13 +42,12 @@ int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
 const int INF = 1000000;
 
 void MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
-    TimePoint point = get_now();
     solver.update();
 #ifndef ENABLE_TRIVIAL_SCHEDULER
-    solver.rebuild_dp(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
+    solver.rebuild_dp(get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
 #endif
-    solver.triv_solve(point + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME));
-    //solver.solve(get_now() + Milliseconds(150));
+    solver.triv_solve(get_now() + Milliseconds(SCHEDULER_TRIV_SOLVE_TIME));
+    solver.solve(get_now() + Milliseconds(SCHEDULER_LNS_TIME));
     proposed_schedule = solver.get_schedule();
 }
 
@@ -267,7 +266,7 @@ int calc_full_distance(Task &task) {
 //     std::vector<size_t> free_robots = jg.GetFreeRobots();
 //     std::vector<size_t> free_tasks = jg.GetAvailableStarts();
 
- 
+
 //     // if (true) {
 //     //     std::cout << "IM HERE" << std::endl;
 //     // }
@@ -514,6 +513,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         uint32_t cordinate;
         size_t index;
         bool is_robot;
+
         bool operator<(const Entity &other) const {
             return std::tie(cordinate, index, is_robot) < std::tie(other.cordinate, other.index, other.is_robot);
         }
@@ -525,8 +525,10 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         uint32_t t = env->curr_task_schedule[r];
         if (t == -1) {
             auto pos = Position(env->curr_states[r].location + 1, env->curr_states[r].orientation);
-            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(), free_robots.size(), true});
-            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(), free_robots.size(), true});
+            xs.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_x(),
+                          free_robots.size(), true});
+            ys.push_back({Position(env->curr_states[r].location + 1, env->curr_states[r].orientation).get_y(),
+                          free_robots.size(), true});
             free_robots.push_back(r);
         }
     }
@@ -671,7 +673,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 #endif
 
     std::vector<int> free_tasks_length(free_tasks.size());
-    for (int i = 0; i < free_tasks.size(); ++i){
+    for (int i = 0; i < free_tasks.size(); ++i) {
         free_tasks_length[i] = calc_full_distance(env->task_pool[free_tasks[i]]);
     }
 
@@ -684,7 +686,8 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         std::vector<std::vector<int>> dist_matrix(rb + 1, std::vector<int>(tasks.size() + 1, 0));
         for (int i = 0; i < rb; i++) {
             for (int g = 0; g < tasks.size(); g++) {
-                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env) + free_tasks_length[tasks[g]];;
+                dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env) +
+                                            free_tasks_length[tasks[g]];;
             }
         }
         auto ans = Hungarian::DoHungarian(dist_matrix);
