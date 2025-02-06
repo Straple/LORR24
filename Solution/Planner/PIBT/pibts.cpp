@@ -538,6 +538,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
+            power = std::sqrt(power);
 /*
 v4.0.5 use power^2 in PIBTS
 Summary
@@ -553,6 +554,22 @@ RANDOM-05	2927	0.984	0	None
 SORTATION	144002	0.968	0	None
 WAREHOUSE	133839	0.913	0	None
 Total	326827	9.554	1
+
+
+v4.0.7 use power in PIBTS
+Summary
+Map	Tasks	Score	Line Honours	Warnings
+CITY-01	8357	0.998	0	None
+CITY-02	16189	0.976	0	None
+GAME	14155	0.916	0	None
+RANDOM-01	636	0.927	0	None
+RANDOM-02	1157	0.92	0	None
+RANDOM-03	2169	0.985	0	None
+RANDOM-04	2036	0.877	0	None
+RANDOM-05	2787	0.937	0	None
+SORTATION	146736	0.986	0	None
+WAREHOUSE	139183	0.95	0	None
+Total	333405	9.472	0
 */
             /*if (get_test_type() == TestType::CITY_1) {
                 power = power * power;
