@@ -27,7 +27,7 @@ class PIBTS {
     std::vector<std::vector<uint32_t>> neighbors;
 
     // smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired)
-    std::vector<std::vector<int32_t>> smart_dist_dp;
+    std::vector<std::vector<int64_t>> smart_dist_dp;
 
     // robot_desires[r] = { desired }
     std::vector<std::vector<uint32_t>> robot_desires;
@@ -59,9 +59,9 @@ class PIBTS {
 
     [[nodiscard]] uint32_t get_used(uint32_t r) const;
 
-    [[nodiscard]] int32_t get_smart_dist_IMPL(uint32_t r, uint32_t desired) const;
+    [[nodiscard]] int64_t get_smart_dist_IMPL(uint32_t r, uint32_t desired) const;
 
-    [[nodiscard]] int32_t get_smart_dist(uint32_t r, uint32_t desired) const;
+    [[nodiscard]] int64_t get_smart_dist(uint32_t r, uint32_t desired) const;
 
     void update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const;
 

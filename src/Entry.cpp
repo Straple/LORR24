@@ -26,6 +26,11 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     Timer timer;
     Printer() << "\n";
     Printer() << "Timestep: " << env->curr_timestep << '\n';
+    // прошло больше 150 секунд, это плохое решение
+    if (total_timer.get_ms() > 150'000) {
+        Printer() << "bad solution\n";
+        return;
+    }
 #endif
 
     update_environment(*env);

@@ -110,6 +110,11 @@ std::vector<Operation> &get_operations() {
     return operations;
 }
 
+std::vector<int> &get_operations_weights() {
+    static std::vector<int> weights;
+    return weights;
+}
+
 std::ostream &operator<<(std::ostream &output, const Operation &op) {
     for (auto op: op) {
         if (op == Action::W) {

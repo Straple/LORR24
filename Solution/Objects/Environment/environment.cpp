@@ -58,12 +58,25 @@ void init_environment(SharedEnvironment &env) {
     //return;
 
     get_map() = Map(env);
-    get_guidance_map() = GuidanceMap(get_map_type(), get_map());
 #ifdef ENABLE_GG_SOLVER
-    std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
-    input >> get_gg();
+    // read GraphGuidance
+    {
+        std::ifstream input("Tmp/gg" + std::to_string(get_unique_id()));
+        input >> get_gg();
+    }
+    // read operations weights
+    {
+        std::ifstream input("Tmp/opw" + std::to_string(get_unique_id()));
+        uint32_t k = 0;
+        input >> k;
+        get_operations_weights().resize(k);
+        for (int &x: get_operations_weights()) {
+            input >> x;
+        }
+    }
 #else
     Printer().get() = std::ofstream("printer.txt");
+    get_guidance_map() = GuidanceMap(get_map_type(), get_map());
     // warehouse bad guidance map
     if (get_map_type() == MapType::RANDOM
     // TODO: GuidanceMap для warehouse довольно плох
@@ -73,6 +86,10 @@ void init_environment(SharedEnvironment &env) {
     } else {
         get_gg() = GraphGuidance(env);
     }
+    /*{
+        std::ofstream kek("my_gg");
+        kek << get_gg();
+    }*/
 #endif
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());

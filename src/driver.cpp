@@ -191,6 +191,8 @@ int main(int argc, char **argv) {
 #endif
     Printer().get().flush();
 
+    _exit(0);
+
     {
         uint32_t finished_tasks = 0;
         {

@@ -89,8 +89,8 @@ uint32_t PIBTS::get_used(uint32_t r) const {
     return answer;
 }
 
-int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
-    int32_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
+int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
+    int64_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
 
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
@@ -98,17 +98,17 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
         uint32_t node = path[path.size() - 2];
         {
             uint32_t to = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int32_t>(get_dhm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
         }
         {
             uint32_t to = get_graph().get_to_node(node, 2);
-            dist = std::min(dist, static_cast<int32_t>(get_dhm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
         }
 
         if (op[op.size() - 2] == Action::W) {
             node = get_graph().get_to_node(node, 1);
             node = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int32_t>(get_dhm().get(node, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(node, robots[r].target)));
         }
     }
 
@@ -136,7 +136,7 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     //call(2): 5690, 81.3479s
     //call(3): 6169, 81.4829s
     //call(4): 5875, 81.7694s
-    static std::vector<int32_t> add_weights = {
+    /*static std::vector<int32_t> add_weights = {
             -20, //WWW
             15, //FFF
             13, //FFW
@@ -155,11 +155,12 @@ int32_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             2, //RWF
             2, //CWF
     };
-    dist = dist * 10 - add_weights[desired];
+    dist = dist * 10 - add_weights[desired];*/
+    dist = dist * 100 - get_operations_weights()[desired];
     return dist;
 }
 
-int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
+int64_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
     return smart_dist_dp[r][desired];
 }
 

@@ -24,7 +24,7 @@ void GraphGuidanceSolver::change_path(GraphGuidance &gg, Randomizer &rnd) const 
     uint32_t pos = rnd.get(1, gg.get_size() - 1);
     uint32_t len = rnd.get(1, 30);
 
-    int diff = rnd.get(-5, 5);
+    int diff = rnd.get(-2, 2);
     while (len--) {
         uint32_t dir = rnd.get(0, 3);
         uint32_t act = rnd.get(0, 3);
@@ -68,7 +68,7 @@ void GraphGuidanceSolver::big_change(GraphGuidance &gg, Randomizer &rnd) const {
                 int val = gg.get(pos, dir, act);
                 val += rnd.get(left, right);
                 val = std::max(1, val);
-                val = std::min(50, val);
+                val = std::min(1000, val);
                 gg.set(pos, dir, act, val);
             }
         }
@@ -99,10 +99,22 @@ void GraphGuidanceSolver::smart_change(GraphGuidance &gg, const Meta &meta, Rand
         }
         auto [priority, pos, dir, act] = pool[i];
         int val = gg.get(pos, dir, act);
-        val += rnd.get(-5, 5);
+        val += rnd.get(-2, 2);
         val = std::max(1, val);
-        val = std::min(50, val);
+        val = std::min(1000, val);
         gg.set(pos, dir, act, val);
+    }
+}
+
+void GraphGuidanceSolver::change_opw(std::vector<int> &opw, Randomizer &rnd) const {
+    if (rnd.get_d() < 0.5) {
+        uint32_t a = rnd.get(0, opw.size() - 1);
+        uint32_t b = rnd.get(0, opw.size() - 1);
+        std::swap(opw[a], opw[b]);
+    } else {
+        uint32_t a = rnd.get(0, opw.size() - 1);
+        int d = rnd.get(-10, 10);
+        opw[a] += d;
     }
 }
 
@@ -110,30 +122,31 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
     Randomizer rnd(228 * thr + 984213);
     while (true) {
         GraphGuidance gg;
-        int dhm_power;
+        std::vector<int> opw;
         Meta meta;
         {
             std::unique_lock locker(mutex);
             gg = best_gg;
-            dhm_power = best_dhm_power;
+            opw = best_opw;
             meta = best_meta;
         }
 
         double p = rnd.get_d();
-        if (p < 0.3) {
-            smart_change(gg, meta, rnd);
-        } else if (p < 0.6) {
+        //if (p < 0.3) {
+        //    smart_change(gg, meta, rnd);
+        //}else
+        if (p < 0.2) {
             big_change(gg, rnd);
-        } else if (p < 0.8) {
-            change_path(gg, rnd);
         } else {
-            dhm_power += rnd.get(-5, 5);
-            dhm_power = std::max(1, dhm_power);
-            dhm_power = std::min(100, dhm_power);
+            change_path(gg, rnd);
+        }
+
+        if (rnd.get_d() < 0.5) {
+            change_opw(opw, rnd);
         }
 
         double score = 0;
-        std::tie(score, meta) = get_score(gg, dhm_power, thr);
+        std::tie(score, meta) = get_score(gg, opw, thr);
 
         /*double again_score = get_score(gg, dhm_power, thr);
         ASSERT(std::abs(cur_score - again_score) < 1e-9,
@@ -148,16 +161,19 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
 
                 best_score = score;
                 best_gg = gg;
+                best_opw = opw;
                 best_meta = meta;
-                best_dhm_power = dhm_power;
 
                 {
                     std::ofstream output("best_gg");
                     output << best_gg;
                 }
                 {
-                    std::ofstream output("best_args");
-                    output << best_dhm_power;
+                    std::ofstream output("best_opw");
+                    output << best_opw.size() << '\n';
+                    for (auto x: best_opw) {
+                        output << x << '\n';
+                    }
                 }
                 {
                     std::ofstream output("best_meta");
@@ -169,6 +185,7 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
                             }
                             output << '\n';
                         }
+                        output << '\n';
                     }
                 }
             }
@@ -176,25 +193,26 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
     }
 }
 
-GraphGuidanceSolver::GraphGuidanceSolver(const GraphGuidance &gg, int dhm_power)
+GraphGuidanceSolver::GraphGuidanceSolver(const GraphGuidance &gg, const vector<int> &opw)
         : best_gg(gg),
-          best_dhm_power(dhm_power) {
-    std::tie(best_score, best_meta) = get_score(gg, best_dhm_power, 0);
+          best_opw(opw) {
+    std::tie(best_score, best_meta) = get_score(gg, opw, 0);
 }
 
 void GraphGuidanceSolver::solve() {
-    std::vector<std::thread> threads(THREADS);
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
+    std::vector<std::thread> threads(32);
+    for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr] = std::thread([&](uint32_t thr) {
             simulate_solver(thr);
         }, thr);
     }
-    for (uint32_t thr = 0; thr < THREADS; thr++) {
+    for (uint32_t thr = 0; thr < threads.size(); thr++) {
         threads[thr].join();
     }
 }
 
-std::pair<double, Meta> GraphGuidanceSolver::get_score(const GraphGuidance &gg, int dhm_power, uint32_t thr) {
+std::pair<double, Meta>
+GraphGuidanceSolver::get_score(const GraphGuidance &gg, const vector<int> &opw, uint32_t thr) {
     Timer timer;
 
     {
@@ -202,14 +220,20 @@ std::pair<double, Meta> GraphGuidanceSolver::get_score(const GraphGuidance &gg, 
         output << gg;
     }
     {
-        std::ofstream output("Tmp/args" + std::to_string(thr));
-        output << dhm_power;
+        std::ofstream output("Tmp/opw" + std::to_string(thr));
+        output << opw.size() << '\n';
+        for (auto x: opw) {
+            output << x << '\n';
+        }
     }
+
+    constexpr uint32_t steps = 500;
 
     auto call = [&](const std::string &test) {
         int ret = std::system(
-                ("./cmake-build-release-wsl/lifelong -i ./example_problems/" + test + " -o Tmp/test" +
-                 std::to_string(thr) + ".json -s 500 -t 100000000 -p 100000000 --unique_id " + std::to_string(thr) +
+                ("./lifelong -i ./example_problems/" + test + " -o Tmp/test" +
+                 std::to_string(thr) + ".json -s " + std::to_string(steps) + " -t 100000000 -p 100000000 --unique_id " +
+                 std::to_string(thr) +
                  " > Tmp/output" +
                  std::to_string(thr)).c_str());
         ASSERT(ret == 0, "invalid return code: " + std::to_string(ret));
@@ -248,21 +272,21 @@ std::pair<double, Meta> GraphGuidanceSolver::get_score(const GraphGuidance &gg, 
             for (uint32_t pos = 0; pos < gg.get_size(); pos++) {
                 s += static_cast<uint64_t>(meta[pos][dir][act]) * meta[pos][dir][act];
             }
-            return static_cast<double>(s) / (gg.get_size() - 1);
+            return (static_cast<double>(s) / (gg.get_size() - 1)) / steps;
         };
 
-        double score = 0;
+        double s = 0;
         for (uint32_t dir = 0; dir < 4; dir++) {
-            score -= calc(dir, 1);
-            score -= calc(dir, 2);
-            score -= calc(dir, 3) * 2;
+            s += calc(dir, 1);
+            s += calc(dir, 2);
+            s += calc(dir, 3) * 2;
         }
-        score += finished_tasks * 5;
+        double score = finished_tasks - s * 5;
         return std::tuple{score, meta, finished_tasks};
     };
 
-    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_300.json");
-    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_300_2.json");
+    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_400.json");
+    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_400_2.json");
 
     double score = score1 + score2;
     Meta meta = meta1 + meta2;
