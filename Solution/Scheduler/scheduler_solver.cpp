@@ -51,10 +51,21 @@ uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     if (t == -1) {
         return 1e6;
     }
-    uint32_t dist = 0;
+
     uint32_t source = get_robots_handler().get_robot(r).node;
-    dist += get_hm().get(source, task_target[t]);
-    dist += dist_dp[t];
+    uint32_t dist_to_target = get_hm().get(source, task_target[t]);
+    uint32_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 6387
+    //uint32_t dist = dist_to_target + dist_dp[t] * dist_dp[t]; // 6001
+    //uint32_t dist = dist_to_target + dist_dp[t]; // 6201
+
+    //uint32_t dist = dist_to_target * 5 + dist_dp[t];  // 6262
+    //uint32_t dist = dist_to_target * 10 + dist_dp[t]; // 6399
+    //uint32_t dist = dist_to_target * 13 + dist_dp[t]; // 6195
+    //uint32_t dist = dist_to_target * 15 + dist_dp[t]; // 6416
+    //uint32_t dist = dist_to_target * 16 + dist_dp[t]; // 6466
+    //uint32_t dist = dist_to_target * 17 + dist_dp[t]; // 6372
+    //uint32_t dist = dist_to_target * 20 + dist_dp[t]; // 6283
+
     return dist;
 }
 

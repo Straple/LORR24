@@ -11,7 +11,7 @@ uint32_t call(const std::string &test, int steps_num, uint32_t test_id) {
     // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
     //std::system("mkdir Tmp");
     int ret_code = std::system(
-            ("./cmake-build-release-remote-host/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
+            ("./cmake-build-release-wsl/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
              ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 --unique_id " + std::to_string(test_id) +
              " > Tmp/log" + std::to_string(test_id) + ".txt").c_str());
 
@@ -115,6 +115,16 @@ call(5): 5126, 81.9115s
 call(6): 4644, 82.0414s
 call(7): 3241, 82.1724s
 total: 38022
+
+call(0): 2528, 10.2281s
+call(1): 4660, 15.6536s
+call(2): 6010, 27.7665s
+call(3): 6059, 54.6101s
+call(4): 5662, 70.0801s
+call(5): 5232, 83.2165s
+call(6): 3934, 83.1211s
+call(7): 2847, 82.6672s
+total: 36932
 
 PIBTS_STEPS=5000
 call(0): 2370, 6.529s

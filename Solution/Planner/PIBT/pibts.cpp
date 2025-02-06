@@ -539,7 +539,8 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            power = std::sqrt(power);
+
+            //power = power * power;
 /*
 v4.0.5 use power^2 in PIBTS
 Summary
