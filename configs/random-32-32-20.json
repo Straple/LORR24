@@ -1,10 +1,6 @@
 {
     "lifelong_solver_name": [
         {
-            "n_agents": 600,
-            "value": "LNS"
-        },
-        {
             "n_agents": 1000000,
             "value": "LaCAM2"
         }
@@ -19,11 +15,23 @@
             "value": "scripts/random_weight_101.w"
         },
         {
+          "n_agents": 400,
+          "value": "scripts/random_weight_040.w"
+        },
+        {
             "n_agents": 500,
             "value": "scripts/random_weight_040.w"
         },
         {
             "n_agents": 600,
+            "value": "scripts/random_weight_050.w"
+        },
+        {
+            "n_agents": 700,
+            "value": "scripts/random_weight_050.w"
+        },
+        {
+            "n_agents": 800,
             "value": "scripts/random_weight_050.w"
         },
         {
@@ -33,27 +41,11 @@
     ],
     "max_execution_steps": [
         {
-            "n_agents": 400,
-            "value": 1000000
-        },
-        {
-            "n_agents": 600,
-            "value": 1000000
-        },
-        {
             "n_agents": 1000000,
             "value": 1000000
         }
     ],
     "max_task_completed": [
-        {
-            "n_agents": 400,
-            "value": 1000000
-        },
-        {
-            "n_agents": 600,
-            "value": 1000000
-        },
         {
             "n_agents": 1000000,
             "value": 1000000
@@ -61,23 +53,11 @@
     ],
     "max_agents_in_use": [
         {
-            "n_agents": 400,
-            "value": -1
-        },
-        {
-            "n_agents": 600,
-            "value": -1
-        },
-        {
             "n_agents": 1000000,
             "value": -1
         }
     ],
     "disable_corner_target_agents": [
-        {
-            "n_agents": 400,
-            "value": false
-        },
         {
             "n_agents": 1000000,
             "value": true
@@ -99,29 +79,17 @@
         "winPibtSoftmode": true,
         "window_size_for_CT": [
             {
-                "n_agents": 100,
-                "value": 20
-            },
-            {
                 "n_agents": 100000,
                 "value": 15
             }
         ],
         "window_size_for_CAT": [
             {
-                "n_agents": 100,
-                "value": 20
-            },
-            {
                 "n_agents": 100000,
                 "value": 15
             }
         ],
         "window_size_for_PATH": [
-            {
-                "n_agents": 100,
-                "value": 20
-            },
             {
                 "n_agents": 100000,
                 "value": 15
@@ -130,10 +98,6 @@
         "execution_window": 1,
         "fix_ng_bug": [
             {
-                "n_agents": 200,
-                "value": false
-            },
-            {
                 "n_agents": 1000000,
                 "value": true
             }
@@ -141,10 +105,6 @@
         "LaCAM2": {
             "seed": 0,
             "planning_window": [
-                {
-                    "n_agents": 100,
-                    "value": 20
-                },
                 {
                     "n_agents": 100000,
                     "value": 15
@@ -163,14 +123,6 @@
                 "h_weight": 1.0
             },
             "order_strategy": [
-                {
-                    "n_agents": 400,
-                    "value": "early_time"
-                },
-                {
-                    "n_agents": 600,
-                    "value": "early_time"
-                },
                 {
                     "n_agents": 1000000,
                     "value": "early_time"
@@ -197,14 +149,6 @@
             "h_weight": 1.0
         },
         "order_strategy": [
-            {
-                "n_agents": 400,
-                "value": "early_time"
-            },
-            {
-                "n_agents": 600,
-                "value": "early_time"
-            },
             {
                 "n_agents": 1000000,
                 "value": "early_time"

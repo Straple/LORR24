@@ -115,11 +115,14 @@ void LNSSolver::plan(const SharedEnvironment & env){
         // if ((*agent_infos)[i].disabled) {
         //     goals.emplace_back(env.curr_states[i].location,-1,-1);
         // } else {
-        if(!env.goal_locations[i].empty()) {
+
+        //if(!env.goal_locations[i].empty()) {
             ASSERT(i < env.goal_locations.size() && !env.goal_locations[i].empty(), "is empty");
             goals.emplace_back(env.goal_locations[i][0].first, -1, -1);
-        }
-        // }
+        //}
+        //else{
+        //    cerr << "here" << std::endl;
+        //}
     }
 
     ONLYDEV(std::cout<<"disabled_agents:"<<disabled_agent_count<<std::endl;)

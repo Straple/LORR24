@@ -314,6 +314,17 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
     validate();
 
+    auto it = free_tasks.begin();
+    for (uint32_t r = 0; r < desires.size(); r++) {
+        if (desires[r] == -1) {
+            while (it != free_tasks.end() && task_to_robot[*it] != -1) {
+                it++;
+            }
+            ASSERT(it != free_tasks.end(), "unable to set task");
+            set(r, *it);
+        }
+    }
+
 #endif
 
 #ifdef ENABLE_PRINT_LOG

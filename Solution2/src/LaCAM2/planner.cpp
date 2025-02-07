@@ -393,7 +393,7 @@ Solution Planner::solve(std::string& additional_info, int order_strategy)
     // check explored list
     const auto iter = EXPLORED.find(C_new);
     if (iter != EXPLORED.end()) {
-      cout<<"found"<<endl;
+      //cout<<"found"<<endl;
       // case found
       rewrite(H, iter->second, H_goal, OPEN);
       // re-insert or random-restart
