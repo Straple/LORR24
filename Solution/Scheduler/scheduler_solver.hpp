@@ -35,6 +35,10 @@ class SchedulerSolver {
     // dist_dp[t] = цель задачи (pos)
     std::vector<uint32_t> task_target;
 
+    // phantom_agent_dist[r] = расстояние до выполнения задачи фантомного робота r
+    // если это значение 0, то это обычный робот, иначе фантомный
+    std::vector<uint32_t> phantom_agent_dist;
+
     double temp = 1;
 
     void rebuild_dp(uint32_t r);

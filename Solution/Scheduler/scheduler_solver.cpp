@@ -173,6 +173,7 @@ void SchedulerSolver::update() {
     desires.resize(env->num_of_agents, -1);
     timestep_updated.resize(desires.size());
     dp.resize(desires.size());
+    phantom_agent_dist.assign(desires.size(), 0);
 
     free_robots.clear();
     free_tasks.clear();
@@ -184,6 +185,25 @@ void SchedulerSolver::update() {
         // есть задача и она в процессе выполнения
         // не можем ее убрать
         if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
+            const auto &task = env->task_pool.at(t);
+
+            uint32_t dist = get_hm().get(get_robots_handler().get_robot(r).node,
+                                         get_robots_handler().get_robot(r).target);
+
+            // если у него последняя точка задачи
+            if (task.idx_next_loc + 1 == task.locations.size() &&
+                // и если он не в таргете стоит
+                env->curr_states[r].location != task.locations.back() &&
+                dist < 30
+                // TODO: и ему совсем скоро выполнить задачу
+                    ) {
+
+                free_robots.push_back(r);
+                phantom_agent_dist[r] = dist;
+                ASSERT(phantom_agent_dist[r] != 0, "invalid phantom agent dist");
+            }
+
+            desires[r] = t;
             continue;
         }
         if (
@@ -237,6 +257,7 @@ void SchedulerSolver::update() {
     for (uint32_t r: free_robots) {
         desires[r] = -1;
         cur_score += get_dist(r, desires[r]);
+        cur_score += phantom_agent_dist[r];
     }
     validate();
 
@@ -279,7 +300,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
     std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
     for (uint32_t r: free_robots) {
         if (!dp[r].empty()) {
-            Heap.push({dp[r][0].first, r, 0});
+            Heap.push({dp[r][0].first + phantom_agent_dist[r], r, 0});
         }
     }
 
@@ -288,7 +309,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         Heap.pop();
 
         uint32_t task_id = dp[r][index].second;
-        ASSERT(dist == dp[r][index].first, "invalid dist");
+        ASSERT(dist == dp[r][index].first + phantom_agent_dist[r], "invalid dist");
 
         // not used in this timestep
         if (used_task.count(task_id)
@@ -298,7 +319,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             || env->task_pool[task_id].agent_assigned != -1) {
 
             if (index + 1 < dp[r].size()) {
-                Heap.push({dp[r][index + 1].first, r, index + 1});
+                Heap.push({dp[r][index + 1].first + phantom_agent_dist[r], r, index + 1});
             }
 
             continue;
@@ -314,7 +335,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
     validate();
 
-    auto it = free_tasks.begin();
+    /*auto it = free_tasks.begin();
     for (uint32_t r = 0; r < desires.size(); r++) {
         if (desires[r] == -1) {
             while (it != free_tasks.end() && task_to_robot[*it] != -1) {
@@ -323,7 +344,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             ASSERT(it != free_tasks.end(), "unable to set task");
             set(r, *it);
         }
-    }
+    }*/
 
 #endif
 
@@ -355,8 +376,12 @@ void SchedulerSolver::solve(TimePoint end_time) {
 
 std::vector<int> SchedulerSolver::get_schedule() const {
     std::vector<int> result(desires.size());
-    for (uint32_t i = 0; i < desires.size(); i++) {
-        result[i] = static_cast<int>(desires[i]);
+    for (uint32_t r = 0; r < desires.size(); r++) {
+        if (phantom_agent_dist[r]) {
+            result[r] = env->curr_task_schedule[r];
+        } else {
+            result[r] = static_cast<int>(desires[r]);
+        }
     }
     return result;
 }

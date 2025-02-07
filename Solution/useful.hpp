@@ -317,6 +317,28 @@ call(4): 5528, 80.692s
 call(5): 4276, 81.9039s
 call(6): 3441, 82.2837s
 call(7): 2374, 82.4319s
-total: 35138*/
+total: 35138
+
+call(0): 2553, 11.2305s
+call(1): 4702, 17.3299s
+call(2): 6045, 28.9299s
+call(3): 6221, 57.6373s
+call(4): 4919, 81.3932s
+call(5): 4157, 81.9923s
+call(6): 3405, 82.3248s
+call(7): 2300, 82.537s
+total: 34302
+*/
 
 //6882
+
+//Timestep: 197
+//free robots: 578
+//free tasks: 814
+//SchedulerSolver::rebuild_dp: 578/578 (100%), 7.53296ms
+//SchedulerSolver::triv_solve: 603.197us
+//SchedulerSolver::solve: 55056->55056, 0, 3.781us
+//Scheduler: 8.30136ms
+//Scheduler robots init: 800/800 (100%)
+//terminate called after throwing an instance of 'std::out_of_range'
+//  what():  vector::_M_range_check: __n (which is 0) >= this->size() (which is 0)

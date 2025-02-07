@@ -44,11 +44,11 @@ void RobotsHandler::update(SharedEnvironment &env) {
             uint32_t node = robots[r].node;
             for (int i = task.idx_next_loc; i < task.locations.size(); i++) {
                 int to_pos = task.locations[i] + 1;
-                if (i == 0) {
-                    task_dist += get_hm().get(node, to_pos) * get_hm().get(node, to_pos);
-                } else {
+                //if (i == 0) {
+                //    task_dist += get_hm().get(node, to_pos) * get_hm().get(node, to_pos);
+                //} else {
                     task_dist += get_hm().get(node, to_pos);
-                }
+                //}
                 node = get_graph().get_node(Position(to_pos, 0));
             }
         }
