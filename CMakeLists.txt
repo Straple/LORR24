@@ -39,6 +39,8 @@ include_directories("default_planner")
 
 include_directories("Solution")
 
+include_directories("Solution2")
+
 file(GLOB SOURCES
         src/ActionModel.cpp
         src/common.cpp
@@ -73,6 +75,15 @@ file(GLOB SOURCES
         Solution/Planner/LaCAM/*.cpp
 
         Solution/Scheduler/*.cpp
+
+        Solution2/src/*.cpp
+        Solution2/src/LaCAM2/*.cpp
+        Solution2/src/LaCAM2/SUO2/*.cpp
+        Solution2/src/LNS/*.cpp
+        Solution2/src/LNS/Parallel/*.cpp
+        Solution2/src/RHCR/interface/*.cpp
+        Solution2/src/RHCR/main/*.cpp
+        Solution2/src/util/*.cpp
         )
 
 
