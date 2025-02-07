@@ -28,8 +28,6 @@
 
 #define ENABLE_PIBTS_ANNEALING
 
-// с 5439
-// без 5330
 #define ENABLE_PIBTS_TRICK
 
 //#define ENABLE_GG_SOLVER

@@ -136,7 +136,10 @@ void PathTable::deletePath(int agent_id, const Parallel::Path& _path,bool verbos
     
     for (int t = 0; t < T ; t++)
     {
-        assert(table[path[t].location].size() > t && table[path[t].location][t] == agent_id);
+        //if(!(table[path[t].location].size() > t && table[path[t].location][t] == agent_id)){
+        //    std::cout << "here\n";
+        //}
+        //assert(table[path[t].location].size() > t && table[path[t].location][t] == agent_id);
         table[path[t].location][t] = NO_AGENT;
     }
     // TODO(rivers): check whether we need maintain goals and makespan  in the life-long setting

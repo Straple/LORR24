@@ -37,7 +37,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
 #endif
 
-    update_environment(*env);
+    //update_environment(*env);
 
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
@@ -60,6 +60,18 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     planner->plan(time_limit, plan);
 
 #ifdef ENABLE_PRINT_LOG
+    {
+        std::array<uint32_t, 5> counts{};
+        for (uint32_t r = 0; r < plan.size(); r++) {
+            counts[plan[r]]++;
+        }
+        Printer() << "F: " << counts[0] << '\n';
+        Printer() << "R: " << counts[1] << '\n';
+        Printer() << "C: " << counts[2] << '\n';
+        Printer() << "W: " << counts[3] << '\n';
+        Printer() << "N: " << counts[4] << '\n';
+    }
+
     Printer() << "Entry time: " << timer << '\n';
     Printer() << "Total time: " << total_timer << '\n';
 #endif

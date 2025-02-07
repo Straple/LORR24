@@ -43,6 +43,7 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
 
     DefaultPlanner::plan(limit, actions, env);
 #elif defined(ENABLE_SMART_PLANNER)
+    actions.clear();
     smart_planner.plan(time_limit, actions);
 #else
     update_environment(*env);

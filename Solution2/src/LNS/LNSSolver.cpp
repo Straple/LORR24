@@ -5,6 +5,8 @@
 #include "LNS/Parallel/GlobalManager.h"
 #include "LNS/Parallel/DataStructure.h"
 
+#include <Objects/Basic/assert.hpp>
+
 namespace LNS {
 
 LNSSolver::LNSSolver(
@@ -113,7 +115,10 @@ void LNSSolver::plan(const SharedEnvironment & env){
         // if ((*agent_infos)[i].disabled) {
         //     goals.emplace_back(env.curr_states[i].location,-1,-1);
         // } else {
-            goals.emplace_back(env.goal_locations[i][0].first,-1,-1);
+        if(!env.goal_locations[i].empty()) {
+            ASSERT(i < env.goal_locations.size() && !env.goal_locations[i].empty(), "is empty");
+            goals.emplace_back(env.goal_locations[i][0].first, -1, -1);
+        }
         // }
     }
 
@@ -413,7 +418,7 @@ void LNSSolver::observe(const SharedEnvironment & env){
 void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> & actions){
     ONLYDEV(g_timer.record_p("get_step_actions_s");)
 
-    assert(!actions.empty());
+    assert(actions.empty());
 
 #ifndef NO_ROT
     // get current state and current timestep

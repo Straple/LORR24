@@ -10,7 +10,7 @@
 
 void init_default_planner(SharedEnvironment &env) {
 #if defined(ENABLE_DEFAULT_PLANNER) || defined(ENABLE_DEFAULT_SCHEDULER)
-    Timer timer;
+    ETimer timer;
     DefaultPlanner::initialize(100000, &env);
     for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
         if (!get_map().is_free(pos)) {
