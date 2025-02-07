@@ -598,16 +598,6 @@ Total	333405	9.472	0
         }
     }
 
-    smart_dist_dp.resize(robots.size());
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        smart_dist_dp[r].resize(get_operations().size());
-        for (uint32_t desired = 0; desired < smart_dist_dp[r].size(); desired++) {
-            if (validate_path(r, desired)) {
-                smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired);
-            }
-        }
-    }
-
     Timer timer;
     // init neighbors
     {
@@ -710,25 +700,63 @@ Total	333405	9.472	0
     Printer() << "init neighbors: " << timer << '\n';
 #endif
 
+    // init smart_dist_dp
+    {
+        smart_dist_dp.resize(robots.size(), std::vector<int64_t>(get_operations().size()));
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+                if (!validate_path(r, desired)) {
+                    continue;
+                }
+                smart_dist_dp[r][desired] += get_smart_dist_IMPL(r, desired);
+
+                //int64_t collision = 0;
+
+                /*desires[r] = desired;
+                add_path(r);
+                for (uint32_t r2: neighbors[r]) {
+                    ASSERT(r != r2, "invalid r2");
+                    for (uint32_t desired2 = 0; desired2 < get_operations().size(); desired2++) {
+                        if (!validate_path(r2, desired2)) {
+                            continue;
+                        }
+                        desires[r2] = desired2;
+                        ASSERT(get_used(r2) == -1 || get_used(r2) == r, "invalid get_used");
+                        if (get_used(r2) == r) {
+                            //collision++;
+                            smart_dist_dp[r2][desired2]++;
+                        }
+                    }
+                }
+                remove_path(r);*/
+
+                //smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired) + collision;
+            }
+        }
+    }
+
     for (uint32_t r = 0; r < robots.size(); r++) {
         desires[r] = 0;
         add_path(r);
     }
 
-    robot_desires.resize(robots.size());
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        // (priority, desired)
-        std::vector<std::pair<int64_t, uint32_t>> steps;
-        for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
-            if (!validate_path(r, desired)) {
-                continue;
+    // build robot_desires
+    {
+        robot_desires.resize(robots.size());
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            // (priority, desired)
+            std::vector<std::pair<int64_t, uint32_t>> steps;
+            for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+                if (!validate_path(r, desired)) {
+                    continue;
+                }
+                int64_t priority = get_smart_dist(r, desired);
+                steps.emplace_back(priority, desired);
             }
-            int64_t priority = get_smart_dist(r, desired);
-            steps.emplace_back(priority, desired);
-        }
-        std::stable_sort(steps.begin(), steps.end());
-        for (auto [priority, desired]: steps) {
-            robot_desires[r].push_back(desired);
+            std::stable_sort(steps.begin(), steps.end());
+            for (auto [priority, desired]: steps) {
+                robot_desires[r].push_back(desired);
+            }
         }
     }
 }

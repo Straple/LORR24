@@ -283,3 +283,5 @@ total: 347037
 
 //tasks: 34422, SCHEDULER_LNS_TIME = 0
 //tasks: 22155 без GG
+
+//6256 -> 6365
