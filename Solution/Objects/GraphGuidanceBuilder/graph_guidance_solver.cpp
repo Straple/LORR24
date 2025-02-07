@@ -213,7 +213,7 @@ void GraphGuidanceSolver::solve() {
 
 std::pair<double, Meta>
 GraphGuidanceSolver::get_score(const GraphGuidance &gg, const vector<int> &opw, uint32_t thr) {
-    Timer timer;
+    ETimer timer;
 
     {
         std::ofstream output("Tmp/gg" + std::to_string(thr));

@@ -118,7 +118,7 @@ void generate(Operation &op, uint32_t i, std::vector<Operation> &pool) {
 
 uint32_t call(const std::string &testname, const std::vector<Operation> &pool, uint32_t thr) {
     //std::cout << "call: " << std::flush;
-    //Timer timer;
+    //ETimer timer;
 
     {
         std::ofstream output("Tmp/actions" + std::to_string(thr) + ".txt");
@@ -151,7 +151,7 @@ uint32_t call(const std::string &testname, const std::vector<Operation> &pool, u
 }
 
 int main() {
-    Timer timer;
+    ETimer timer;
     std::vector<Operation> pool;
     {
         Operation op;
@@ -260,7 +260,7 @@ int main() {
         std::vector<std::pair<uint32_t, std::vector<uint32_t>>> answers(THREADS);
 
         auto do_work = [&](uint32_t thr) {
-            Timer timer;
+            ETimer timer;
             auto state = build_random_state(thr);
             answers[thr] = {get_score(state, thr), state};
             // 100s
