@@ -13,7 +13,7 @@
 
 #define ENABLE_SMART_PLANNER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
