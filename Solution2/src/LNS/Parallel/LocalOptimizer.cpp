@@ -78,7 +78,7 @@ void LocalOptimizer::optimize(Neighbor & neighbor, const TimeLimiter & time_limi
         succ = runPP(neighbor, time_limiter);
     else
     {
-        cerr << "Wrong replanning strategy" << endl;
+        cout << "Wrong replanning strategy" << endl;
         exit(-1);
     }
     if (!succ) {
@@ -144,7 +144,7 @@ bool LocalOptimizer::runPP(Neighbor & neighbor, const TimeLimiter & time_limiter
             neighbor.m_paths[id] = path_planner->path;
             //ONLYDEV(g_timer.record_d("findPath_s","findPath_e","findPath");)
         } else if (search_priority==2) {
-            std::cerr<<"not supported now, need double checks"<<std::endl;
+            std::cout<<"not supported now, need double checks"<<std::endl;
             exit(-1);
             // vector<Path *> paths(agents.size(),nullptr);
             // int min_f_val;
@@ -166,14 +166,14 @@ bool LocalOptimizer::runPP(Neighbor & neighbor, const TimeLimiter & time_limiter
 
         if (neighbor.m_paths[id].back().location!=agents[id].getGoalLocation()) {
             if (neighbor.m_paths[id].size()!=constraint_table.window_size_for_PATH+1) {
-                std::cerr<<"agent "<<agents[id].id<<"'s path length "<<neighbor.m_paths[id].size()<<" should be equal to window size for path "<<constraint_table.window_size_for_PATH<< "if it doesn't arrive at its goal"<<endl;
+                std::cout<<"agent "<<agents[id].id<<"'s path length "<<neighbor.m_paths[id].size()<<" should be equal to window size for path "<<constraint_table.window_size_for_PATH<< "if it doesn't arrive at its goal"<<endl;
                 exit(-1);
             } 
         }
 
         // float _path = agents[id].getEstimatedPathLength(neighbor.m_paths[id], goal_pos, HT);
         // if (_path!=neighbor.m_paths[id].path_cost) {
-        //     std::cerr<<"path cost "<<neighbor.m_paths[id].path_cost<<" is not equal to estimated path cost "<<_path<<std::endl;
+        //     std::cout<<"path cost "<<neighbor.m_paths[id].path_cost<<" is not equal to estimated path cost "<<_path<<std::endl;
         //     exit(-1);
         // }
         neighbor.m_paths[id].path_cost = agents[id].getEstimatedPathLength(neighbor.m_paths[id], goal_pos, HT);

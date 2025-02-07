@@ -53,7 +53,7 @@ Path StateTimeAStar::run(const BasicGraph& G, const State& start,
 	double h_val = compute_h_value(G, start.location, 0, goal_location);
 	if (h_val > INT_MAX)
 	{
-		cerr << "The start ("<<G.get_row(start.location)<<","<<G.get_col(start.location)<<") and goal locations ("<<G.get_row(goal_location[0].first)<<","<<G.get_col(goal_location[0].first)<<") are disconnected!" << endl;
+		cout << "The start ("<<G.get_row(start.location)<<","<<G.get_col(start.location)<<") and goal locations ("<<G.get_row(goal_location[0].first)<<","<<G.get_col(goal_location[0].first)<<") are disconnected!" << endl;
 		return Path();
 	}
     if (rt.isConstrained(start.location, start.location, 0))

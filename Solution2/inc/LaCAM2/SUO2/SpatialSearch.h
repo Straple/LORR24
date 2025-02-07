@@ -143,7 +143,7 @@ public:
                 }
             }
         } else {
-            std::cerr<<"spatial search in heuristics: invalid orient: "<<orient<<endl;
+            std::cout<<"spatial search in heuristics: invalid orient: "<<orient<<endl;
             exit(-1);
         }        
 

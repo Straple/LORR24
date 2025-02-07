@@ -9,6 +9,6 @@ nlohmann::json read_conditional_value(const nlohmann::json & config, const strin
             return value.at("value");
         }
     }
-    std::cerr<<"n_agents "<<n_agents<<" satisfies no condition. please check!"<<endl;
+    std::cout<<"n_agents "<<n_agents<<" satisfies no condition. please check!"<<endl;
     exit(-1);
 }

@@ -49,7 +49,7 @@ void LNSSolver::initialize(const SharedEnvironment & env){
     int window_size_for_PATH=read_param_json<int>(config,"window_size_for_PATH");
     int LaCAM2_planning_window=read_param_json<int>(config["LaCAM2"],"planning_window");
     if (window_size_for_CT==-1 || LaCAM2_planning_window!=window_size_for_CT || window_size_for_PATH!=window_size_for_CT) {
-        cerr<<"not fully supported now! need to modify the padding path code in lns->"<<endl;
+        cout<<"not fully supported now! need to modify the padding path code in lns->"<<endl;
         exit(-1);
     }
 
@@ -121,7 +121,7 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
             goals.emplace_back(env.goal_locations[i][0].first, -1, -1);
         //}
         //else{
-        //    cerr << "here" << std::endl;
+        //    cout << "here" << std::endl;
         //}
     }
 
@@ -144,7 +144,7 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
             precomputed_paths.resize(env.num_of_agents);
             for (int i=0;i<env.num_of_agents;++i){
                 if (planning_paths[i][0].location!=execution_paths[i].back().location || planning_paths[i][0].orientation!=execution_paths[i].back().orientation){
-                    cerr<<"agent "<<i<<"'s current state doesn't match with the plan"<<endl; // TODO: modify this cerr.
+                    cout<<"agent "<<i<<"'s current state doesn't match with the plan"<<endl; // TODO: modify this cout.
                     exit(-1);
                 }
                 for (int j=0;j<planning_paths[i].size();++j){
@@ -154,9 +154,9 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
                         break;
                     }
                 }
-                // std::cerr<<"agent "<<i<<std::endl;
-                // std::cerr<<planning_paths[i]<<std::endl;
-                // std::cerr<<precomputed_paths[i]<<std::endl;
+                // std::cout<<"agent "<<i<<std::endl;
+                // std::cout<<planning_paths[i]<<std::endl;
+                // std::cout<<precomputed_paths[i]<<std::endl;
             }
             ONLYDEV(g_timer.record_d("copy_paths_1_s","copy_paths_1_e","copy_paths_1");)
 
@@ -166,10 +166,10 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
             // cout<<"lacam succeed"<<endl;
 
             // we need to copy the new planned paths into paths
-            // std::cerr<<"lacam2 paths:"<<endl;
+            // std::cout<<"lacam2 paths:"<<endl;
             // for (int i=0;i<env.num_of_agents;++i) {
-            //     std::cerr<<"before agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<" "<<planning_paths[i].size()<<": "<<planning_paths[i]<<std::endl;
-            //     std::cerr<<lacam2_solver->paths[i]<<endl;
+            //     std::cout<<"before agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<" "<<planning_paths[i].size()<<": "<<planning_paths[i]<<std::endl;
+            //     std::cout<<lacam2_solver->paths[i]<<endl;
             // }
             int num_inconsistent=0;
             for (int i=0;i<env.num_of_agents;++i){
@@ -184,9 +184,9 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
                 for (int j=0;j<lacam2_solver->paths[i].size();++j){
                     planning_paths[i].emplace_back(lacam2_solver->paths[i][j].location,j,lacam2_solver->paths[i][j].orientation);
                 }
-                // std::cerr<<"agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<" "<<planning_paths[i].size()<<": "<<planning_paths[i]<<std::endl;
+                // std::cout<<"agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<" "<<planning_paths[i].size()<<": "<<planning_paths[i]<<std::endl;
             }
-            ONLYDEV(std::cerr<<"num_inconsistent/total: "<<num_inconsistent<<"/"<<env.num_of_agents<<"="<<num_inconsistent/(float)env.num_of_agents<<std::endl;)
+            ONLYDEV(std::cout<<"num_inconsistent/total: "<<num_inconsistent<<"/"<<env.num_of_agents<<"="<<num_inconsistent/(float)env.num_of_agents<<std::endl;)
             ONLYDEV(g_timer.record_d("lacam2_plan_s","lacam2_plan_e","lacam2_plan");)
         }
 
@@ -268,7 +268,7 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
     ONLYDEV(g_timer.record_p("copy_paths_2_s");)
     for (int i=0;i<lns->agents.size();i++){
         if (lns->agents[i].id!=i) {
-            cerr<<"agents are not ordered at the begining"<<endl;
+            cout<<"agents are not ordered at the begining"<<endl;
             exit(-1);
         }
         lns->agents[i].path.clear();
@@ -282,11 +282,11 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
         }
         // TODO(rivers): it is not correct on weighted maps
         lns->agents[i].path.path_cost=lns->agents[i].getEstimatedPathLength(lns->agents[i].path,env.goal_locations[i][0].first,HT);
-        // cerr<<"agent "<<i<<": ";
+        // cout<<"agent "<<i<<": ";
         // for (int j=0;j<lns->agents[i].path.size();++j){
-        //     cerr<<lacam2_solver->paths[i][j].location<<" ";
+        //     cout<<lacam2_solver->paths[i][j].location<<" ";
         // }
-        // cerr<<endl;
+        // cout<<endl;
     }
     ONLYDEV(g_timer.record_d("copy_paths_2_s","copy_paths_2_e","copy_paths_2");)
 
@@ -315,7 +315,7 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
 
     // save to paths
     ONLYDEV(g_timer.record_p("copy_paths_3_s");)
-    // std::cerr<<"lns paths:"<<endl;
+    // std::cout<<"lns paths:"<<endl;
     for (int i=0;i<planning_paths.size();++i) {
         auto & path=planning_paths[i];
         auto & new_path=lns->agents[i].path;
@@ -323,40 +323,40 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
         // compare
         // for (int j=1;j<new_path.size();++j) {
         //     if (path[executed_plan_step+j].location!=new_path[j].location || path[executed_plan_step+j].orientation!=new_path[j].orientation){
-        //         std::cerr<<"agent "<<i<<" has updated lns path"<<endl;
-        //         std::cerr<<subvector(path,executed_plan_step,path.size())<<endl;
-        //         std::cerr<<new_path<<endl;
-        //         // std::cerr<<lns->agents[i].path<<endl;
+        //         std::cout<<"agent "<<i<<" has updated lns path"<<endl;
+        //         std::cout<<subvector(path,executed_plan_step,path.size())<<endl;
+        //         std::cout<<new_path<<endl;
+        //         // std::cout<<lns->agents[i].path<<endl;
         //         break;
         //     }
         // }
 
-        // std::cerr<<"agent "<<i<<" has updated lns path"<<endl;
-        // std::cerr<<path<<endl;
-        // std::cerr<<new_path<<endl;
+        // std::cout<<"agent "<<i<<" has updated lns path"<<endl;
+        // std::cout<<path<<endl;
+        // std::cout<<new_path<<endl;
 
         path.clear();
 
-        // cerr<<"agent "<<i<<" "<<new_path.size()<<": "<<new_path<<endl;
+        // cout<<"agent "<<i<<" "<<new_path.size()<<": "<<new_path<<endl;
         for (int j=0;j<new_path.size();++j) {
             path.emplace_back(new_path[j].location, j, new_path[j].orientation);
             // if (need_new_execution_paths && new_path[j].location==env.goal_locations[i][0].first){
             //     break;
             // }
         }
-        // cerr<<"agent "<<i<<" s:"<<env.curr_states[i]<<" e:"<<env.goal_locations[i][0].first<<" c:"<<executed_plan_step<<endl;
-        // std::cerr<<"agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<" "<<path.size()<<": "<<path<<endl;
-        // std::cerr<<path<<endl;
+        // cout<<"agent "<<i<<" s:"<<env.curr_states[i]<<" e:"<<env.goal_locations[i][0].first<<" c:"<<executed_plan_step<<endl;
+        // std::cout<<"agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<" "<<path.size()<<": "<<path<<endl;
+        // std::cout<<path<<endl;
     }
     ONLYDEV(g_timer.record_d("copy_paths_3_s","copy_paths_3_e","copy_paths_3");)
 
     // for (int i=0;i<paths.size();++i){
-    //     cerr<<executed_plan_step<<" "<<env.curr_states[i].location<<" "<<env.curr_states[i].orientation<<endl;
-    //     cerr<<"agent "<<i<<": ";
+    //     cout<<executed_plan_step<<" "<<env.curr_states[i].location<<" "<<env.curr_states[i].orientation<<endl;
+    //     cout<<"agent "<<i<<": ";
     //     for (int j=0;j<paths[i].size();++j){
-    //         cerr<<paths[i][j].location<<" ";
+    //         cout<<paths[i][j].location<<" ";
     //     }
-    //     cerr<<endl;
+    //     cout<<endl;
     // }
     ONLYDEV(g_timer.record_d("plan_s","plan_e","plan");)
 
@@ -365,7 +365,7 @@ void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
         if (plan_time>max_plan_time) {
             max_plan_time=plan_time;
         }
-        std::cerr<<"max_plan_time: "<<max_plan_time<<endl;
+        std::cout<<"max_plan_time: "<<max_plan_time<<endl;
         g_timer.remove_d("_plan");
         // if (plan_time>1.0){
         //     exit(-1);
@@ -386,15 +386,15 @@ void LNSSolver::observe(const SharedEnvironment & env){
         for (int i=0;i<env.num_of_agents;++i) {
             execution_paths[i].push_back(env.curr_states[i]);
             planning_paths[i].push_back(env.curr_states[i]);
-            // std::cerr<<"agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<std::endl;
+            // std::cout<<"agent "<<i<<" "<<env.curr_states[i]<<"->"<<env.goal_locations[i][0].first<<std::endl;
         }
         executed_step=0;
     } else {
         bool match=true;
         for (int i=0;i<execution_paths.size();++i){
-            // cerr<<"agent "<<i<<" curr state:"<<env.curr_states[i]<<", "<<" goal:"<<env.goal_locations[i][0].first<<endl;
+            // cout<<"agent "<<i<<" curr state:"<<env.curr_states[i]<<", "<<" goal:"<<env.goal_locations[i][0].first<<endl;
             if (executed_step+1>=execution_paths[i].size()){
-                cerr<<"executed_step exceed the execution paths:"<<executed_step<<execution_paths[i].size()<<endl;
+                cout<<"executed_step exceed the execution paths:"<<executed_step<<execution_paths[i].size()<<endl;
                 exit(-1);
             }
             if (execution_paths[i][executed_step+1].location!=env.curr_states[i].location || execution_paths[i][executed_step+1].orientation!=env.curr_states[i].orientation){
@@ -409,7 +409,7 @@ void LNSSolver::observe(const SharedEnvironment & env){
 
     // if run out of execution instructions, we need to copy new ones into execution_paths
     if (executed_step==execution_paths[0].size()-1){
-        // std::cerr<<"need new execution paths"<<std::endl;
+        // std::cout<<"need new execution paths"<<std::endl;
         need_new_execution_paths=true;
     } else {
         need_new_execution_paths=false;
@@ -441,7 +441,7 @@ void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> &
 
     // for (int i=0;i<env.num_of_agents;++i) {
     //     if (next_states[i].timestep!=env.curr_states[i].timestep+1) {
-    //         std::cerr<<"agent "<<i<<"'s plan doesn't show consecutive timesteps: "<<next_states[i].timestep<<" "<<env.curr_states[i].timestep<<endl;
+    //         std::cout<<"agent "<<i<<"'s plan doesn't show consecutive timesteps: "<<next_states[i].timestep<<" "<<env.curr_states[i].timestep<<endl;
     //         exit(-1);
     //     }
     // }
@@ -455,21 +455,21 @@ void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> &
                 execution_paths[i].emplace_back(planning_paths[i][j].location,j,planning_paths[i][j].orientation);
             }
             if (execution_paths[i].size()!=execution_window+1) {
-                std::cerr<<"execution paths size is not correct"<<std::endl;
+                std::cout<<"execution paths size is not correct"<<std::endl;
                 exit(-1);
             }
             executed_step=0;
         }
 
         // keep only the remaining planning paths
-        // std::cerr<<"truncated planning paths"<<std::endl;
+        // std::cout<<"truncated planning paths"<<std::endl;
         for (int i=0;i<env.num_of_agents;++i) {
             planning_paths[i].erase(planning_paths[i].begin(),planning_paths[i].begin()+execution_window);
             if (planning_paths[i].size()!=planning_window+1-execution_window) {
-                std::cerr<<"planning paths size is not correct"<<std::endl;
+                std::cout<<"planning paths size is not correct"<<std::endl;
                 exit(-1);
             }
-            // std::cerr<<"agent "<<i<<": "<<planning_paths[i]<<std::endl;
+            // std::cout<<"agent "<<i<<": "<<planning_paths[i]<<std::endl;
         }
     }
 
@@ -483,12 +483,12 @@ void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> &
         for (int i=0;i<env.num_of_agents;++i) {
             // we will get action indexed at executed_plan_step+1
             if (execution_paths[i].size()<=executed_step+1){
-                cerr<<"wierd error for agent "<<i<<". path length: "<<execution_paths[i].size()<<", "<<"executed_plan_step+1: "<<executed_step+1<<endl;
+                cout<<"wierd error for agent "<<i<<". path length: "<<execution_paths[i].size()<<", "<<"executed_plan_step+1: "<<executed_step+1<<endl;
                 exit(-1);
             }
 
             if (execution_paths[i][executed_step].location!=env.curr_states[i].location || execution_paths[i][executed_step].orientation!=env.curr_states[i].orientation) {
-                cerr<<"agent "<<i<<"'s current state doesn't match with the executed plan"<<endl;
+                cout<<"agent "<<i<<"'s current state doesn't match with the executed plan"<<endl;
                 exit(-1);
             }
 
@@ -505,7 +505,7 @@ void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> &
     for (int i=0;i<env.num_of_agents;++i) {
         // we will get action indexed at executed_plan_step+1
         if (paths[i].size()<=executed_plan_step+1){
-            cerr<<"wierd error for agent "<<i<<". path length: "<<paths[i].size()<<", "<<"executed_plan_step+1: "<<executed_plan_step+1<<endl;
+            cout<<"wierd error for agent "<<i<<". path length: "<<paths[i].size()<<", "<<"executed_plan_step+1: "<<executed_plan_step+1<<endl;
             assert(false);
         }
         actions.push_back(get_action_from_states(paths[i][executed_plan_step],paths[i][executed_plan_step+1]));
@@ -515,9 +515,9 @@ void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> &
 
     ONLYDEV(
         if (!action_model.is_valid(env.curr_states,actions)){
-            cerr<<"planed actions are not valid in executed_step "<<executed_step+1<<"!"<<endl;
+            cout<<"planed actions are not valid in executed_step "<<executed_step+1<<"!"<<endl;
             for (int i=0;i<env.num_of_agents;++i) {
-                cerr<<"agent "<<i<<" "<<env.curr_states[i]<<" "<<actions[i]<<endl;
+                cout<<"agent "<<i<<" "<<env.curr_states[i]<<" "<<actions[i]<<endl;
             }
             exit(-1);
         }

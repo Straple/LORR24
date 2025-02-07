@@ -203,7 +203,7 @@ void GlobalManager::update(Neighbor & neighbor) {
     }
     g_timer.record_d("path_table_delete_s","path_table_delete");
 
-    // std::cerr<<std::endl;
+    // std::cout<<std::endl;
     g_timer.record_p("path_table_insert_s");
     for (auto & aid: neighbor.agents) {
         // update agents' paths here
@@ -217,7 +217,7 @@ void GlobalManager::update(Neighbor & neighbor) {
     }
     g_timer.record_d("path_table_insert_s","path_table_insert");
 
-        // std::cerr<<std::endl;
+        // std::cout<<std::endl;
     // update costs here
     sum_of_costs += neighbor.sum_of_costs - neighbor.old_sum_of_costs;
 }
@@ -279,7 +279,7 @@ bool GlobalManager::_run_async(TimeLimiter & time_limiter) {
         << "failed iterations = " << num_of_failures << endl;
 
     if (!init_neighbor.succ) {
-        cerr << "Failed to get initial solution." << endl;
+        cout << "Failed to get initial solution." << endl;
         exit(-1);
         return false;
     }
@@ -454,7 +454,7 @@ bool GlobalManager::_run(TimeLimiter & time_limiter) {
         << "failed iterations = " << num_of_failures << endl;
 
     if (!init_neighbor.succ) {
-        cerr << "Failed to get initial solution." << endl;
+        cout << "Failed to get initial solution." << endl;
         exit(-1);
         return false;
     }
@@ -482,7 +482,7 @@ bool GlobalManager::_run(TimeLimiter & time_limiter) {
         g_timer.record_p("loc_opt_s");
         #pragma omp parallel for
         for (auto i=0;i<neighbor_generator->neighbors.size();++i) {
-            // cerr<<i<<" "<<neighbor_generator.neighbors[i]->agents.size()<<endl;
+            // cout<<i<<" "<<neighbor_generator.neighbors[i]->agents.size()<<endl;
             auto & neighbor_ptr = neighbor_generator->neighbors[i];
             auto & neighbor = *neighbor_ptr;
             local_optimizers[i]->optimize(neighbor, time_limiter);
@@ -565,9 +565,9 @@ void GlobalManager::getInitialSolution(Neighbor & neighbor) {
     neighbor.old_sum_of_costs=0;
     neighbor.sum_of_costs=0;
     for (int i=0;i<agents.size();++i) {
-        // cerr<<agents[i].id<<" "<< agents[i].path.size()-1<<endl;
+        // cout<<agents[i].id<<" "<< agents[i].path.size()-1<<endl;
         if (agents[i].path.back().location!=instance.goal_locations[i] && agents[i].path.size()<=window_size_for_CT) {
-            cerr<<"A precomputed agent "<<i<<"'s path "<<agents[i].path.size()
+            cout<<"A precomputed agent "<<i<<"'s path "<<agents[i].path.size()
                 <<" should be longer than window size for CT "<<window_size_for_CT
                 <<" unless it arrives at its goal:"<<agents[i].path.back().location
                 <<" vs "<<instance.goal_locations[i]<<endl;
@@ -575,7 +575,7 @@ void GlobalManager::getInitialSolution(Neighbor & neighbor) {
         }
 
         if (agents[i].path.back().location!=instance.goal_locations[i] && agents[i].path.size()!=window_size_for_PATH+1) {
-            cerr<<"we require agent either arrives at its goal earlier or has a planned path of length window_size_for_PATH. "<<agents[i].path.size()<<" vs "<<window_size_for_PATH<<endl;
+            cout<<"we require agent either arrives at its goal earlier or has a planned path of length window_size_for_PATH. "<<agents[i].path.size()<<" vs "<<window_size_for_PATH<<endl;
             exit(-1);
         }
 
@@ -583,7 +583,7 @@ void GlobalManager::getInitialSolution(Neighbor & neighbor) {
 
         neighbor.m_paths[i]=agents[i].path;
         neighbor.m_old_paths[i]=Path();
-        // cerr<<agents[i].id<<" "<< agents[i].path.size()-1<<endl;
+        // cout<<agents[i].id<<" "<< agents[i].path.size()-1<<endl;
     }
 
     neighbor.succ=true;

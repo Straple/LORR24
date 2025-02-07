@@ -9,7 +9,7 @@
 #include "util/MyLogger.h"
 
 using std::string;
-using std::cerr;
+using std::cout;
 using std::cout;
 using std::endl;
 using std::chrono::steady_clock;

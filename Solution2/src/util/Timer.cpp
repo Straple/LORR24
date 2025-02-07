@@ -18,7 +18,7 @@ steady_clock::time_point Timer::get_p(const string & pkey) const
     } else 
     {
         // error
-        cerr<<"key "<<pkey<<" not found in time_points"<<endl;
+        cout<<"key "<<pkey<<" not found in time_points"<<endl;
         exit(-1);
     }
 }
@@ -63,7 +63,7 @@ double Timer::get_d(const string & dkey, int mode) const
     else
     {
         // error
-        cerr<<"key "<<dkey<<" not found in time_durations"<<endl;
+        cout<<"key "<<dkey<<" not found in time_durations"<<endl;
         exit(-1);
     }   
     double ret=d;
@@ -94,7 +94,7 @@ void Timer::remove_p(const string & pkey)
     if (num==0)
     {
         // error
-        cerr<<"key "<<pkey<<" not found in time_points"<<endl;
+        cout<<"key "<<pkey<<" not found in time_points"<<endl;
         exit(-1);
     }
 }
@@ -105,7 +105,7 @@ void Timer::remove_d(const string & dkey)
     if (num==0)
     {
         // error
-        cerr<<"key "<<dkey<<" not found in time_durations"<<endl;
+        cout<<"key "<<dkey<<" not found in time_durations"<<endl;
         exit(-1);
     }
     time_duration_counters.erase(dkey);

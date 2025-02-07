@@ -67,7 +67,7 @@ void HeuristicTable::compute_weighted_heuristics(){
         planners[i]=new RIVERS::SPATIAL::SpatialAStar(env,n_orientations,*map_weights);
     }
 
-    cerr<<"created"<<endl;
+    cout<<"created"<<endl;
 
     int ctr=0;
     int step=100;
@@ -127,7 +127,7 @@ void HeuristicTable::_compute_weighted_heuristics(
             int loc=empty_locs[loc_idx];
             RIVERS::SPATIAL::State * state=planner->all_states+loc;
             if (loc!=state->pos) {
-                std::cerr<<"loc: "<<loc<<" state->pos: "<<state->pos<<endl;
+                std::cout<<"loc: "<<loc<<" state->pos: "<<state->pos<<endl;
                 exit(-1);
             }
             float cost=state->g;
@@ -147,7 +147,7 @@ void HeuristicTable::_compute_weighted_heuristics(
                     int loc=empty_locs[loc_idx];
                     RIVERS::SPATIAL::State * state=planner->all_states+loc*n_orientations+orient;
                     // if (loc!=state->pos || orient!=state->orient) {
-                    //     std::cerr<<"start_loc: "<<start_loc<<" loc: "<<loc<<" state->pos: "<<state->pos<<" orient: "<<orient<<" state->orient: "<<state->orient<<endl;
+                    //     std::cout<<"start_loc: "<<start_loc<<" loc: "<<loc<<" state->pos: "<<state->pos<<" orient: "<<orient<<" state->orient: "<<state->orient<<endl;
                     //     exit(-1);
                     // }
                     float cost=state->g;
@@ -155,7 +155,7 @@ void HeuristicTable::_compute_weighted_heuristics(
                         cost=MAX_HEURISTIC;
                     }
                     if (cost>MAX_HEURISTIC) {
-                        std::cerr<<"cost: "<<cost<<" > "<<MAX_HEURISTIC<<endl;
+                        std::cout<<"cost: "<<cost<<" > "<<MAX_HEURISTIC<<endl;
                         exit(-1);
                     }
 
@@ -184,12 +184,12 @@ void HeuristicTable::_compute_weighted_heuristics(
                 size_t main_idx=start_loc_idx*loc_size+loc_idx;
                 float diff=cost-main_heuristics[main_idx];
                 if (diff<0) {
-                    std::cerr<<"diff: "<<diff<<" < 0"<<endl;
+                    std::cout<<"diff: "<<diff<<" < 0"<<endl;
                     exit(-1);
                 }
 
                 if (diff>MAX_HEURISTIC) {
-                    std::cerr<<"diff: "<<diff<<" > "<<MAX_HEURISTIC<<endl;
+                    std::cout<<"diff: "<<diff<<" > "<<MAX_HEURISTIC<<endl;
                     exit(-1);
                 }
                 sub_heuristics[sub_idx]=diff;
@@ -201,7 +201,7 @@ void HeuristicTable::_compute_weighted_heuristics(
 void HeuristicTable::dump_main_heuristics(int start_loc, string file_path_prefix) {
     int start_loc_idx=loc_idxs[start_loc];
     if (start_loc_idx==-1) {
-        std::cerr<<"error: start_loc_idx==-1"<<endl;
+        std::cout<<"error: start_loc_idx==-1"<<endl;
         exit(-1);
     }
     string file_path=file_path_prefix+"_"+std::to_string(start_loc)+".main_heuristics";
@@ -233,7 +233,7 @@ void HeuristicTable::dump_main_heuristics(int start_loc, string file_path_prefix
 //     bool * visited = new bool[n_threads*n_orientations*state_size];
 //     State * queues = new State[n_threads*n_orientations*state_size];
 
-//     cerr<<"created"<<endl;
+//     cout<<"created"<<endl;
 
 
 //     int ctr=0;
@@ -324,7 +324,7 @@ void HeuristicTable::dump_main_heuristics(int start_loc, string file_path_prefix
 //             }
 // #else
 //             if (consider_rotation){
-//                 cerr<<"no valid to set on consider_rotation when compiled with NO_ROT"<<endl;
+//                 cout<<"no valid to set on consider_rotation when compiled with NO_ROT"<<endl;
 //                 exit(-1);
 //             } else {
 //                 neighbors=action_model.get_loc_neighbors(state,false);
@@ -352,13 +352,13 @@ void HeuristicTable::dump_main_heuristics(int start_loc, string file_path_prefix
 //             for (int start_orient=0;start_orient<n_orientations;++start_orient) {
 //                 for (int orient=0;orient<n_orientations;++orient) {
 //                     size_t value_idx=start_orient*state_size+loc_idx*n_orientations+orient;
-//                     // cerr<<"helo"<<values[value_idx]<<endl;
+//                     // cout<<"helo"<<values[value_idx]<<endl;
 //                     if (values[value_idx]<min_val) {
 //                         min_val = values[value_idx];
 //                     }
 //                 }
 //             }
-//             // cerr<<start_loc_idx<<" "<<loc_idx<<" "<<min_val<<endl;
+//             // cout<<start_loc_idx<<" "<<loc_idx<<" "<<min_val<<endl;
 //             size_t main_idx=start_loc_idx*loc_size+loc_idx;
 //             main_heuristics[main_idx]=min_val;
 //             for (int start_orient=0;start_orient<n_orientations;++start_orient) {
@@ -393,7 +393,7 @@ float HeuristicTable::get(int loc1, int loc2) {
 
 float HeuristicTable::get(int loc1, int orient1, int loc2) {
     if (!consider_rotation) {
-        cerr<<"no valid to use this func if not consider rotation"<<endl;
+        cout<<"no valid to use this func if not consider rotation"<<endl;
         exit(-1);
     }
 
@@ -418,7 +418,7 @@ float HeuristicTable::get(int loc1, int orient1, int loc2) {
 
 // int HeuristicTable::get(int loc1, int orient1, int loc2, int orient2) {
 //     if (!consider_rotation) {
-//         cerr<<"no valid to use this func if not consider rotation"<<endl;
+//         cout<<"no valid to use this func if not consider rotation"<<endl;
 //         exit(-1);
 //     }
 //     int loc_idx1=loc_idxs[loc1];
@@ -530,7 +530,7 @@ void HeuristicTable::load(const string & fpath) {
 
     // check loc size
     if (_loc_size!=loc_size) {
-        cerr<<"the sizes of empty locations don't match!"<<endl;
+        cout<<"the sizes of empty locations don't match!"<<endl;
         exit(-1);
     }
 
@@ -541,7 +541,7 @@ void HeuristicTable::load(const string & fpath) {
     // check empty locs
     for (auto i=0;i<loc_size;++i) {
         if (_empty_locs[i]!=empty_locs[i]) {
-            cerr<<"the empty locations don't match!"<<endl;
+            cout<<"the empty locations don't match!"<<endl;
             exit(-1);
         }
     }

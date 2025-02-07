@@ -144,17 +144,17 @@ void init_RHCR_solver(MAPFPlanner * planner, Grid & grid, po::variables_map & vm
     {
         if (vm["hold_endpoints"].as<bool>() and vm["dummy_paths"].as<bool>())
         {
-            std::cerr << "Hold endpoints and dummy paths cannot be used simultaneously" << endl;
+            std::cout << "Hold endpoints and dummy paths cannot be used simultaneously" << endl;
             exit(-1);
         }
         if (vm["simulation_window"].as<int>() != 1)
         {
-            std::cerr << "Hold endpoints and dummy paths can only work when the simulation window is 1" << endl;
+            std::cout << "Hold endpoints and dummy paths can only work when the simulation window is 1" << endl;
             exit(-1);
         }
         if (vm["planning_window"].as<int>() < INT_MAX / 2)
         {
-            std::cerr << "Hold endpoints and dummy paths cannot work with planning windows" << endl;
+            std::cout << "Hold endpoints and dummy paths cannot work with planning windows" << endl;
             exit(-1);
         }
     }

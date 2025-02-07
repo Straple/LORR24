@@ -32,7 +32,7 @@ public:
             if ((*curr_states)[i].location!=(*planned_next_states)[i].location) {
                 int expected_orient=get_neighbor_orientation((*curr_states)[i].location,(*planned_next_states)[i].location);
                 if ((*curr_states)[i].orientation!=expected_orient) {
-                    // cerr<<"agent "<<i<<" is not oriented: "<<(*curr_states)[i].orientation<<","<<expected_orient<<endl;
+                    // cout<<"agent "<<i<<" is not oriented: "<<(*curr_states)[i].orientation<<","<<expected_orient<<endl;
                     all_oriented=false;
                     break;
                 }
@@ -61,7 +61,7 @@ public:
                     (*next_states)[i].timestep=(*curr_states)[i].timestep+1;
                 }
             }
-        // cerr<<"agent "<<i<<": "<<(*next_states)[i]<<endl;
+        // cout<<"agent "<<i<<": "<<(*next_states)[i]<<endl;
         }
     }
 
@@ -102,7 +102,7 @@ public:
             return 3;
         }
 
-        std::cerr<<"executor: loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
+        std::cout<<"executor: loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
         exit(-1);
 
     }

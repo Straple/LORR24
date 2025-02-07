@@ -152,7 +152,7 @@ public:
             }
         }
 
-        cerr<<"Cannot get action from invalid movement between state "<<state<<" and "<<next_state<<endl;
+        cout<<"Cannot get action from invalid movement between state "<<state<<" and "<<next_state<<endl;
         exit(-1);
 #endif
     }

@@ -49,23 +49,23 @@ Action get_action_from_states(const State & state, const State & next_state, boo
 }
 
 void debug_agent(int agent,const vector<State> &starts,const vector< vector<pair<int, int> > > & goal_locations) {
-    cerr<<"plan for agent "<<agent<<": ";
-    cerr<<"start: "<<starts[agent].location<<". ";
-    cerr<<"goals:";
+    cout<<"plan for agent "<<agent<<": ";
+    cout<<"start: "<<starts[agent].location<<". ";
+    cout<<"goals:";
     const vector<pair<int,int> > & goal_location=goal_locations[agent];
     for (int i=0;i<goal_location.size();++i){
-        cerr<<" ["<<goal_location[i].second<<"]"<<goal_location[i].first;
+        cout<<" ["<<goal_location[i].second<<"]"<<goal_location[i].first;
     }
-    cerr<<"."<<endl;
+    cout<<"."<<endl;
 }
 
 void debug_agent_path(int agent,const vector<Path> & paths,int start_timestep=0) {
-    cerr<<"planed path for agent "<<agent<<" since timestep "<<start_timestep<<":";
+    cout<<"planed path for agent "<<agent<<" since timestep "<<start_timestep<<":";
     const Path & path=paths[agent];
     for (int i=start_timestep;i<paths[agent].size();++i){
-        cerr<<" "<<path[i].location<<","<<path[i].orientation;
+        cout<<" "<<path[i].location<<","<<path[i].orientation;
     }
-    cerr<<endl;
+    cout<<endl;
 }
 
 void RHCRSolver::start_plan_task(){
@@ -128,7 +128,7 @@ void RHCRSolver::plan(const SharedEnvironment & env){
 
         total_feasible_timestep = timestep + simulation_window;
 
-        // cerr<<paths[0].size()<<" "<<paths[1].size()<<endl;
+        // cout<<paths[0].size()<<" "<<paths[1].size()<<endl;
 
         // int agent=117;
         // debug_agent(agent,starts,goal_locations);
@@ -151,7 +151,7 @@ void RHCRSolver::get_step_actions(const SharedEnvironment & env, vector<Action> 
     for (int i=0;i<num_of_drives;++i) {
         // we will get action indexed at timestep+1
         if (paths[i].size()<=timestep+1){
-            cerr<<"wierd error for agent "<<i<<". path length: "<<paths[i].size()<<", "<<"timestep+1: "<<timestep+1<<endl;
+            cout<<"wierd error for agent "<<i<<". path length: "<<paths[i].size()<<", "<<"timestep+1: "<<timestep+1<<endl;
             assert(false);
         }
         actions.push_back(get_action_from_states(paths[i][timestep],paths[i][timestep+1],consider_rotation));
@@ -161,7 +161,7 @@ void RHCRSolver::get_step_actions(const SharedEnvironment & env, vector<Action> 
     // check if not valid, this should not happen in general if the algorithm is correct? but maybe there exist deadlocks.
     // TODO(hj) detect deadlock?
     if (!model.is_valid(env.curr_states,actions)){
-        cerr<<"planed actions are not valid in timestep "<<timestep+1<<"!"<<endl;
+        cout<<"planed actions are not valid in timestep "<<timestep+1<<"!"<<endl;
 #ifdef DEV
         exit(-1);
 #else

@@ -47,7 +47,7 @@ public:
     }
 
     void execute_agent(int agent_idx, int root_agent_idx) {
-        // std::cerr<<"execute agent "<<agent_idx<<endl;
+        // std::cout<<"execute agent "<<agent_idx<<endl;
         assert(!executed[agent_idx]);
         // put this line here, we can also deal with the loop case
 
@@ -143,7 +143,7 @@ public:
             return 3;
         }
 
-        std::cerr<<"executor: loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
+        std::cout<<"executor: loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
         exit(-1);
 
     }

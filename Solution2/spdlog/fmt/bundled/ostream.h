@@ -145,7 +145,7 @@ inline void vprint(std::ostream& os, string_view fmt, format_args args) {
  *
  * **Example**:
  *
- *     fmt::print(cerr, "Don't {}!", "panic");
+ *     fmt::print(cout, "Don't {}!", "panic");
  */
 FMT_EXPORT template <typename... T>
 void print(std::ostream& os, format_string<T...> fmt, T&&... args) {

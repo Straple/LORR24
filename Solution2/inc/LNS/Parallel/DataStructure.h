@@ -79,7 +79,7 @@ struct Agent
             // north
             return map_weights[pst*5+3];
         } else {
-            std::cerr<<"invalid move"<<endl;
+            std::cout<<"invalid move"<<endl;
             exit(-1);
         }
     }

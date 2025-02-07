@@ -112,7 +112,7 @@ Instance LaCAM2Solver::build_instance(const SharedEnvironment & env, std::vector
             goal_location=env.curr_states[i].location;
         }
         goals.emplace_back(goal_location, -1);
-        // cerr<<"0\trandom-32-32-20.map\t32\t32\t"<<starts[i]%32<<"\t"<<starts[i]/32<<"\t"<<goals[i]%32<<"\t"<<goals[i]/32<<"\t0"<<endl;
+        // cout<<"0\trandom-32-32-20.map\t32\t32\t"<<starts[i]%32<<"\t"<<starts[i]/32<<"\t"<<goals[i]%32<<"\t"<<goals[i]/32<<"\t0"<<endl;
         if (goal_location!=agent_info.goal_location){
             agent_info.goal_location=goal_location;
             agent_info.elapsed=0;
@@ -146,7 +146,7 @@ int LaCAM2Solver::get_neighbor_orientation(int loc1,int loc2) {
         return 3;
     }
 
-    cerr<<"loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
+    cout<<"loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
     exit(-1);
 
 }
@@ -171,7 +171,7 @@ float LaCAM2Solver::get_action_cost(int pst, int ost, int ped, int oed) {
         // north
         return map_weights[pst*5+3];
     } else {
-        std::cerr<<"invalid move"<<endl;
+        std::cout<<"invalid move"<<endl;
         exit(-1);
     }
 }
@@ -204,7 +204,7 @@ float LaCAM2Solver::eval_solution(const Instance & instance, const Solution & so
 
 void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * precomputed_paths, std::vector<::State> * starts, std::vector<::State> * goals){
     ONLYDEV(g_timer.record_p("lacam2_plan_pre_s");)
-    // std::cerr<<"random :"<<get_random_int(MT,0,100)<<std::endl;
+    // std::cout<<"random :"<<get_random_int(MT,0,100)<<std::endl;
 
     // g_timer.record_p("stats_tree_s");
     // StatsTree * stats_tree = new StatsTree(env.cols,env.rows);
@@ -233,7 +233,7 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
         auto instance = build_instance(env, precomputed_paths);
         if (starts!=nullptr) {
             if (goals==nullptr) {
-                std::cerr<<"not supported now! goals must be specified as well"<<endl;
+                std::cout<<"not supported now! goals must be specified as well"<<endl;
                 exit(-1);
             }
             instance.set_starts_and_goals(starts,goals);
@@ -243,9 +243,9 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
             // we need to check the initial states are the same.
             for (int i=0;i<env.num_of_agents;++i) {
                 if ((*precomputed_paths)[i].size()==0 || (*precomputed_paths)[i][0].location!=instance.starts.locs[i]->index) {
-                    cerr<<"agent "<<i<<" has zero-length precomputed paths or initial states are not the same!"<<endl;
-                    cerr<<"size: "<<(*precomputed_paths)[i].size()<<endl;
-                    cerr<<"states: "<<(*precomputed_paths)[i][0]<<" vs "<<instance.starts.locs[i]<<endl;
+                    cout<<"agent "<<i<<" has zero-length precomputed paths or initial states are not the same!"<<endl;
+                    cout<<"size: "<<(*precomputed_paths)[i].size()<<endl;
+                    cout<<"states: "<<(*precomputed_paths)[i][0]<<" vs "<<instance.starts.locs[i]<<endl;
                     exit(-1);
                 }
             }
@@ -282,7 +282,7 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
             precomputed_paths.resize(env.num_of_agents);
             for (int i=0;i<env.num_of_agents;++i){
                 if (suo.paths[i][0].pos!=env.curr_states[i].location || suo.paths[i][0].orient!=env.curr_states[i].orientation){
-                    cerr<<"agent "<<i<<"'s current state doesn't match with the plan"<<endl;
+                    cout<<"agent "<<i<<"'s current state doesn't match with the plan"<<endl;
                     exit(-1);
                 }
                 for (int j=0;j<suo.paths[i].size();++j){
@@ -336,7 +336,7 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
                     best_cost=cost;
                     best_solution=solution;
                 }
-                // std::cerr<<i<<precomputed_paths[i]<<endl;
+                // std::cout<<i<<precomputed_paths[i]<<endl;
             }
         // }
 
@@ -353,11 +353,11 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
             
             ONLYDEV(g_timer.record_p("lacam2_plan_copy_path_s");)
             for (int i=0;i<env.num_of_agents;++i) {
-                // cerr<<"xagent "<<i<<": ";
+                // cout<<"xagent "<<i<<": ";
                 // for (int j=1;j<solution.size();++j) {
-                //     cerr<<solution[j][i]->index<<" ";
+                //     cout<<solution[j][i]->index<<" ";
                 // }
-                // cerr<<endl;
+                // cout<<endl;
                 for (int j=0;j<best_solution.size();++j) {
                     paths[i].emplace_back(best_solution[j].locs[i]->index,j,best_solution[j].orients[i]);
                 }
@@ -400,11 +400,11 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
 
         // if (!read_param_json<bool>(config,"consider_rotation")) {
         //     for (int i=0;i<env.num_of_agents;++i) {
-        //         // cerr<<"xagent "<<i<<": ";
+        //         // cout<<"xagent "<<i<<": ";
         //         // for (int j=1;j<solution.size();++j) {
-        //         //     cerr<<solution[j][i]->index<<" ";
+        //         //     cout<<solution[j][i]->index<<" ";
         //         // }
-        //         // cerr<<endl;
+        //         // cout<<endl;
         //         for (int j=1;j<solution.size();++j) {
         //             paths[i].emplace_back(solution[j][i]->index,env.curr_states[i].timestep+j,-1);
         //         }
@@ -428,12 +428,12 @@ void LaCAM2Solver::plan(const SharedEnvironment & env, std::vector<Path> * preco
 
     //     for (int i=0;i<env.num_of_agents;++i) {
     //         if (next_states[i].timestep!=env.curr_states[i].timestep+1) {
-    //             std::cerr<<i<<" "<<next_states[i].timestep<<" "<<env.curr_states[i].timestep<<endl;
+    //             std::cout<<i<<" "<<next_states[i].timestep<<" "<<env.curr_states[i].timestep<<endl;
     //             exit(-1);
     //         }
 
     //         paths[i].emplace_back(next_states[i]);
-    //         // std::cerr<<i<<" "<<env.curr_states[i]<<" "<<next_states[i]<<endl;
+    //         // std::cout<<i<<" "<<env.curr_states[i]<<" "<<next_states[i]<<endl;
     //     }
     // }
 
@@ -570,7 +570,7 @@ void LaCAM2Solver::get_step_actions(const SharedEnvironment & env, vector<Action
         for (int i=0;i<env.num_of_agents;++i) {
             // we will get action indexed at timestep+1
             if (paths[i].size()<=timestep+1){
-                cerr<<"wierd error for agent "<<i<<". path length: "<<paths[i].size()<<", "<<"timestep+1: "<<timestep+1<<endl;
+                cout<<"wierd error for agent "<<i<<". path length: "<<paths[i].size()<<", "<<"timestep+1: "<<timestep+1<<endl;
                 assert(false);
             }
             actions.push_back(get_action_from_states(paths[i][timestep],paths[i][timestep+1]));
@@ -616,7 +616,7 @@ void LaCAM2Solver::get_step_actions(const SharedEnvironment & env, vector<Action
 
 
     // if (waiting_ratio>0.8 && !this->flag) {
-    //     std::cerr<<"dead lock!"<<endl;
+    //     std::cout<<"dead lock!"<<endl;
     //     exit(-1);
     //     std::this_thread::sleep_for(std::chrono::seconds(2));
     //     this->flag=true;
@@ -631,7 +631,7 @@ void LaCAM2Solver::get_step_actions(const SharedEnvironment & env, vector<Action
     // check if not valid, this should not happen in general if the algorithm is correct? but maybe there exist deadlocks.
     // TODO(hj) detect deadlock?
     if (!action_model.is_valid(env.curr_states,actions)){
-        cerr<<"planed actions are not valid in timestep "<<timestep+1<<"!"<<endl;
+        cout<<"planed actions are not valid in timestep "<<timestep+1<<"!"<<endl;
 #ifdef DEV
         exit(-1);
 #else

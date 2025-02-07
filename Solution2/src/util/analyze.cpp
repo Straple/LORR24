@@ -6,7 +6,7 @@ int get_orient_idx(string o) {
     if (o=="S") return 1;
     if (o=="W") return 2;
     if (o=="N") return 3;
-    std::cerr<<"unknown orientation: "<<o<<std::endl;
+    std::cout<<"unknown orientation: "<<o<<std::endl;
     exit(-1);
 }
 
@@ -21,7 +21,7 @@ void move(int & x,int & y,int & o, char action) {
         } else if (o==3) {
             y-=1;
         } else {
-            std::cerr<<"unknown orientaiton: "<<o<<std::endl;
+            std::cout<<"unknown orientaiton: "<<o<<std::endl;
             exit(-1);
         }
     } else if (action=='R') {
@@ -31,7 +31,7 @@ void move(int & x,int & y,int & o, char action) {
     } else if (action=='W') {
         // do nothing
     } else {
-        std::cerr<<"unknown action: "<<action<<std::endl;
+        std::cout<<"unknown action: "<<action<<std::endl;
         exit(-1);
     }
 
@@ -40,7 +40,7 @@ void move(int & x,int & y,int & o, char action) {
 nlohmann::json analyze_result_json(const nlohmann::json & result, int h, int w) {
     // objective: throughput
     double throughput=result["numTaskFinished"].get<double>();
-    std::cerr<<"throughput: "<<throughput<<std::endl;
+    std::cout<<"throughput: "<<throughput<<std::endl;
 
     // statistics:
     // 1. vertex usage
@@ -50,20 +50,20 @@ nlohmann::json analyze_result_json(const nlohmann::json & result, int h, int w) 
     std::vector<std::vector<double> > edge_usage(map_size, std::vector<double>(map_size,0));
 
     int team_size=result["teamSize"].get<int>();
-    std::cerr<<"team size: "<<team_size<<std::endl;
+    std::cout<<"team size: "<<team_size<<std::endl;
 
     auto actions_str = result["actualPaths"][0].get<std::string>();
     int T=actions_str.size()/2+1;
-    std::cerr<<"T: "<<T<<std::endl;
+    std::cout<<"T: "<<T<<std::endl;
 
     for (int aid=0;aid<team_size;++aid) {
         auto actions_str = result["actualPaths"][aid].get<std::string>();
-        // std::cerr<<"agent "<<aid<<" actions: "<<actions_str<<std::endl;
+        // std::cout<<"agent "<<aid<<" actions: "<<actions_str<<std::endl;
 
         auto start_y = result["start"][aid][0].get<int>();
         auto start_x = result["start"][aid][1].get<int>();
         auto start_orient = get_orient_idx(result["start"][aid][2].get<std::string>());
-        // std::cerr<<"agent "<<aid<<" start: "<<start_y<<","<<start_x<<","<<start_orient<<std::endl;
+        // std::cout<<"agent "<<aid<<" start: "<<start_y<<","<<start_x<<","<<start_orient<<std::endl;
 
         auto pos=start_y*w+start_x;
         // update vertex usage
@@ -74,7 +74,7 @@ nlohmann::json analyze_result_json(const nlohmann::json & result, int h, int w) 
         auto prev_y=start_y;
         auto prev_orient=start_orient;
         for (int i=0;i<actions_str.size();i=i+2) {
-            // std::cerr<<"iter "<<i<<std::endl;
+            // std::cout<<"iter "<<i<<std::endl;
             char action=actions_str[i];
             auto curr_x=prev_x;
             auto curr_y=prev_y;
@@ -82,7 +82,7 @@ nlohmann::json analyze_result_json(const nlohmann::json & result, int h, int w) 
             move(curr_x,curr_y,curr_orient,action);
 
             if (curr_x<0 || curr_x>=w || curr_y<0 || curr_y>=h) {
-                std::cerr<<"agent "<<aid<<" out of bound"<<std::endl;
+                std::cout<<"agent "<<aid<<" out of bound"<<std::endl;
                 exit(-1);
             }
 

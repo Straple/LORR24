@@ -63,7 +63,7 @@ Instance::Instance(const string& map_fname, const string& agent_fname,
 		}
 		else
 		{
-			cerr << "Map file " << map_fname << " not found." << endl;
+			cout << "Map file " << map_fname << " not found." << endl;
 			exit(-1);
 		}
 	}
@@ -79,7 +79,7 @@ Instance::Instance(const string& map_fname, const string& agent_fname,
 		}
 		else
 		{
-			cerr << "Agent file " << agent_fname << " not found." << endl;
+			cout << "Agent file " << agent_fname << " not found." << endl;
 			exit(-1);
 		}
 	}
@@ -402,7 +402,7 @@ bool Instance::loadAgents()
 	{
 		if (num_of_agents == 0)
 		{
-			cerr << "The number of agents should be larger than 0" << endl;
+			cout << "The number of agents should be larger than 0" << endl;
 			exit(-1);
 		}
 		start_locations.resize(num_of_agents);
@@ -413,7 +413,7 @@ bool Instance::loadAgents()
 			getline(myfile, line);
 			if (line.empty())
             {
-			    cerr << "Error! The instance has only " << i << " agents" << endl;
+			    cout << "Error! The instance has only " << i << " agents" << endl;
 			    exit(-1);
             }
 			tokenizer< char_separator<char> > tok(line, sep);
@@ -549,7 +549,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
     cout << "Validate solution ..." << endl;
     if (paths.size() != start_locations.size())
     {
-        cerr << "We have " << paths.size() << " for " << start_locations.size() << " agents." << endl;
+        cout << "We have " << paths.size() << " for " << start_locations.size() << " agents." << endl;
         exit(-1);
     }
     int sum = 0;
@@ -557,18 +557,18 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
     {
         if (paths[i] == nullptr or paths[i]->empty())
         {
-            cerr << "No path for agent " << i << endl;
+            cout << "No path for agent " << i << endl;
             exit(-1);
         }
         else if (start_locations[i] != paths[i]->front().location)
         {
-            cerr << "The path of agent " << i << " starts from location " << paths[i]->front().location
+            cout << "The path of agent " << i << " starts from location " << paths[i]->front().location
                  << ", which is different from its start location " << start_locations[i] << endl;
             exit(-1);
         }
         else if (goal_locations[i] != paths[i]->back().location)
         {
-            cerr << "The path of agent " << i << " ends at location " << paths[i]->back().location
+            cout << "The path of agent " << i << " ends at location " << paths[i]->back().location
                  << ", which is different from its goal location " << goal_locations[i] << endl;
             exit(-1);
         }
@@ -576,7 +576,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
         {
             if (!validMove(paths[i]->at(t - 1).location, paths[i]->at(t).location))
             {
-                cerr << "The path of agent " << i << " jumps from "
+                cout << "The path of agent " << i << " jumps from "
                      << paths[i]->at(t - 1).location << " to " << paths[i]->at(t).location
                      << " between timesteps " << t - 1 << " and " << t << endl;
                 exit(-1);
@@ -586,7 +586,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
     }
     if (sum_of_costs != sum)
     {
-        cerr << "The computed sum of costs " << sum_of_costs <<
+        cout << "The computed sum of costs " << sum_of_costs <<
              " is different from that of the solution " << sum << endl;
         exit(-1);
     }
@@ -606,7 +606,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
                 {
                     if (num_of_colliding_pairs == 0)
                     {
-                        cerr << "Find a vertex conflict between agents " << a1 << " and " << a2 <<
+                        cout << "Find a vertex conflict between agents " << a1 << " and " << a2 <<
                              " at location " << paths[a1]->at(t).location << " at timestep " << t << endl;
                         exit(-1);
                     }
@@ -619,7 +619,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
                 {
                     if (num_of_colliding_pairs == 0)
                     {
-                        cerr << "Find an edge conflict between agents " << a1 << " and " << a2 <<
+                        cout << "Find an edge conflict between agents " << a1 << " and " << a2 <<
                              " at edge (" << paths[a1]->at(t-1).location << "," << paths[a1]->at(t).location <<
                              ") at timestep " << t << endl;
                         exit(-1);
@@ -638,7 +638,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
                     {
                         if (num_of_colliding_pairs == 0)
                         {
-                            cerr << "Find a target conflict where agent " << a2 << " (of length " << paths[a2]->size() - 1 <<
+                            cout << "Find a target conflict where agent " << a2 << " (of length " << paths[a2]->size() - 1 <<
                                  ") traverses agent " << a1 << " (of length " << paths[a1]->size() - 1<<
                                  ")'s target location " << target << " at timestep " << t << endl;
                             exit(-1);
@@ -652,7 +652,7 @@ bool Instance::validateSolution(const vector<Path*>& paths, int sum_of_costs, in
     }
     if (collisions != num_of_colliding_pairs)
     {
-        cerr << "The computed number of colliding pairs " << num_of_colliding_pairs <<
+        cout << "The computed number of colliding pairs " << num_of_colliding_pairs <<
              " is different from that of the solution " << collisions << endl;
         exit(-1);
     }

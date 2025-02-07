@@ -65,7 +65,7 @@ public:
 
     void add_successor(int pos, int orient, float g, float h, State * prev) {
 
-        // std::cerr<<"add successor: "<<pos<<" "<<orient<<" "<<g<<" "<<h<<std::endl;
+        // std::cout<<"add successor: "<<pos<<" "<<orient<<" "<<g<<" "<<h<<std::endl;
         successors[n_successors].pos=pos;
         successors[n_successors].orient=orient;
         successors[n_successors].g=g;
@@ -90,7 +90,7 @@ public:
                 int next_pos=pos+1;
                 if (env.map[next_pos]==0) {
                     int weight_idx=pos*n_dirs;
-                    // std::cerr<<"east: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
+                    // std::cout<<"east: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
                     add_successor(next_pos, -1, curr->g+weights[weight_idx], 0, curr);
                 }
             }
@@ -100,7 +100,7 @@ public:
                 int next_pos=pos+env.cols;
                 if (env.map[next_pos]==0) {
                     int weight_idx=pos*n_dirs+1;
-                    // std::cerr<<"south: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
+                    // std::cout<<"south: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
                     add_successor(next_pos, -1, curr->g+weights[weight_idx], 0, curr);
                 }
             }
@@ -110,7 +110,7 @@ public:
                 int next_pos=pos-1;
                 if (env.map[next_pos]==0) {
                     int weight_idx=pos*n_dirs+2;
-                    // std::cerr<<"west: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
+                    // std::cout<<"west: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
                     add_successor(next_pos, -1, curr->g+weights[weight_idx], 0, curr);
                 }
             }
@@ -120,7 +120,7 @@ public:
                 int next_pos=pos-env.cols;
                 if (env.map[next_pos]==0) {
                     int weight_idx=pos*n_dirs+3;
-                    // std::cerr<<"north: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
+                    // std::cout<<"north: "<<next_pos<<" "<<curr->g<<" "<<weights[weight_idx]<<endl;
                     add_successor(next_pos, -1, curr->g+weights[weight_idx], 0, curr);
                 }
             }
@@ -170,7 +170,7 @@ public:
                     }
                 }
             } else {
-                std::cerr<<"spatial search in heuristics: invalid orient: "<<orient<<endl;
+                std::cout<<"spatial search in heuristics: invalid orient: "<<orient<<endl;
                 exit(-1);
             }
         
@@ -221,7 +221,7 @@ public:
         while (!open_list->empty()) {
             State * curr=open_list->pop();
             curr->closed=true;
-            // cerr<<curr->pos<<" "<<curr->orient<<" "<<curr->g<<" "<<curr->h<<endl;
+            // cout<<curr->pos<<" "<<curr->orient<<" "<<curr->g<<" "<<curr->h<<endl;
 
             get_successors(curr);
             for (int i=0;i<n_successors;++i) {

@@ -126,7 +126,7 @@ Neighbor NeighborGenerator::generate(const TimeLimiter & time_limiter,int idx) {
                     break;
                 }
             default:
-                cerr << "Wrong neighbor generation strategy" << endl;
+                cout << "Wrong neighbor generation strategy" << endl;
                 exit(-1);
         }
         // ONLYDEV(g_timer.record_d("generate_neighbor_s","generate_neighbor_e","generate_neighbor");)
@@ -167,7 +167,7 @@ void NeighborGenerator::chooseDestroyHeuristicbyALNS() {
         case 0 : destroy_strategy = RANDOMWALK; break;
         case 1 : destroy_strategy = INTERSECTION; break;
         case 2 : destroy_strategy = RANDOMAGENTS; break;
-        default : cerr << "ERROR" << endl; exit(-1);
+        default : cout << "ERROR" << endl; exit(-1);
     }
 }
 
@@ -379,7 +379,7 @@ std::list<std::pair<int,int> > NeighborGenerator::getSuccessors(int pos, int ori
             }
         }
     } else {
-        std::cerr<<"NeighborGenerator: invalid orient: "<<orient<<endl;
+        std::cout<<"NeighborGenerator: invalid orient: "<<orient<<endl;
         exit(-1);
     }
 

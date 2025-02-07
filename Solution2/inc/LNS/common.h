@@ -37,7 +37,7 @@ using std::clock;
 using std::cout;
 using std::endl;
 using std::ofstream;
-using std::cerr;
+using std::cout;
 using std::string;
 using namespace std::chrono;
 typedef std::chrono::high_resolution_clock Time;

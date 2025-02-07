@@ -124,8 +124,8 @@ int main(int argc, char **argv) {
     try {
         data = json::parse(f);
     } catch (json::parse_error error) {
-        std::cerr << "Failed to load " << input_json_file << std::endl;
-        std::cerr << "Message: " << error.what() << std::endl;
+        std::cout << "Failed to load " << input_json_file << std::endl;
+        std::cout << "Message: " << error.what() << std::endl;
         exit(1);
     }
 

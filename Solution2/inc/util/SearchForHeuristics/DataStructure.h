@@ -72,7 +72,7 @@ public:
 
     void push(State * s) {
         // if (full()) {
-        //     std::cerr<<"the heap is full!"<<std::endl;
+        //     std::cout<<"the heap is full!"<<std::endl;
         //     exit(-1);
         // }
 
@@ -84,7 +84,7 @@ public:
 
     State * pop() {
         // if (empty()) {
-        //     std::cerr<<"the heap is empty!"<<std::endl;
+        //     std::cout<<"the heap is empty!"<<std::endl;
         //     exit(-1);
         // }
 

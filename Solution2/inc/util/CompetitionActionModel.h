@@ -107,8 +107,8 @@ public:
                 int ny=new_location/env->cols;
 
                 if ((x==env->cols-1 && prev.orientation==0) || (y==env->rows-1 && prev.orientation==1) || (x==0 && prev.orientation==2) || (y==0 && prev.orientation==3)) {
-                    // std::cerr<<"cannot forward: "<<(x==env->cols-1 && prev.orientation==0)<< (y==env->rows-1 && prev.orientation==1) << (x==0 && prev.orientation==2) << (y==0 )<<endl;
-                    // std::cerr<<"pos"<<x<<","<<y<<endl;
+                    // std::cout<<"cannot forward: "<<(x==env->cols-1 && prev.orientation==0)<< (y==env->rows-1 && prev.orientation==1) << (x==0 && prev.orientation==2) << (y==0 )<<endl;
+                    // std::cout<<"pos"<<x<<","<<y<<endl;
                     return State(-1,prev.timestep+1,new_orientation=prev.orientation);
                 }
 
@@ -206,7 +206,7 @@ public:
         int new_orientation = prev.orientation;
 
         if (action == Action::NA) {
-            // std::cerr<<"have action NA in result state"<<std::endl;
+            // std::cout<<"have action NA in result state"<<std::endl;
         } else {
             new_location = new_location + moves[action];
         }

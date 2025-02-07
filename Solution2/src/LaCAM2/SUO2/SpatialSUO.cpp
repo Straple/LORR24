@@ -66,7 +66,7 @@ void SUO::plan() {
                 planner->remove_path_cost(old_path, vertex_collision_cost);
                 State * goal_state = planner->search(start_pos, start_orient, goal_pos);
                 if (goal_state==nullptr) {
-                    cerr<<"SUO: agent "<<agent_idx<<" failed to find a path"<<endl;
+                    cout<<"SUO: agent "<<agent_idx<<" failed to find a path"<<endl;
                     exit(-1);
                 }
                 // we recover the path cost and wait for a global update
@@ -80,7 +80,7 @@ void SUO::plan() {
         
                 // g_timer.record_p("Astar_s");
                 // double d=g_timer.record_d("Astar_s","Astar");
-                // cerr<<"a star time cost"<<d<<endl;
+                // cout<<"a star time cost"<<d<<endl;
             }
 
             deltas.clear();

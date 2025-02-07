@@ -45,7 +45,7 @@ void SmartMAPFPlanner::load_configs() {
             std::cout<<"load weight from "<<env_weight_path<<std::endl;
         }
 
-        std::cerr<<config<<std::endl;
+        std::cout<<config<<std::endl;
         config["lifelong_solver_name"]=read_conditional_value(config,"lifelong_solver_name",env->num_of_agents);
         config["map_weights_path"]=read_conditional_value(config,"map_weights_path",env->num_of_agents);
 
@@ -158,7 +158,7 @@ void SmartMAPFPlanner::rhcr_config_solver(std::shared_ptr<RHCR::RHCRSolver> & so
     solver->simulation_window = read_param_json<int>(config,"simulation_window");
     solver->planning_window = read_param_json<int>(config,"planning_window");
     if (solver->simulation_window>solver->planning_window){
-        cerr<<boost::format("Error: the simulation window %d can not be larger than the planning window %d!")% \
+        cout<<boost::format("Error: the simulation window %d can not be larger than the planning window %d!")% \
         solver->simulation_window % solver->planning_window<<endl;
         exit(1);
     }
@@ -188,7 +188,7 @@ std::string SmartMAPFPlanner::load_map_weights(string weights_path) {
         {
             nlohmann::json _weights = nlohmann::json::parse(f);
             if (_weights.size()!=map_weights->size()) {
-                std::cerr<<"map weights size mismatch"<<std::endl;
+                std::cout<<"map weights size mismatch"<<std::endl;
                 exit(-1);
             }
 
@@ -199,8 +199,8 @@ std::string SmartMAPFPlanner::load_map_weights(string weights_path) {
         }
         catch (nlohmann::json::parse_error error)
         {
-            std::cerr << "Failed to load " << weights_path << std::endl;
-            std::cerr << "Message: " << error.what() << std::endl;
+            std::cout << "Failed to load " << weights_path << std::endl;
+            std::cout << "Message: " << error.what() << std::endl;
             exit(1);
         }
 
@@ -241,7 +241,7 @@ void SmartMAPFPlanner::initialize(int preprocess_time_limit) {
         cout<<"RHCRSolver initialized"<<endl;
     } else if (lifelong_solver_name=="LaCAM2") {
         if (!read_param_json<bool>(config["LaCAM2"],"consider_rotation")) {
-            std::cerr<<"In LaCAM2, must consider rotation when compiled with NO_ROT unset"<<std::endl;
+            std::cout<<"In LaCAM2, must consider rotation when compiled with NO_ROT unset"<<std::endl;
             exit(-1);
         }
 
@@ -258,7 +258,7 @@ void SmartMAPFPlanner::initialize(int preprocess_time_limit) {
         cout<<"LaCAMSolver2 initialized"<<endl;
     } else if (lifelong_solver_name=="LNS") {
         if (read_param_json<bool>(config["LNS"]["LaCAM2"],"consider_rotation")) {
-            std::cerr<<"In LNS, must not consider rotation when compiled with NO_ROT unset"<<std::endl;
+            std::cout<<"In LNS, must not consider rotation when compiled with NO_ROT unset"<<std::endl;
             exit(-1);
         }
         auto heuristics =std::make_shared<HeuristicTable>(env,map_weights,true);
@@ -279,7 +279,7 @@ void SmartMAPFPlanner::initialize(int preprocess_time_limit) {
         cout<<"using dummy solver"<<endl;
     }
     else {
-        cerr<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
+        cout<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
         exit(-1);
     }
 
@@ -330,7 +330,7 @@ void SmartMAPFPlanner::plan(int time_limit,vector<Action> & actions)
         cout<<"using DUMMY"<<endl;
     } 
     else {
-        cerr<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
+        cout<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
         exit(-1);
     }
 
@@ -340,7 +340,7 @@ void SmartMAPFPlanner::plan(int time_limit,vector<Action> & actions)
             max_step_time=step_time;
         }
 
-        std::cerr<<"max_step_time: "<<max_step_time<<endl;
+        std::cout<<"max_step_time: "<<max_step_time<<endl;
         g_timer.remove_d("_step");
     )
 
@@ -519,8 +519,8 @@ void MAPFPlanner::load_configs() {
     }
     catch (nlohmann::json::parse_error error)
     {
-        std::cerr << "Failed to load " << config_path << std::endl;
-        std::cerr << "Message: " << error.what() << std::endl;
+        std::cout << "Failed to load " << config_path << std::endl;
+        std::cout << "Message: " << error.what() << std::endl;
         exit(1);
     }
 }
@@ -537,7 +537,7 @@ std::string MAPFPlanner::load_map_weights(string weights_path) {
         {
             nlohmann::json _weights = nlohmann::json::parse(f);
             if (_weights.size()!=map_weights->size()) {
-                std::cerr<<"map weights size mismatch"<<std::endl;
+                std::cout<<"map weights size mismatch"<<std::endl;
                 exit(-1);
             }
 
@@ -548,8 +548,8 @@ std::string MAPFPlanner::load_map_weights(string weights_path) {
         }
         catch (nlohmann::json::parse_error error)
         {
-            std::cerr << "Failed to load " << weights_path << std::endl;
-            std::cerr << "Message: " << error.what() << std::endl;
+            std::cout << "Failed to load " << weights_path << std::endl;
+            std::cout << "Message: " << error.what() << std::endl;
             exit(1);
         }
 
@@ -585,7 +585,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
         || read_param_json<bool>(config["LaCAM2"],"consider_rotation")
         || read_param_json<bool>(config["LaCAM2"],"use_slow_executor")
         ) {
-            std::cerr<<"no allowed to use orient when compiled with NO_ROT"<<std::endl;
+            std::cout<<"no allowed to use orient when compiled with NO_ROT"<<std::endl;
             exit(-1);
         }
         auto heuristics =std::make_shared<HeuristicTable>(env,read_param_json<bool>(config["LNS"]["LaCAM2"],"use_orient_in_heuristic"));
@@ -598,7 +598,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
         || read_param_json<bool>(config["LNS"]["LaCAM2"],"consider_rotation")
         || read_param_json<bool>(config["LNS"]["LaCAM2"],"use_slow_executor")
         ) {
-            std::cerr<<"no allowed to use orient when compiled with NO_ROT"<<std::endl;
+            std::cout<<"no allowed to use orient when compiled with NO_ROT"<<std::endl;
             exit(-1);
         }
 
@@ -619,7 +619,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
         cout<<"LNSSolver initialized"<<endl;
     }
     else {
-        cerr<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
+        cout<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
         exit(-1);
     }
 
@@ -649,7 +649,7 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
         lns_solver->plan(*env); 
         lns_solver->get_step_actions(*env,actions);
     } else {
-        cerr<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
+        cout<<"unknown lifelong solver name"<<lifelong_solver_name<<endl;
         exit(-1);
     }
 

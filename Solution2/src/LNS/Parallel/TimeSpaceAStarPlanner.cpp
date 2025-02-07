@@ -33,7 +33,7 @@ void TimeSpaceAStarPlanner::findPath(int start_pos, int start_orient, int goal_p
         }
 
         if (curr->t>=constraint_table.window_size_for_PATH) {
-            // std::cerr<<"collision: "<<curr->num_of_conflicts<<std::endl;
+            // std::cout<<"collision: "<<curr->num_of_conflicts<<std::endl;
             buildPath(curr,goal_pos);
             return;
         }
@@ -60,7 +60,7 @@ void TimeSpaceAStarPlanner::findPath(int start_pos, int start_orient, int goal_p
                     old_state->copy(next_state);
                     if (old_state->closed) {
                         // if (!old_state->arrived){
-                        //     std::cerr<<"reopen"<<std::endl;
+                        //     std::cout<<"reopen"<<std::endl;
                         //     exit(-1);
                         // }
                         // reopen closed state
@@ -175,7 +175,7 @@ void TimeSpaceAStarPlanner::getSuccessors(State * curr, int goal_pos, Constraint
             }
         }
     } else {
-        std::cerr<<"TimeSpaceAStartPlanner: invalid orient: "<<orient<<endl;
+        std::cout<<"TimeSpaceAStartPlanner: invalid orient: "<<orient<<endl;
         exit(-1);
     }
 

@@ -7,11 +7,11 @@ void PathTable::insertPath(int agent_id, const Path& _path, bool verbose)
 {
 
     if (verbose) {
-        std::cerr<<"insertPath for agent "<<agent_id<<" paths: ";
+        std::cout<<"insertPath for agent "<<agent_id<<" paths: ";
         for (auto p : _path) {
-            std::cerr<<p.location<<" ";
+            std::cout<<p.location<<" ";
         }
-        std::cerr<<std::endl;
+        std::cout<<std::endl;
     }
 
     if (_path.empty())
@@ -38,11 +38,11 @@ void PathTable::insertPath(int agent_id, const Path& _path, bool verbose)
 void PathTable::deletePath(int agent_id, const Path& _path,bool verbose)
 {
     if (verbose) {
-        std::cerr<<"deletePath for agent "<<agent_id<<" paths: ";
+        std::cout<<"deletePath for agent "<<agent_id<<" paths: ";
         for (auto p : _path) {
-            std::cerr<<p.location<<" ";
+            std::cout<<p.location<<" ";
         }
-        std::cerr<<std::endl;
+        std::cout<<std::endl;
     }
 
     if (_path.empty())
@@ -79,11 +79,11 @@ void PathTable::insertPath(int agent_id, const Parallel::Path& _path, bool verbo
 {
 
     if (verbose) {
-        std::cerr<<"insertPath for agent "<<agent_id<<" paths: ";
+        std::cout<<"insertPath for agent "<<agent_id<<" paths: ";
         for (auto p : _path.nodes) {
-            std::cerr<<p.location<<","<<p.orientation<<" ";
+            std::cout<<p.location<<","<<p.orientation<<" ";
         }
-        std::cerr<<std::endl;
+        std::cout<<std::endl;
     }
 
     if (_path.nodes.empty())
@@ -103,10 +103,10 @@ void PathTable::insertPath(int agent_id, const Parallel::Path& _path, bool verbo
             table[path[t].location].resize(t + 1, NO_AGENT);
         // assert(table[path[t].location][t] == NO_AGENT);
             
-        // cerr<<t<<","<<table[path[t].location][t]<<" ";
+        // cout<<t<<","<<table[path[t].location][t]<<" ";
         table[path[t].location][t] = agent_id;
     }
-    // cerr<<endl;
+    // cout<<endl;
 
     // TODO(rivers): check whether we need maintain goals and makespan in the life-long setting
     // assert(goals[path.back().location] == MAX_TIMESTEP);
@@ -117,11 +117,11 @@ void PathTable::insertPath(int agent_id, const Parallel::Path& _path, bool verbo
 void PathTable::deletePath(int agent_id, const Parallel::Path& _path,bool verbose)
 {
     if (verbose) {
-        std::cerr<<"deletePath for agent "<<agent_id<<" paths: ";
+        std::cout<<"deletePath for agent "<<agent_id<<" paths: ";
         for (auto p : _path.nodes) {
-            std::cerr<<p.location<<","<<p.orientation<<" ";
+            std::cout<<p.location<<","<<p.orientation<<" ";
         }
-        std::cerr<<std::endl;
+        std::cout<<std::endl;
     }
 
     if (_path.nodes.empty())

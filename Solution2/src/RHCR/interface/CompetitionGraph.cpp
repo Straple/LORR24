@@ -205,7 +205,7 @@ void CompetitionGraph::compute_heuristics(
         const State & prev_s = pop(queue,s_idx);
         for (auto & s : get_reverse_neighbors(prev_s)){
             // if (root_location==2318){
-            //     cerr<<"s:"<<s<<endl;
+            //     cout<<"s:"<<s<<endl;
             // }
             s.timestep=prev_s.timestep+1;
             int idx=s.location*n_directions+s.orientation;
@@ -222,7 +222,7 @@ void CompetitionGraph::compute_heuristics(
             result[i]=min(result[i],lengths[i*n_directions+d]);
         }
         if (result[i]>USHRT_MAX && result[i]<DBL_MAX){
-            cerr<<"err:"<<result[i]<<endl;
+            cout<<"err:"<<result[i]<<endl;
             assert(!"failed");
         }
     }
@@ -374,7 +374,7 @@ void CompetitionGraph::save_heuristics_table(std::string fname)
 
     auto end = std::chrono::steady_clock::now();
 	double runtime = std::chrono::duration<double>(end-start).count();
-    std::cerr << "write out locs (" << runtime << " s)" << std::endl;
+    std::cout << "write out locs (" << runtime << " s)" << std::endl;
 
     // TODO(hj): a wired bug encountered: if I create a N*N buff, the following lines in this function will be skipped.
     // However, it doesn't report an memory error, such as out-of-memery. 
@@ -394,7 +394,7 @@ void CompetitionGraph::save_heuristics_table(std::string fname)
             else if (h>USHRT_MAX && h<DBL_MAX){
                 auto & G=*this;
                 // TODO(hj): this is a protection. if not true, we probably need to consider other data type.
-                cerr<<"h value("<<h<<") from loc1("<<G.get_row(loc1)<<","<<G.get_col(loc1)<<") to loc2("<<G.get_row(loc2)<<","<<G.get_col(loc2)<<") exceeds the unsigned short limit("<<USHRT_MAX<<")!"<<endl;
+                cout<<"h value("<<h<<") from loc1("<<G.get_row(loc1)<<","<<G.get_col(loc1)<<") to loc2("<<G.get_row(loc2)<<","<<G.get_col(loc2)<<") exceeds the unsigned short limit("<<USHRT_MAX<<")!"<<endl;
                 // NOTE(hj): assert only works when DBEUG is set! probably need better assertion and logging tools.
                 assert(!"failed");
                 v=USHRT_MAX;
@@ -408,7 +408,7 @@ void CompetitionGraph::save_heuristics_table(std::string fname)
 
     end = std::chrono::steady_clock::now();
 	runtime = std::chrono::duration<double>(end-start).count();
-    std::cerr << "write out heuristics table (" << runtime << " s)" << std::endl;
+    std::cout << "write out heuristics table (" << runtime << " s)" << std::endl;
 
     boost::iostreams::close(outbuf);
     myfile.close();

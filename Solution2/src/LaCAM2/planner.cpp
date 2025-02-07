@@ -26,7 +26,7 @@ int get_neighbor_orientation(const Graph & G, int loc1, int loc2, int default_va
       return default_value;
     }
 
-    std::cerr<<"loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
+    std::cout<<"loc1 and loc2 are not neighbors: "<<loc1<<", "<<loc2<<endl;
     exit(-1);
 
 }
@@ -158,7 +158,7 @@ HNode::HNode(const Config& _C, const std::shared_ptr<HeuristicTable> & HT, Insta
   //         if (h1!=h2) return h1<h2;
   //         return a.tie_breaker>b.tie_breaker;
   //       } else {
-  //         std::cerr<<"unknown strategy"<<std::endl;
+  //         std::cout<<"unknown strategy"<<std::endl;
   //         exit(-1);
   //       }
 
@@ -256,7 +256,7 @@ Solution Planner::solve(std::string& additional_info, int order_strategy)
     // do not pop here!
     auto H = OPEN.top();  // high-level node
   
-    // cerr<<"configs "<<H->d<<" "<<H->C<<endl;
+    // cout<<"configs "<<H->d<<" "<<H->C<<endl;
 
     // only plan for one step now
     // check goal condition: only require someone to arrive in lifelong case
@@ -322,7 +322,7 @@ Solution Planner::solve(std::string& additional_info, int order_strategy)
     //   if (res){
     //     for (auto a : A) _C_new[a->id] = a->v_next;
     //     _h_val=get_h_value(_C_new);
-    //     // cerr<<MC_idx<<" "<<_h_val<<endl;
+    //     // cout<<MC_idx<<" "<<_h_val<<endl;
     //   }
 
     //   if (!found) {
@@ -331,7 +331,7 @@ Solution Planner::solve(std::string& additional_info, int order_strategy)
     //     h_val=get_h_value(C_new);
     //     // if (_h_val<h_val) {
     //     //   C_new=_C_new;
-    //     //   // cerr<<MC_idx<<" best: "<<_h_val<<endl;
+    //     //   // cout<<MC_idx<<" best: "<<_h_val<<endl;
     //     // } else if (_h_val==h_val) {
     //       for (auto aid: H->order) {
     //         int h=HT->get(C_new[aid]->index,ins->goals[aid]->index);
@@ -363,7 +363,7 @@ Solution Planner::solve(std::string& additional_info, int order_strategy)
       next_states.reserve(N);
 
       for (int i=0;i<N;++i){
-        // cerr<<"ddd "<<i<<" "<<H->C.locs[i]->index<<" "<<H->C.orients[i]<<" "<<A[i]->v_next->index<<endl;
+        // cout<<"ddd "<<i<<" "<<H->C.locs[i]->index<<" "<<H->C.orients[i]<<" "<<A[i]->v_next->index<<endl;
         curr_states.emplace_back(H->C.locs[i]->index,0,H->C.orients[i]);
         planned_next_states.emplace_back(A[i]->v_next->index,-1,-1);
         next_states.emplace_back(-1,-1,-1);
@@ -507,7 +507,7 @@ float Planner::get_h_value(const Config& C)
 
 std::vector<std::tuple<Vertex *,int> > Planner::get_successors(Vertex *v, int orient) {
 #ifdef NO_ROT
-  cerr<<"NO_ROT is not supported now"<<endl;
+  cout<<"NO_ROT is not supported now"<<endl;
   exit(-1);
 #else
   std::vector<std::tuple<Vertex *,int> > successors;
@@ -556,7 +556,7 @@ std::vector<std::tuple<Vertex *,int> > Planner::get_successors(Vertex *v, int or
           }
       }
   } else {
-      std::cerr<<"spatial search in heuristics: invalid orient: "<<orient<<endl;
+      std::cout<<"spatial search in heuristics: invalid orient: "<<orient<<endl;
       exit(-1);
   } 
 
@@ -615,7 +615,7 @@ bool Planner::get_new_config(HNode* H, LNode* L)
 
   // for (int i=0;i<occupied_next.size();++i){
   //   if (occupied_next[i]!=nullptr) {
-  //     cerr<<"occupied_next is not empty"<<endl;
+  //     cout<<"occupied_next is not empty"<<endl;
   //     exit(-1);
   //   }
   // }
@@ -627,7 +627,7 @@ bool Planner::get_new_config(HNode* H, LNode* L)
 
     // check vertex collision
     if (occupied_next[l] != nullptr){
-      // cerr<<"vertex collision"<<endl;
+      // cout<<"vertex collision"<<endl;
       // exit(-1);
       return false;
     }
@@ -635,7 +635,7 @@ bool Planner::get_new_config(HNode* H, LNode* L)
     auto l_pre = H->C.locs[i]->id;
     if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
         occupied_next[l_pre]->id == occupied_now[l]->id) {
-          // cerr<<"swap collision"<<endl;
+          // cout<<"swap collision"<<endl;
           // exit(-1);
       return false;
     }
@@ -649,7 +649,7 @@ bool Planner::get_new_config(HNode* H, LNode* L)
   for (auto k : H->order) {
     auto a = A[k];
     if (a->v_next == nullptr && !funcPIBT(a,H)){
-      // cerr<<"planning failture"<<endl;
+      // cout<<"planning failture"<<endl;
       // exit(-1);
       return false;  // planning failure
     } 
@@ -682,7 +682,7 @@ float Planner::get_cost_move(int pst, int ped) {
     return (*map_weights)[pst*5+4]; // means no move is needed.
   }
   else {
-    std::cerr<<"invalid move: "<<pst<<" "<<ped<<endl;
+    std::cout<<"invalid move: "<<pst<<" "<<ped<<endl;
     exit(-1);
   }
 
@@ -704,8 +704,8 @@ bool Planner::funcPIBT(Agent* ai, HNode * H)
   tie_breakers[ai->v_now->id] = get_random_float(MT);  // set tie-breaker
 
   // for (int j=0;j<K+1;++j){
-  //     std::cerr<<"check C_next "<<j<<" "<<K<<endl;
-  //     std::cerr<<C_next[i][j]<<endl;
+  //     std::cout<<"check C_next "<<j<<" "<<K<<endl;
+  //     std::cout<<C_next[i][j]<<endl;
   // }
 
   std::vector<std::tuple<int, float, float, Vertex *> > scores;
@@ -769,7 +769,7 @@ bool Planner::funcPIBT(Agent* ai, HNode * H)
   //   // double cost_next_move_1=ai->v_now->index==v->index?cost_rot:get_cost_move(ai->v_now->index,v->index);
   //   // double cost_next_move_2=ai->v_now->index==u->index?cost_rot:get_cost_move(ai->v_now->index,u->index);
 
-  //   // cerr<<o1<<" "<<o2<<" "<<o0<<" "<<o_dist1<<" "<<o_dist2<<endl;
+  //   // cout<<o1<<" "<<o2<<" "<<o0<<" "<<o_dist1<<" "<<o_dist2<<endl;
 
   //   float d1,d2;
   //   if (use_orient_in_heuristic){
@@ -888,7 +888,7 @@ bool Planner::funcPIBT(Agent* ai, HNode * H)
   //   //   }
   //   // }
 
-  //   // cerr<<d1<<" "<<d2<<endl;
+  //   // cout<<d1<<" "<<d2<<endl;
 
   //   // TODO(rivers): The PIBT thing is just too sensitive to the hyper-parameters and the implementation...
 
