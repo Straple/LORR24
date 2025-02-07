@@ -324,7 +324,7 @@ void SmartMAPFPlanner::plan(int time_limit,vector<Action> & actions)
     } else if (lifelong_solver_name=="LNS") {
         ONLYDEV(cout<<"using LNS"<<endl;)
         lns_solver->observe(*env);
-        lns_solver->plan(*env); 
+        lns_solver->plan(*env, time_limit);
         lns_solver->get_step_actions(*env,actions);
     } else if (lifelong_solver_name=="DUMMY") {
         cout<<"using DUMMY"<<endl;

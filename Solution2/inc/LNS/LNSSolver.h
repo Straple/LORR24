@@ -29,7 +29,7 @@ public:
     // int executed_plan_step = -1;
     void initialize(const SharedEnvironment & env);
     void observe(const SharedEnvironment & env);
-    void plan(const SharedEnvironment & env);
+    void plan(const SharedEnvironment & env, int time_limit);
     void get_step_actions(const SharedEnvironment & env, vector<Action> & actions);
     // Action get_action_from_states(const State & state, const State & next_state);
     // [end]

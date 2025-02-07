@@ -38,8 +38,8 @@ void LNSSolver::initialize(const SharedEnvironment & env){
     //         obstacle_stats_tree->update(pos,1);
     //     }
     // }
-    
-    // agent_stats_tree = std::make_shared<StatsTree>(env.cols,env.rows); 
+
+    // agent_stats_tree = std::make_shared<StatsTree>(env.cols,env.rows);
     // lacam2_solver->initialize(env); // it is initialized already outside.
     execution_paths.resize(env.num_of_agents);
     planning_paths.resize(env.num_of_agents);
@@ -94,10 +94,10 @@ std::vector<State> subvector(std::vector<State> & v, int start, int end) {
     return ret;
 }
 
-void LNSSolver::plan(const SharedEnvironment & env){
+void LNSSolver::plan(const SharedEnvironment & env, int time_limit){
     // TODO(rivers): make it configurable.
-    double time_limit=read_param_json<double>(config,"cutoffTime");
-    TimeLimiter time_limiter(time_limit);
+    //double time_limit=read_param_json<double>(config,"cutoffTime");
+    TimeLimiter time_limiter((time_limit - 50) * 0.001, env);
 
     ONLYDEV(g_timer.record_p("_plan_s");)
 
@@ -137,7 +137,7 @@ void LNSSolver::plan(const SharedEnvironment & env){
             // use lacam2 to get a initial solution
             // TODO(rivers): the following line may need to be optimized. There is no need to rebuild the graph G again.
             lacam2_solver->clear(env);
-            
+
             // TODO(rivers): we should avoid copy here. we may use deque for paths.
             ONLYDEV(g_timer.record_p("copy_paths_1_s");)
             vector<::Path> precomputed_paths;
@@ -161,7 +161,7 @@ void LNSSolver::plan(const SharedEnvironment & env){
             ONLYDEV(g_timer.record_d("copy_paths_1_s","copy_paths_1_e","copy_paths_1");)
 
 
-            // TODO: lacam2_solver should plan with starts differnt from env.curr_states but goals the same as env.goals because they are up-to-date. 
+            // TODO: lacam2_solver should plan with starts differnt from env.curr_states but goals the same as env.goals because they are up-to-date.
             lacam2_solver->plan(env, &precomputed_paths, &starts, &goals);
             // cout<<"lacam succeed"<<endl;
 
@@ -198,7 +198,7 @@ void LNSSolver::plan(const SharedEnvironment & env){
     }
 
 
-    // TODO(rivers): not sure what's bug making it cannot be placed in initialize()    
+    // TODO(rivers): not sure what's bug making it cannot be placed in initialize()
     ONLYDEV(g_timer.record_p("prepare_LNS_s");)
     if (env.curr_timestep==0){
         // build instace
@@ -285,7 +285,7 @@ void LNSSolver::plan(const SharedEnvironment & env){
         // cerr<<"agent "<<i<<": ";
         // for (int j=0;j<lns->agents[i].path.size();++j){
         //     cerr<<lacam2_solver->paths[i][j].location<<" ";
-        // }   
+        // }
         // cerr<<endl;
     }
     ONLYDEV(g_timer.record_d("copy_paths_2_s","copy_paths_2_e","copy_paths_2");)
@@ -355,18 +355,18 @@ void LNSSolver::plan(const SharedEnvironment & env){
     //     cerr<<"agent "<<i<<": ";
     //     for (int j=0;j<paths[i].size();++j){
     //         cerr<<paths[i][j].location<<" ";
-    //     }   
+    //     }
     //     cerr<<endl;
     // }
     ONLYDEV(g_timer.record_d("plan_s","plan_e","plan");)
 
     ONLYDEV(
-        double plan_time=g_timer.record_d("_plan_s","_plan_e","_plan");  
+        double plan_time=g_timer.record_d("_plan_s","_plan_e","_plan");
         if (plan_time>max_plan_time) {
             max_plan_time=plan_time;
         }
         std::cerr<<"max_plan_time: "<<max_plan_time<<endl;
-        g_timer.remove_d("_plan");  
+        g_timer.remove_d("_plan");
         // if (plan_time>1.0){
         //     exit(-1);
         // }
@@ -377,7 +377,7 @@ void LNSSolver::plan(const SharedEnvironment & env){
 void LNSSolver::observe(const SharedEnvironment & env){
     // for (int i=0;i<env.num_of_agents;++i) {
     //     paths[i].clear();
-    // }    
+    // }
 
     ONLYDEV(g_timer.record_p("observe_s");)
 
@@ -432,7 +432,7 @@ void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> &
     //     if (next_plan_step>=paths[i].size()){
     //         // todo: we need to wait for the new plan to come out.
     //         exit(-1);
-    //     }    
+    //     }
     //     planned_next_states.emplace_back(paths[i][next_plan_step].location,-1,-1);
     //     next_states.emplace_back(-1,-1,-1);
     // }

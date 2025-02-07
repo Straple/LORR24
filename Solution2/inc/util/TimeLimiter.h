@@ -9,8 +9,9 @@ public:
     steady_clock::time_point start_time;
     double time_limit;
 
-    TimeLimiter(double _time_limit): time_limit(_time_limit) {
-        reset_start_time();
+    TimeLimiter(double _time_limit, const SharedEnvironment& env): time_limit(_time_limit) {
+        //reset_start_time();
+        start_time = env.plan_start_time;
     }
 
     TimeLimiter(const TimeLimiter & other) {
