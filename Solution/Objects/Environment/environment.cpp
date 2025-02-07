@@ -108,10 +108,10 @@ void init_environment(SharedEnvironment &env) {
     init_default_planner(env);
 
     // generate random agents
-    /*Randomizer rnd(86124);
+    /*Randomizer rnd(74124);
     std::ofstream output("agents.txt");
     std::set<uint32_t> S;
-    for(int i = 0; i < 10'000; i++){
+    for(int i = 0; i < 6500; i++){
         uint32_t pos = 0;
         while(true){
             pos = rnd.get(1, get_map().get_size() - 1);
@@ -207,7 +207,10 @@ void update_environment(SharedEnvironment &env) {
 
     return;*/
 
-    get_robots_handler() = RobotsHandler(env);
+    if (get_robots_handler().size() == 0) {
+        get_robots_handler() = RobotsHandler(env.num_of_agents);
+    }
+    get_robots_handler().update(env);
 
     static int prev_timestep_updated = -1;
     if (prev_timestep_updated == env.curr_timestep) {
@@ -218,14 +221,3 @@ void update_environment(SharedEnvironment &env) {
 
     //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
 }
-
-/*
-Порядок выполнения тестов:
-WAREHOUSE
-...
-GAME
-CITY-02
-CITY-01
-
-кажется, что он идет в обратном порядке от тестов на сайте
-*/

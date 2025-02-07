@@ -1,3 +1,19 @@
+/*
+Порядок выполнения тестов:
+WAREHOUSE
+SORTATION
+RANDOM-05
+RANDOM-04
+RANDOM-03
+RANDOM-02
+RANDOM-01
+GAME
+CITY-02
+CITY-01
+
+он идет в обратном порядке от списка на сайте
+*/
+
 
 /*
 ssh -i ../abc egor@51.250.101.48
@@ -284,6 +300,23 @@ total: 347037
 //tasks: 34422, SCHEDULER_LNS_TIME = 0
 //tasks: 22155 без GG
 
-// 6256 -> 6365
+//-i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 500 -p 1000000000
+//ENABLE_SMART_PLANNER: 6758
+//MY: 6524
 
-// cutoffTime: 0.95, score: 6101
+
+// (revealed tasks)
+//6642 -> 7045 -> 7097
+//6979
+/*
+call(0): 2513, 11.6532s
+call(1): 4728, 16.9672s
+call(2): 5987, 29.2818s
+call(3): 6291, 53.7082s
+call(4): 5528, 80.692s
+call(5): 4276, 81.9039s
+call(6): 3441, 82.2837s
+call(7): 2374, 82.4319s
+total: 35138*/
+
+//6882

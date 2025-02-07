@@ -5,9 +5,12 @@
 #include <vector>
 
 struct Robot {
+    uint32_t prev_node = 0;
     uint32_t node = 0;    // start node from graph
+    uint32_t prev_target = 0;
     uint32_t target = 0;  // target pos from map
-    uint32_t priority = 0;// like dist to target
+    double priority = 0;
+    double penalty = 1;
 };
 
 class RobotsHandler {
@@ -15,11 +18,14 @@ class RobotsHandler {
 
 public:
     RobotsHandler() = default;
-    explicit RobotsHandler(SharedEnvironment &env);
+
+    explicit RobotsHandler(uint32_t agents_num);
+
+    void update(SharedEnvironment &env);
 
     [[nodiscard]] const Robot &get_robot(uint32_t r) const;
 
-    [[nodiscard]] const std::vector<Robot>& get_robots() const;
+    [[nodiscard]] const std::vector<Robot> &get_robots() const;
 
     [[nodiscard]] uint32_t size() const;
 };

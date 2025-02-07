@@ -20,7 +20,11 @@ public:
     SmartMAPFPlanner smart_planner;
 #endif
 
-    explicit MAPFPlanner(SharedEnvironment *env) : env(env), eplanner(env), smart_planner(env) {
+    explicit MAPFPlanner(SharedEnvironment *env) : env(env), eplanner(env)
+#ifdef ENABLE_SMART_PLANNER
+    , smart_planner(env)
+#endif
+    {
     }
 
     MAPFPlanner() {

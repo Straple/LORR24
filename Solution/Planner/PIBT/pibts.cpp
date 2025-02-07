@@ -594,7 +594,7 @@ Total	333405	9.472	0
             } else if (get_test_type() == TestType::WAREHOUSE) {
                 power = power * power;
             }*/
-            robot_power[r] = power;
+            robot_power[r] = get_robots_handler().get_robot(r).priority;//power;
         }
     }
 

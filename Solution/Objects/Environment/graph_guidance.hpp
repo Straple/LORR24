@@ -30,6 +30,8 @@ class GraphGuidance {
 
     void set_city();
 
+    void set_walls();
+
 public:
 
     GraphGuidance() = default;

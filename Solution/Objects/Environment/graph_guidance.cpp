@@ -26,7 +26,7 @@ void GraphGuidance::set_default() {
             uint32_t pos = x * cols + y + 1;
             for (uint32_t dir = 0; dir < 4; dir++) {
                 for (uint32_t action = 0; action < 4; action++) {
-                    graph[pos][dir][action] = OK_WEIGHT;
+                    graph[pos][dir][action] = 1;
                 }
             }
         }
@@ -111,10 +111,26 @@ void GraphGuidance::set_city() {
     set_grid();
 }
 
+void GraphGuidance::set_walls(){
+    for (uint32_t x = 0; x < rows; x++) {
+        for (uint32_t y = 0; y < cols; y++) {
+            uint32_t pos = x * cols + y + 1;
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                for (uint32_t action = 0; action < 4; action++) {
+                    if (!Position(x, y, dir).is_valid()) {
+                        graph[pos][dir][action] = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
 GraphGuidance::GraphGuidance(uint32_t rows, uint32_t cols) : rows(rows), cols(cols), graph(rows * cols + 1) {
 }
 
 GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.cols), graph(env.rows * env.cols + 1) {
+#ifdef ENABLE_GG
     if (get_map_type() == MapType::WAREHOUSE) {
         set_warehouse();
     } else if (get_map_type() == MapType::SORTATION) {
@@ -128,19 +144,11 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
     } else {
         FAILED_ASSERT("undefined map");
     }
+#else
+    set_default();
+#endif
 
-    for (uint32_t x = 0; x < rows; x++) {
-        for (uint32_t y = 0; y < cols; y++) {
-            uint32_t pos = x * cols + y + 1;
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                for (uint32_t action = 0; action < 4; action++) {
-                    if (!Position(x, y, dir).is_valid()) {
-                        graph[pos][dir][action] = 0;
-                    }
-                }
-            }
-        }
-    }
+    set_walls();
 
     // [pos][dir]
     /*get_graph() = Graph(get_map(), *this);
@@ -197,6 +205,7 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
 GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
     : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
 
+#ifdef ENABLE_GG
     for (uint32_t x = 0; x < rows; x++) {
         for (uint32_t y = 0; y < cols; y++) {
             if (gmap.get(x, y) == '@') {
@@ -290,6 +299,11 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
             graph[pos][dir][3] = w1; // W
         }
     }
+#else
+    set_default();
+#endif
+
+    set_walls();
 
     /*{
         std::ofstream output("graph_guidance");
