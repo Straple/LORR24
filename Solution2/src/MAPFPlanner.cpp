@@ -1,6 +1,6 @@
 #ifndef NO_ROT
 
-#include <MAPFPlanner.h>
+#include "../inc/MAPFPlanner.h"
 #include <random>
 #include "RHCR/interface/CompetitionGraph.h"
 #include "util/HeuristicTable.h"
@@ -31,7 +31,7 @@ struct cmp {
     }
 };
 
-void MAPFPlanner::load_configs() {
+void SmartMAPFPlanner::load_configs() {
     // load configs
 	string config_path="configs/"+env->map_name.substr(0,env->map_name.find_last_of("."))+".json";
     std::ifstream f(config_path);
@@ -81,7 +81,7 @@ void MAPFPlanner::load_configs() {
     }
 }
 
-RHCR::MAPFSolver* MAPFPlanner::rhcr_build_mapf_solver(nlohmann::json & config, RHCR::CompetitionGraph & graph) {
+RHCR::MAPFSolver* SmartMAPFPlanner::rhcr_build_mapf_solver(nlohmann::json & config, RHCR::CompetitionGraph & graph) {
     // build single agent solver
     string solver_name = read_param_json<string>(config,"single_agent_solver");
 	RHCR::SingleAgentSolver* path_planner;
@@ -149,7 +149,7 @@ RHCR::MAPFSolver* MAPFPlanner::rhcr_build_mapf_solver(nlohmann::json & config, R
 	}
 }
 
-void MAPFPlanner::rhcr_config_solver(std::shared_ptr<RHCR::RHCRSolver> & solver,nlohmann::json & config) {
+void SmartMAPFPlanner::rhcr_config_solver(std::shared_ptr<RHCR::RHCRSolver> & solver,nlohmann::json & config) {
     solver->outfile = read_param_json<string>(config,"output");
     solver->screen = read_param_json<int>(config,"screen");
     solver->log = read_param_json<bool>(config,"log");
@@ -176,7 +176,7 @@ void MAPFPlanner::rhcr_config_solver(std::shared_ptr<RHCR::RHCRSolver> & solver,
     srand(solver->seed);
 }
 
-std::string MAPFPlanner::load_map_weights(string weights_path) {
+std::string SmartMAPFPlanner::load_map_weights(string weights_path) {
     // TODO(rivers): make weights float
     // we have at least 5 weights for a location: right,down,left,up,stay
     map_weights=std::make_shared<std::vector<float> >(env->rows*env->cols*5,1);
@@ -210,7 +210,7 @@ std::string MAPFPlanner::load_map_weights(string weights_path) {
     return suffix;
 }
 
-void MAPFPlanner::initialize(int preprocess_time_limit) {
+void SmartMAPFPlanner::initialize(int preprocess_time_limit) {
     cout << "planner initialization begins" << endl;
     load_configs();
 
@@ -288,7 +288,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 
 
 // plan using simple A* that ignores the time dimension
-void MAPFPlanner::plan(int time_limit,vector<Action> & actions) 
+void SmartMAPFPlanner::plan(int time_limit,vector<Action> & actions)
 {
     // NOTE we need to return within time_limit, but we can exploit this time duration as much as possible
 
@@ -380,7 +380,7 @@ void MAPFPlanner::plan(int time_limit,vector<Action> & actions)
   return;
 }
 
-list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
+list<pair<int,int>> SmartMAPFPlanner::single_agent_plan(int start,int start_direct,int end) {
     list<pair<int,int>> path;
     priority_queue<AstarNode*,vector<AstarNode*>,cmp> open_list;
     unordered_map<int,AstarNode*> all_nodes;
@@ -428,7 +428,7 @@ list<pair<int,int>> MAPFPlanner::single_agent_plan(int start,int start_direct,in
 }
 
 
-int MAPFPlanner::getManhattanDistance(int loc1, int loc2) {
+int SmartMAPFPlanner::getManhattanDistance(int loc1, int loc2) {
     int loc1_x = loc1/env->cols;
     int loc1_y = loc1%env->cols;
     int loc2_x = loc2/env->cols;
@@ -436,7 +436,7 @@ int MAPFPlanner::getManhattanDistance(int loc1, int loc2) {
     return abs(loc1_x - loc2_x) + abs(loc1_y - loc2_y);
 }
 
-bool MAPFPlanner::validateMove(int loc, int loc2)
+bool SmartMAPFPlanner::validateMove(int loc, int loc2)
 {
     int loc_x = loc/env->cols;
     int loc_y = loc%env->cols;
@@ -452,8 +452,7 @@ bool MAPFPlanner::validateMove(int loc, int loc2)
 
 }
 
-
-list<pair<int,int>> MAPFPlanner::getNeighbors(int location,int direction) {
+list<pair<int,int>> SmartMAPFPlanner::getNeighbors(int location,int direction) {
     list<pair<int,int>> neighbors;
     //forward
     int candidates[4] = { location + 1,location + env->cols, location - 1, location - env->cols};

@@ -4,22 +4,22 @@ TimePoint get_now() {
     return std::chrono::steady_clock::now();
 }
 
-Timer::Timer() : start(get_now()) {
+ETimer::ETimer() : start(get_now()) {
 }
 
-uint64_t Timer::get_ms() const {
+uint64_t ETimer::get_ms() const {
     return std::chrono::duration_cast<Milliseconds>(get_now() - start).count();
 }
 
-uint64_t Timer::get_ns() const {
+uint64_t ETimer::get_ns() const {
     return std::chrono::duration_cast<Nanoseconds>(get_now() - start).count();
 }
 
-void Timer::reset() {
+void ETimer::reset() {
     start = get_now();
 }
 
-std::ostream &operator<<(std::ostream &output, const Timer &time) {
+std::ostream &operator<<(std::ostream &output, const ETimer &time) {
     double t = time.get_ns() * 1e-9;
     if (t >= 1) {
         output << t << "s";

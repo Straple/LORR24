@@ -413,7 +413,7 @@ void LNSSolver::observe(const SharedEnvironment & env){
 void LNSSolver::get_step_actions(const SharedEnvironment & env, vector<Action> & actions){
     ONLYDEV(g_timer.record_p("get_step_actions_s");)
 
-    assert(actions.empty());
+    assert(!actions.empty());
 
 #ifndef NO_ROT
     // get current state and current timestep

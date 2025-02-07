@@ -55,7 +55,7 @@ void MyScheduler::greedy_schedule(int time_limit, std::vector<int> &proposed_sch
     static uint32_t launch_num = 0;
     launch_num++;
 
-    Timer timer;
+    ETimer timer;
 
     TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
 
@@ -500,7 +500,7 @@ int calc_full_distance(Task &task) {
 
 std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {
 
-    Timer timer;
+    ETimer timer;
 
     std::vector<int> done_proposed_schedule = schedule;
 
@@ -730,7 +730,7 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 }
 
 void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
-    Timer timer;
+    ETimer timer;
     solver_schedule(time_limit, proposed_schedule);
     //artem_schedule(time_limit, proposed_schedule);
 

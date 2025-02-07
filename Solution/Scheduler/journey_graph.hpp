@@ -244,7 +244,7 @@ public:
     }
 
     void ProccessOptimizationQ(size_t time_limit){
-        Timer timer;
+        ETimer timer;
         // #ifdef ENABLE_PRINT_LOG
                 Printer() << "Current optimization_q size: " << optimization_q.size() << '\n';
         // #endif

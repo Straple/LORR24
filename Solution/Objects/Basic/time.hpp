@@ -11,11 +11,11 @@ using Nanoseconds = std::chrono::nanoseconds;
 
 TimePoint get_now();
 
-class Timer {
+class ETimer {
     TimePoint start;
 
 public:
-    Timer();
+    ETimer();
 
     [[nodiscard]] uint64_t get_ms() const;
 
@@ -24,4 +24,4 @@ public:
     void reset();
 };
 
-std::ostream &operator<<(std::ostream &output, const Timer &time);
+std::ostream &operator<<(std::ostream &output, const ETimer &time);

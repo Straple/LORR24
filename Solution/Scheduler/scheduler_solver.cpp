@@ -16,7 +16,7 @@ void SchedulerSolver::rebuild_dp(uint32_t r) {
 }
 
 void SchedulerSolver::rebuild_dp(TimePoint end_time) {
-    Timer timer;
+    ETimer timer;
     std::vector<uint32_t> order = free_robots;
     std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
         return timestep_updated[lhs] < timestep_updated[rhs];
@@ -247,7 +247,7 @@ void SchedulerSolver::update() {
 }
 
 void SchedulerSolver::triv_solve(TimePoint end_time) {
-    Timer timer;
+    ETimer timer;
     for (uint32_t r: free_robots) {
         if (desires[r] != -1) {
             set(r, -1);
@@ -327,7 +327,7 @@ void SchedulerSolver::solve(TimePoint end_time) {
     }
     static Randomizer rnd;
     temp = 0.5;
-    Timer timer;
+    ETimer timer;
     double old_score = get_score();
     uint32_t step = 0;
     // TODO: multithreading

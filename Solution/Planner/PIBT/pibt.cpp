@@ -81,7 +81,7 @@ PIBT::PIBT() {
 }
 
 std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
-    Timer timer;
+    ETimer timer;
     // PIBT
     for (uint32_t r: order) {
         if (std::chrono::steady_clock::now() > end_time) {

@@ -133,7 +133,7 @@ uint32_t DHMR::get(uint32_t r, uint32_t desired, uint32_t robot_node, uint32_t t
 
 void DHMR::update(uint32_t timestep, TimePoint end_time) {
     return;
-    Timer timer;
+    ETimer timer;
     const auto &robots = get_robots_handler().get_robots();
 
     pos_to_robot.assign(get_map().get_size(), -1);

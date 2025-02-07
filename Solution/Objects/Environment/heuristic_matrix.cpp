@@ -51,7 +51,7 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
 #ifdef ENABLE_PRINT_LOG
-    Timer timer;
+    ETimer timer;
 #endif
     matrix.resize(get_map().get_size());
 

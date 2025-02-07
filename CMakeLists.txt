@@ -40,6 +40,8 @@ include_directories("default_planner")
 include_directories("Solution")
 
 include_directories("Solution2")
+include_directories("Solution2/inc")
+include_directories("Solution2/src")
 
 file(GLOB SOURCES
         src/ActionModel.cpp
@@ -88,12 +90,15 @@ file(GLOB SOURCES
 
 
 # Find Boost
-#ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
-SET(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup)
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+#SET(Boost_USE_STATIC_LIBS ON)
+find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup iostreams)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
+find_package(OpenMP REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(Threads REQUIRED)
 
 IF (PYTHON)
     message(STATUS "Python support is enabled")
@@ -139,10 +144,21 @@ ELSE ()
 
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+    target_link_libraries(lifelong OpenMP::OpenMP_CXX)
+    target_link_libraries(lifelong spdlog::spdlog)
 
     target_link_libraries(pibt_main ${Boost_LIBRARIES})
     target_link_libraries(tester ${Boost_LIBRARIES})
     target_link_libraries(GGbuilder ${Boost_LIBRARIES})
+
+    target_link_libraries(pibt_main OpenMP::OpenMP_CXX)
+    target_link_libraries(pibt_main spdlog::spdlog)
+
+    target_link_libraries(tester OpenMP::OpenMP_CXX)
+    target_link_libraries(tester spdlog::spdlog)
+
+    target_link_libraries(GGbuilder OpenMP::OpenMP_CXX)
+    target_link_libraries(GGbuilder spdlog::spdlog)
 
 ENDIF ()
 

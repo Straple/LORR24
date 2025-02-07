@@ -21,15 +21,15 @@
 #include "LaCAM2/LaCAM2Solver.hpp"
 #include "LNS/LNSSolver.h"
 
-class MAPFPlanner
+class SmartMAPFPlanner
 {
 public:
 
     SharedEnvironment* env;
 
-	MAPFPlanner(SharedEnvironment* env): env(env){};
-    MAPFPlanner(){env = new SharedEnvironment();};
-	virtual ~MAPFPlanner(){delete env;};
+    SmartMAPFPlanner(SharedEnvironment* env): env(env){};
+    SmartMAPFPlanner(){env = new SharedEnvironment();};
+	virtual ~SmartMAPFPlanner(){delete env;};
 
 
     virtual void initialize(int preprocess_time_limit);

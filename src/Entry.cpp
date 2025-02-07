@@ -22,8 +22,8 @@ void Entry::initialize(int preprocess_time_limit) {
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
 #ifdef ENABLE_PRINT_LOG
-    static Timer total_timer;
-    Timer timer;
+    static ETimer total_timer;
+    ETimer timer;
     Printer() << "\n";
     Printer() << "Timestep: " << env->curr_timestep << '\n';
 

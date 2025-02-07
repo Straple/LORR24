@@ -598,7 +598,7 @@ Total	333405	9.472	0
         }
     }
 
-    Timer timer;
+    ETimer timer;
     // init neighbors
     {
         neighbors.resize(robots.size());
@@ -610,7 +610,7 @@ Total	333405	9.472	0
         std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_pos(get_graph().get_zipes_size());
 
 #ifdef ENABLE_PRINT_LOG
-        Timer timer;
+        ETimer timer;
 #endif
         for (uint32_t r = 0; r < robots.size(); r++) {
             for (uint32_t desired = 0; desired < get_operations().size(); desired++) {

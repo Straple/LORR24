@@ -6,13 +6,21 @@
 
 #include <Planner/eplanner.hpp>
 
+#include <settings.hpp>
+
+#include "../Solution2/inc/MAPFPlanner.h"
+
 class MAPFPlanner {
 public:
     SharedEnvironment *env;
 
     EPlanner eplanner;
 
-    explicit MAPFPlanner(SharedEnvironment *env) : env(env), eplanner(env) {
+#ifdef ENABLE_SMART_PLANNER
+    SmartMAPFPlanner smart_planner;
+#endif
+
+    explicit MAPFPlanner(SharedEnvironment *env) : env(env), eplanner(env), smart_planner(env) {
     }
 
     MAPFPlanner() {

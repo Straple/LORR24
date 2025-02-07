@@ -19,7 +19,7 @@ EPlanner::EPlanner() {
 
 void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
-    Timer timer;
+    ETimer timer;
 
     plan.assign(env->num_of_agents, Action::W);
 
@@ -40,7 +40,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
 
         auto do_work = [&](uint32_t thr, uint64_t seed) {
             //while(get_now() < end_time) {
-            Timer timer;
+            ETimer timer;
             PIBTS pibt = main_pibt_solver;
             pibt.solve(seed);
             auto time = timer.get_ms();

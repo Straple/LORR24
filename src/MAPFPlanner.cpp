@@ -20,6 +20,8 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
     // use the remaining entry time limit (after task scheduling) for path planning, -PLANNER_TIMELIMIT_TOLERANCE for timing error tolerance;
     int limit = preprocess_time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::initialize(limit, env);
+#elif defined(ENABLE_SMART_PLANNER)
+    smart_planner.initialize(preprocess_time_limit);
 #else
     init_environment(*env);
 #endif
@@ -40,6 +42,8 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
 
     DefaultPlanner::plan(limit, actions, env);
+#elif defined(ENABLE_SMART_PLANNER)
+    smart_planner.plan(time_limit, actions);
 #else
     update_environment(*env);
     eplanner.plan(time_limit, actions);
