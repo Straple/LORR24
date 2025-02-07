@@ -13,7 +13,7 @@
 
 //#define ENABLE_SMART_PLANNER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
@@ -26,11 +26,13 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define ENABLE_PRINT_LOG
+//#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
 #define ENABLE_PIBTS_TRICK
+
+//#define ENABLE_PRE_SCHEDULE
 
 //#define ENABLE_GG_SOLVER
 
@@ -40,7 +42,7 @@ static constexpr uint32_t THREADS = 32;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = 10'000;
+static constexpr uint32_t PIBTS_STEPS = -1;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 

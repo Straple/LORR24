@@ -73,7 +73,7 @@ void RobotsHandler::update(SharedEnvironment &env) {
             //robots[r].penalty *= 1.2;
         }
     }*/
-    double max_priority = -1e300;
+    /*double max_priority = -1e300;
     double min_priority = 1e300;
     for (uint32_t r = 0; r < robots.size(); r++) {
         //robots[r].priority += robots[r].penalty * 0.01;
@@ -83,7 +83,7 @@ void RobotsHandler::update(SharedEnvironment &env) {
     }
     for (uint32_t r = 0; r < robots.size(); r++) {
         robots[r].priority = 1 - (robots[r].priority - min_priority) / (max_priority - min_priority);
-    }
+    }*/
 }
 
 const Robot &RobotsHandler::get_robot(uint32_t r) const {

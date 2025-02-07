@@ -185,6 +185,9 @@ void SchedulerSolver::update() {
         // есть задача и она в процессе выполнения
         // не можем ее убрать
         if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
+#ifndef ENABLE_PRE_SCHEDULE
+            continue;
+#endif
             const auto &task = env->task_pool.at(t);
 
             uint32_t dist = get_hm().get(get_robots_handler().get_robot(r).node,
@@ -304,7 +307,35 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
     }
 
-    while (!Heap.empty() && get_now() < end_time) {
+    int32_t allowed_assigned = 0;
+    {
+        int32_t cnt_assigned = 0;
+        for (uint32_t r = 0; r < desires.size(); r++) {
+            int t = env->curr_task_schedule[r];
+            if (t != -1 && env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
+                // этот робот уже с задачей, которую нельзя менять
+                cnt_assigned++;
+            }
+        }
+
+        int32_t max_assigned = desires.size();
+
+        if (get_test_type() == TestType::RANDOM_5) {
+            max_assigned = 400;
+        } else if (get_test_type() == TestType::RANDOM_4) {
+            max_assigned = 300;
+        } else if (get_test_type() == TestType::GAME) {
+            max_assigned = 3500;
+        }
+
+        allowed_assigned = std::max(0, max_assigned - cnt_assigned);
+
+        //Printer() << "cnt_assigned: " << cnt_assigned << '\n';
+        //Printer() << "max_assigned: " << max_assigned << '\n';
+        //Printer() << "allowed_assigned: " << allowed_assigned << '\n';
+    }
+
+    while (!Heap.empty() && get_now() < end_time && allowed_assigned > 0) {
         auto [dist, r, index] = Heap.top();
         Heap.pop();
 
@@ -331,6 +362,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
         set(r, task_id);
         used_task.insert(task_id);
+        allowed_assigned--;
     }
 
     validate();
