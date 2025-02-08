@@ -112,12 +112,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
         }
     }
 
-    //call(0): 2379, 80.9529s
-    //call(1): 4351, 81.1586s
-    //call(2): 5572, 81.3614s
-    //call(3): 5277, 81.5561s
-    //call(4):
-    /*int32_t add_w = 0;
+    int32_t add_w = 0;
     for (uint32_t i = 0; i < op.size(); i++) {
         if (op[i] == Action::W) {
             add_w -= 1;
@@ -129,7 +124,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             FAILED_ASSERT("invalid action");
         }
     }
-    dist = dist * 10 - add_w;*/
+    dist = dist * 10 - add_w;
 
     //call(0): 2379, 80.9443s
     //call(1): 4383, 81.1557s
@@ -156,7 +151,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             2, //CWF
     };
     dist = dist * 10 - add_weights[desired];*/
-    dist = dist * 100 - get_operations_weights()[desired];
+    //dist = dist * 100 - get_operations_weights()[desired];
     return dist;
 }
 

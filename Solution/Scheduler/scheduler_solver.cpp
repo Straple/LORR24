@@ -178,6 +178,18 @@ void SchedulerSolver::update() {
     free_robots.clear();
     free_tasks.clear();
 
+    // build free_tasks
+    for (auto &[t, task]: env->task_pool) {
+        int r = task.agent_assigned;
+        if (
+                r == -1 || // нет агента
+                task.idx_next_loc == 0 // мы можем поменять задачу
+                ) {
+            task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
+            free_tasks.push_back(t);
+        }
+    }
+
     // build free_robots
     for (uint32_t r = 0; r < env->num_of_agents; r++) {
         int t = env->curr_task_schedule[r];
@@ -185,27 +197,6 @@ void SchedulerSolver::update() {
         // есть задача и она в процессе выполнения
         // не можем ее убрать
         if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
-#ifndef ENABLE_PHANTOM_SCHEDULE
-            continue;
-#endif
-            const auto &task = env->task_pool.at(t);
-
-            uint32_t dist = get_hm().get(get_robots_handler().get_robot(r).node,
-                                         get_robots_handler().get_robot(r).target);
-
-            // если у него последняя точка задачи
-            if (task.idx_next_loc + 1 == task.locations.size() &&
-                // и если он не в таргете стоит
-                env->curr_states[r].location != task.locations.back() &&
-                dist < PHANTOM_AGENT_AVAILABLE_DIST
-                // TODO: и ему совсем скоро выполнить задачу
-                    ) {
-
-                free_robots.push_back(r);
-                phantom_agent_dist[r] = dist;
-                ASSERT(phantom_agent_dist[r] != 0, "invalid phantom agent dist");
-            }
-
             desires[r] = t;
             continue;
         }
@@ -219,19 +210,33 @@ void SchedulerSolver::update() {
             free_robots.push_back(r);
         }
     }
+#ifdef ENABLE_PHANTOM_SCHEDULE
+    for (uint32_t r = 0; r < env->num_of_agents; r++) {
+        int t = env->curr_task_schedule[r];
 
-    // build free_tasks
-    for (auto &[t, task]: env->task_pool) {
-        int r = task.agent_assigned;
-        if (
-                r == -1 || // нет агента
-                task.idx_next_loc == 0 // мы можем поменять задачу
-                ) {
-            task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
-            free_tasks.push_back(t);
+        // есть задача и она в процессе выполнения
+        // не можем ее убрать
+        if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
+            const auto &task = env->task_pool.at(t);
+
+            uint32_t dist = get_hm().get(get_robots_handler().get_robot(r).node,
+                                         get_robots_handler().get_robot(r).target);
+
+            // если у него последняя точка задачи
+            if (task.idx_next_loc + 1 == task.locations.size() &&
+                // и если он не в таргете стоит
+                env->curr_states[r].location != task.locations.back() &&
+                dist < PHANTOM_AGENT_AVAILABLE_DIST &&
+                free_robots.size() + 1 <= free_tasks.size()
+                    ) {
+
+                free_robots.push_back(r);
+                phantom_agent_dist[r] = dist;
+                ASSERT(phantom_agent_dist[r] != 0, "invalid phantom agent dist");
+            }
         }
     }
-    //ASSERT(env->task_pool[t].idx_next_loc == 0, "invalid idx next loc");
+#endif
 
     // build dist_dp, task_target
     for (uint32_t t: free_tasks) {
@@ -321,18 +326,20 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         int32_t max_assigned = desires.size();
 
         if (get_test_type() == TestType::RANDOM_5) {
-            max_assigned = 300;
+            max_assigned = 400;
         } else if (get_test_type() == TestType::RANDOM_4) {
-            max_assigned = 200;
+            max_assigned = 300;
         } else if (get_test_type() == TestType::GAME) {
             max_assigned = 2500;
         }
 
         allowed_assigned = std::max(0, max_assigned - cnt_assigned);
 
-        //Printer() << "cnt_assigned: " << cnt_assigned << '\n';
-        //Printer() << "max_assigned: " << max_assigned << '\n';
-        //Printer() << "allowed_assigned: " << allowed_assigned << '\n';
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "cnt_assigned: " << cnt_assigned << '\n';
+        Printer() << "max_assigned: " << max_assigned << '\n';
+        Printer() << "allowed_assigned: " << allowed_assigned << '\n';
+#endif
     }
 
     while (!Heap.empty() && get_now() < end_time && allowed_assigned > 0) {

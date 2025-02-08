@@ -120,7 +120,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
         }
 
-        if (env->curr_timestep == 999) {
+        /*if (env->curr_timestep == 999) {
             std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
             Printer() << "Operation matrix:\n";
             for (uint32_t d = 0; d < get_operations().size(); d++) {
@@ -135,7 +135,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             for (auto [count, d, k]: pool) {
                 Printer() << get_operations()[d] << "->" << get_operations()[k] << ": " << count << '\n';
             }
-        }
+        }*/
 
 #endif
 

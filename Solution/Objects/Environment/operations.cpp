@@ -6,24 +6,19 @@
 #include <fstream>
 
 bool verify_lol(const Operation &op) {
-    for (int32_t i = op.size() - 1; i >= 0; i--) {
-        if (op[i] == Action::FW) {
-            break;
-        }
-        if (op[i] == Action::CCR || op[i] == Action::CR) {
+    // не нужно, чтобы на конце операции были повороты
+    for (int i = op.size() - 1; i >= 0 && op[i] != Action::FW; i--) {
+        if (op[i] == Action::CR || op[i] == Action::CCR) {
             return false;
         }
     }
     for (int i = 0; i < op.size(); i++) {
-        for (int j = i + 1; j < op.size(); j++) {
+        for (int j = i + 1; j < op.size() && op[j] != Action::W; j++) {
             if (op[i] == Action::CR && op[j] == Action::CCR) {
                 return false;
             }
             if (op[i] == Action::CCR && op[j] == Action::CR) {
                 return false;
-            }
-            if (op[j] == Action::FW) {
-                break;
             }
         }
     }
@@ -44,11 +39,11 @@ void OperationsGenerator::generate(Operation &op, uint32_t i) {
 }
 
 std::vector<Operation> OperationsGenerator::get() {
-
-    //generate(op, 0);
+    Operation op;
+    generate(op, 0);
 
     // read pool
-    {
+    /*{
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
                 "16 FFF FFW FWW FRF FCF RFW CFW RFF CFF RRF WFW FWF WFF WWF RWF CWF"
@@ -64,7 +59,7 @@ std::vector<Operation> OperationsGenerator::get() {
             ss >> op;
             pool.push_back(op);
         }
-    }
+    }*/
 
     // add WWW
     {
@@ -79,22 +74,29 @@ std::vector<Operation> OperationsGenerator::get() {
         pool.insert(pool.begin(), op);
     }
 
-    std::vector<Operation> result = pool;
+    std::vector<Operation> result;
 
-    /*std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
+    std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
     for (auto operation: pool) {
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
         Position p;
+        std::set<std::pair<uint32_t, uint32_t>> visited_poses;
+        visited_poses.insert({p.get_x(), p.get_y()});
+        bool ok = true;
         for (uint32_t d = 0; d < DEPTH; d++) {
             p = p.simulate_action(operation[d]);
             positions[d] = {p.get_x(), p.get_y()};
+            if (operation[d] == Action::FW && visited_poses.count(positions[d])) {
+                ok = false;
+            }
+            visited_poses.insert(positions[d]);
         }
-        std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>> kek = {0, positions};
-        if (!visited.count(kek)) {
+        std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>> kek = {p.get_dir(), positions};
+        if (!visited.count(kek) && ok) {
             visited.insert(kek);
             result.push_back(operation);
         }
-    }*/
+    }
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Operation: " << result.size() << '\n';
@@ -102,6 +104,7 @@ std::vector<Operation> OperationsGenerator::get() {
         Printer() << operation << '\n';
     }
 #endif
+    //std::exit(100);
     return result;
 }
 
