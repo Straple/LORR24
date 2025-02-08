@@ -185,7 +185,7 @@ void SchedulerSolver::update() {
         // есть задача и она в процессе выполнения
         // не можем ее убрать
         if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
-#ifndef ENABLE_PRE_SCHEDULE
+#ifndef ENABLE_PHANTOM_SCHEDULE
             continue;
 #endif
             const auto &task = env->task_pool.at(t);
@@ -197,7 +197,7 @@ void SchedulerSolver::update() {
             if (task.idx_next_loc + 1 == task.locations.size() &&
                 // и если он не в таргете стоит
                 env->curr_states[r].location != task.locations.back() &&
-                dist < 30
+                dist < PHANTOM_AGENT_AVAILABLE_DIST
                 // TODO: и ему совсем скоро выполнить задачу
                     ) {
 
@@ -321,11 +321,11 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         int32_t max_assigned = desires.size();
 
         if (get_test_type() == TestType::RANDOM_5) {
-            max_assigned = 400;
-        } else if (get_test_type() == TestType::RANDOM_4) {
             max_assigned = 300;
+        } else if (get_test_type() == TestType::RANDOM_4) {
+            max_assigned = 200;
         } else if (get_test_type() == TestType::GAME) {
-            max_assigned = 3500;
+            max_assigned = 2500;
         }
 
         allowed_assigned = std::max(0, max_assigned - cnt_assigned);
@@ -362,7 +362,10 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
         set(r, task_id);
         used_task.insert(task_id);
-        allowed_assigned--;
+
+        if (phantom_agent_dist[r] == 0) {
+            allowed_assigned--;
+        }
     }
 
     validate();

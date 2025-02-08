@@ -32,7 +32,7 @@
 
 #define ENABLE_PIBTS_TRICK
 
-//#define ENABLE_PRE_SCHEDULE
+#define ENABLE_PHANTOM_SCHEDULE
 
 //#define ENABLE_GG_SOLVER
 
@@ -55,6 +55,8 @@ static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 
 static constexpr uint32_t INVALID_DIST = 0;
+
+static constexpr uint32_t PHANTOM_AGENT_AVAILABLE_DIST = 30;
 
 uint32_t &get_unique_id();
 
