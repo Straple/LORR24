@@ -12,6 +12,8 @@
 #include <Objects/Environment/robot_handler.hpp>
 #include <Objects/Environment/info.hpp>
 
+#include <SharedEnv.h>
+
 void init_environment(SharedEnvironment &env);
 
 void update_environment(SharedEnvironment &env);

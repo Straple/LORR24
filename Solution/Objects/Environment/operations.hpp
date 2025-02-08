@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-static constexpr inline uint32_t DEPTH = 3;
+static constexpr inline uint32_t DEPTH = 4;
 
 using Operation = std::array<Action, DEPTH>;
 

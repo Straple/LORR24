@@ -118,9 +118,19 @@ std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) 
             prev_desired[r] = desired;
         }
         Printer() << "Desires:\n";
+        std::vector<std::tuple<int64_t, uint32_t>> kek;
         for (uint32_t d = 0; d < total_desires.size(); d++) {
             Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
+            if(d != 0) {
+                kek.emplace_back(total_desires[d]//total_changes[d]
+                                 , d);
+            }
         }
+        std::sort(kek.begin(), kek.end());
+        for(auto [score, d] : kek){
+            Printer() << get_operations()[d] << ' ';
+        }
+        Printer() << '\n';
 
         /*if (env->curr_timestep == 999) {
             std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;

@@ -88,7 +88,8 @@ void init_environment(SharedEnvironment &env) {
     }
     // init operations weights
     {
-        std::stringstream input("17 -200 150 130 110 50 50 20 20 40 40 10 30 70 60 10 20 20");
+        std::stringstream input("45 -7 38 -18 11 72 -34 72 -4 52 31 38 17 -32 7 45 24 48 -35 49 19 -75 0 25 -54 -26 2 -9 -71 -22 -2 38 29 18 -72 16 46 0 9 1 21 -7 15 33 19 -1");
+        //("17 -200 150 130 110 50 50 20 20 40 40 10 30 70 60 10 20 20");
         uint32_t k = 0;
         input >> k;
         get_operations_weights().resize(k);

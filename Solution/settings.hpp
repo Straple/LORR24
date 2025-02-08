@@ -5,7 +5,7 @@
 #include <iostream>
 #include <set>
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
@@ -34,7 +34,7 @@
 
 //#define ENABLE_PHANTOM_SCHEDULE
 
-#define ENABLE_SCHEDULER_TRICK
+//#define ENABLE_SCHEDULER_TRICK
 
 //#define ENABLE_GG_SOLVER
 

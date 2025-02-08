@@ -32,17 +32,6 @@ ENDIF ()
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-include_directories("inc")
-
-# default planner
-include_directories("default_planner")
-
-include_directories("Solution")
-
-include_directories("Solution2")
-include_directories("Solution2/inc")
-include_directories("Solution2/src")
-
 file(GLOB SOURCES
         src/ActionModel.cpp
         src/common.cpp
@@ -88,6 +77,16 @@ file(GLOB SOURCES
         #Solution2/src/util/*.cpp*
         )
 
+include_directories("inc")
+
+# default planner
+include_directories("default_planner")
+
+include_directories("Solution")
+
+include_directories("Solution2")
+include_directories("Solution2/inc")
+include_directories("Solution2/src")
 
 # Find Boost
 #ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
