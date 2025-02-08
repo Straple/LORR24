@@ -24,7 +24,7 @@
 #define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-//#define BUILD_META_INFO
+#define BUILD_META_INFO
 
 #define ENABLE_PRINT_LOG
 
@@ -32,25 +32,25 @@
 
 #define ENABLE_PIBTS_TRICK
 
-#define ENABLE_PHANTOM_SCHEDULE
+//#define ENABLE_PHANTOM_SCHEDULE
 
-//#define ENABLE_GG_SOLVER
+#define ENABLE_GG_SOLVER
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 1;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
+static constexpr uint32_t PIBTS_STEPS = 2'000;
 
 static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = 0;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 2000;
 
-static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
+static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 1000;
 
 static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 

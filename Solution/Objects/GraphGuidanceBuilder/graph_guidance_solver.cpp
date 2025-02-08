@@ -107,14 +107,42 @@ void GraphGuidanceSolver::smart_change(GraphGuidance &gg, const Meta &meta, Rand
 }
 
 void GraphGuidanceSolver::change_opw(std::vector<int> &opw, Randomizer &rnd) const {
-    if (rnd.get_d() < 0.5) {
+    double p = rnd.get_d();
+    if (p < 0.1) {
+        // swap
         uint32_t a = rnd.get(0, opw.size() - 1);
         uint32_t b = rnd.get(0, opw.size() - 1);
         std::swap(opw[a], opw[b]);
-    } else {
+    } else if (p < 0.3) {
+        // +-
         uint32_t a = rnd.get(0, opw.size() - 1);
         int d = rnd.get(-10, 10);
         opw[a] += d;
+    } /*else if (p < 0.6) {
+        // reverse
+        uint32_t a = rnd.get(0, opw.size() - 1);
+        uint32_t b = rnd.get(0, opw.size() - 1);
+        if (a > b) {
+            std::swap(a, b);
+        }
+        while (a < b) {
+            std::swap(opw[a], opw[b]);
+            a++;
+            b--;
+        }
+    } else if (p < 0.8) {
+        // shuffle
+        std::shuffle(opw.begin(), opw.end(), rnd.generator);
+    } */else {
+        // segment +-
+        uint32_t a = rnd.get(0, opw.size() - 1);
+        uint32_t b = rnd.get(0, opw.size() - 1);
+        if (a > b) {
+            std::swap(a, b);
+        }
+        for (uint32_t i = a; i <= b; i++) {
+            opw[i] += rnd.get(-10, 10);
+        }
     }
 }
 
@@ -131,11 +159,11 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
             meta = best_meta;
         }
 
-        double p = rnd.get_d();
+        //double p = rnd.get_d();
         //if (p < 0.3) {
         //    smart_change(gg, meta, rnd);
         //}else
-        if (p < 0.2) {
+        /*if (p < 0.2) {
             big_change(gg, rnd);
         } else {
             change_path(gg, rnd);
@@ -143,7 +171,9 @@ void GraphGuidanceSolver::simulate_solver(uint32_t thr) {
 
         if (rnd.get_d() < 0.5) {
             change_opw(opw, rnd);
-        }
+        }*/
+
+        change_opw(opw, rnd);
 
         double score = 0;
         std::tie(score, meta) = get_score(gg, opw, thr);
@@ -285,8 +315,8 @@ GraphGuidanceSolver::get_score(const GraphGuidance &gg, const vector<int> &opw, 
         return std::tuple{score, meta, finished_tasks};
     };
 
-    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_400.json");
-    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_400_2.json");
+    auto [score1, meta1, finished_tasks1] = call("random.domain/random_32_32_20_400_2.json");
+    auto [score2, meta2, finished_tasks2] = call("random.domain/random_32_32_20_500_2.json");
 
     double score = score1 + score2;
     Meta meta = meta1 + meta2;

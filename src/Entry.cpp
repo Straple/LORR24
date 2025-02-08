@@ -29,7 +29,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
 #ifdef ENABLE_GG_SOLVER
     // прошло больше 150 секунд, это плохое решение
-    if (total_timer.get_ms() > 150'000) {
+    if (total_timer.get_ms() > 80'000) {
         Printer() << "bad solution\n";
         return;
     }

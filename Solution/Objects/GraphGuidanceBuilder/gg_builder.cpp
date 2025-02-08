@@ -12,7 +12,7 @@ int main() {
         for (uint32_t pos = 0; pos < 32 * 32 + 1; pos++) {
             for (uint32_t dir = 0; dir < 4; dir++) {
                 for (uint32_t action = 0; action < 4; action++) {
-                    gg.set(pos, dir, action, 3);
+                    gg.set(pos, dir, action, 2);
                 }
             }
         }
@@ -59,3 +59,5 @@ int main() {
 // с 3800 без моего гуиданса
 //finish(28): 5213.59, 5292, 54.191s
 //finish(18): 5305.98, 5386, 53.7566s
+
+//finish(0): 3739.84, 3875, 56.037s
