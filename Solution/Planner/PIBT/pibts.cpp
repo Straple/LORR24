@@ -126,6 +126,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     }
     dist = dist * 10 - add_w;*/
 
+    ASSERT(desired < get_operations_weights().size(), "invalid desired");
     dist = dist * 100 - get_operations_weights()[desired];
     return dist;
 }
@@ -286,7 +287,7 @@ bool PIBTS::try_build(uint32_t r) {
     return true;
 }
 
-uint32_t
+/*uint32_t
 PIBTS::try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t> &rids, uint32_t &counter, uint32_t depth) {
     if (id == rids.size()) {
         // все поставили
@@ -359,7 +360,7 @@ bool PIBTS::try_rebuild_neighbors(uint32_t r) {
     //       "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
     //       std::to_string(std::abs(old_score - cur_score)));
     return false;
-}
+}*/
 
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 ||//
@@ -512,7 +513,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            if(!robots[r].target){
+            if (!robots[r].target) {
                 power = 0;
             }
             //power = power * power;
@@ -573,9 +574,9 @@ Total	333405	9.472	0
         }
     }
 
-    ETimer timer;
     // init neighbors
-    {
+    /*{
+        ETimer timer;
         neighbors.resize(robots.size());
 
         // used_edge[edge][depth] = robot id
@@ -603,9 +604,6 @@ Total	333405	9.472	0
                     } else {
                         vec.insert(vec.begin() + i, r);
                     }
-                    /*if (std::find(vec.begin(), vec.end(), r) == vec.end()) {
-                        vec.push_back(r);
-                    }*/
                 };
 
                 {
@@ -665,15 +663,16 @@ Total	333405	9.472	0
 #ifdef ENABLE_PRINT_LOG
         std::cout << "build poses: " << timer << '\n';
 #endif
-    }
+
 #ifdef ENABLE_PRINT_LOG
-    //warehouse_large_10000
+        //warehouse_large_10000
     //build used: 15.2807ms
     //build edges: 3.43853ms
     //build poses: 5.34468ms
     //init neighbors: 30.1128ms
     Printer() << "init neighbors: " << timer << '\n';
 #endif
+    }*/
 
     // init smart_dist_dp
     {
@@ -753,11 +752,11 @@ void PIBTS::solve(uint64_t seed) {
     temp = 0.001;
     for (step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
-        if (rnd.get_d() < 0.3) {
-            try_rebuild_neighbors(r);
-        } else {
-            try_build(r);
-        }
+        //if (rnd.get_d() < 0.3) {
+        //    try_rebuild_neighbors(r);
+        //} else {
+        try_build(r);
+        //}
         temp *= 0.999;
     }
 

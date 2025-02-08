@@ -3,6 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
+#include <Planner/eplanner.hpp>
+
 #include <atomic>
 #include <thread>
 
@@ -425,6 +427,34 @@ std::vector<int> SchedulerSolver::get_schedule() const {
             result[r] = static_cast<int>(desires[r]);
         }
     }
+#ifdef ENABLE_SCHEDULER_TRICK
+    env->curr_task_schedule = result;
+    update_environment(*env);
+    EPlanner eplanner(env);
+    std::vector<Action> plan;
+    auto desires_plan = eplanner.plan(SCHEDULER_TRICK_TIME, plan);
+    for (uint32_t r = 0; r < desires.size(); r++) {
+        int t = result[r];
+        if (t == -1) {
+            continue;
+        }
+        auto &task = env->task_pool.at(t);
+        uint32_t source = get_robots_handler().get_robot(r).node;
+        ASSERT(task.locations.size() == 2, "invalid locations");
+        ASSERT(task.idx_next_loc < task.locations.size(), "invalid idx_next_loc");
+        int target = task.get_next_loc() + 1;
+        const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
+        uint32_t to = poses.back();
+        for (uint32_t i = 1; i < poses.size(); i++) {
+            if (poses[i] != poses[0]) {
+                to = poses[i];
+                break;
+            }
+        }
+
+        task.locations.insert(task.locations.begin() + task.idx_next_loc, get_graph().get_pos_from_zip(to) - 1);
+    }
+#endif
     return result;
 }
 

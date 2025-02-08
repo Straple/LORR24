@@ -10,5 +10,5 @@ public:
 
     EPlanner();
 
-    void plan(int time_limit, std::vector<Action> &plan);
+    std::vector<uint32_t> plan(int time_limit, std::vector<Action> &plan);
 };

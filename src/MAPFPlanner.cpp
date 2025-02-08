@@ -47,6 +47,6 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     smart_planner.plan(time_limit, actions);
 #else
     update_environment(*env);
-    eplanner.plan(time_limit, actions);
+    eplanner.plan(time_limit - 50, actions);
 #endif
 }

@@ -105,6 +105,8 @@ void init_environment(SharedEnvironment &env) {
     get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());
 
+    ASSERT(get_operations_weights().size() == get_operations().size(), "unmatch sizes");
+
     init_default_planner(env);
 
     // generate random agents

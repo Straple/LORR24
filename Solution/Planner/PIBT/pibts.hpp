@@ -24,7 +24,7 @@ class PIBTS {
     std::vector<uint32_t> desires;
 
     // neighbours[r] = { neighbours }
-    std::vector<std::vector<uint32_t>> neighbors;
+    //std::vector<std::vector<uint32_t>> neighbors;
 
     // smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired)
     std::vector<std::vector<int64_t>> smart_dist_dp;
@@ -79,9 +79,9 @@ class PIBTS {
     // return 0, if failed
     // return 1, if success+accepted
     // return 2, if success+not accepted
-    uint32_t try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t>& rids, uint32_t &counter, uint32_t depth);
+    //uint32_t try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t>& rids, uint32_t &counter, uint32_t depth);
 
-    bool try_rebuild_neighbors(uint32_t r);
+    //bool try_rebuild_neighbors(uint32_t r);
 
     // return 0, if failed
     // return 1, if success+accepted

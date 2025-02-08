@@ -17,8 +17,8 @@ EPlanner::EPlanner() {
     env = new SharedEnvironment();
 }
 
-void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
-    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
+std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) {
+    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit);
     ETimer timer;
 
     plan.assign(env->num_of_agents, Action::W);
@@ -27,10 +27,10 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
     {
         // (score, actions)
         using ItemType = std::tuple<double, std::vector<Action>
-#ifdef ENABLE_PRINT_LOG
+//#ifdef ENABLE_PRINT_LOG
                 // time, desires, changes, step, log_str
                 , int, std::vector<uint32_t>, std::vector<int64_t>, uint32_t//, std::string
-#endif
+//#endif
         >;
 
         constexpr uint32_t THR = THREADS;
@@ -45,9 +45,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
             pibt.solve(seed);
             auto time = timer.get_ms();
             results_pack[thr].emplace_back(pibt.get_score(), pibt.get_actions()
-#ifdef ENABLE_PRINT_LOG
+//#ifdef ENABLE_PRINT_LOG
                     , time, pibt.get_desires(), pibt.get_changes(), pibt.step//, pibt.log.str()
-#endif
+//#endif
             );
             //    seed = (seed * 78124) ^ 182745123;
             //}
@@ -70,6 +70,7 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         }
 
         double best_score = -1e300;
+        std::vector<uint32_t> best_desires;
         std::sort(results.begin(), results.end(), [&](const auto &lhs, const auto &rhs) {
             return std::get<0>(lhs) > std::get<0>(rhs);
         });
@@ -78,15 +79,16 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
         Printer() << "RESULTS(" << results.size() << "): ";
 #endif
         for (const auto &[score, actions
-#ifdef ENABLE_PRINT_LOG
+//#ifdef ENABLE_PRINT_LOG
                     , time, desires, changes, steps//, log_str
-#endif
+//#endif
             ]: results) {
 #ifdef ENABLE_PRINT_LOG
             Printer() << "(" << score << ", " << time << ", " << steps << ") ";
 #endif
             if (best_score < score) {
                 best_score = score;
+                best_desires = desires;
                 plan = actions;
             }
         }
@@ -136,9 +138,9 @@ void EPlanner::plan(int time_limit, std::vector<Action> &plan) {
                 Printer() << get_operations()[d] << "->" << get_operations()[k] << ": " << count << '\n';
             }
         }*/
-
+        Printer() << "Planner: " << timer << '\n';
 #endif
-
+        return best_desires;
     }
 #endif
 

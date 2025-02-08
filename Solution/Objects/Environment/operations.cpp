@@ -39,11 +39,11 @@ void OperationsGenerator::generate(Operation &op, uint32_t i) {
 }
 
 std::vector<Operation> OperationsGenerator::get() {
-    Operation op;
-    generate(op, 0);
+    //Operation op;
+    //generate(op, 0);
 
     // read pool
-    /*{
+    {
         //std::ifstream input("Tmp/actions" + std::to_string(get_unique_id()) + ".txt");
         std::stringstream input(
                 "16 FFF FFW FWW FRF FCF RFW CFW RFF CFF RRF WFW FWF WFF WWF RWF CWF"
@@ -59,7 +59,7 @@ std::vector<Operation> OperationsGenerator::get() {
             ss >> op;
             pool.push_back(op);
         }
-    }*/
+    }
 
     // add WWW
     {
@@ -74,9 +74,9 @@ std::vector<Operation> OperationsGenerator::get() {
         pool.insert(pool.begin(), op);
     }
 
-    std::vector<Operation> result;
+    std::vector<Operation> result = pool;
 
-    std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
+    /*std::set<std::tuple<uint32_t, std::array<std::pair<uint32_t, uint32_t>, DEPTH>>> visited;
     for (auto operation: pool) {
         std::array<std::pair<uint32_t, uint32_t>, DEPTH> positions{};
         Position p;
@@ -96,7 +96,7 @@ std::vector<Operation> OperationsGenerator::get() {
             visited.insert(kek);
             result.push_back(operation);
         }
-    }
+    }*/
 
 #ifdef ENABLE_PRINT_LOG
     Printer() << "Operation: " << result.size() << '\n';
