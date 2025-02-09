@@ -154,8 +154,8 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     dist = dist * 10 - add_w;*/
 
     ASSERT(desired < get_operations_weights().size(), "invalid desired");
-    dist = dist * 100 - get_operations_weights()[desired];
-    //dist = dist * 50 - desired;
+    //dist = dist * 100 - get_operations_weights()[desired];
+    dist = dist * 50 - desired;
     return dist;
 }
 
@@ -265,11 +265,11 @@ uint32_t PIBTS::try_echo_slam(std::vector<uint32_t> &rids, uint32_t &counter, ui
                 continue;
             }
 
-            if(rids.size() + to_rids.size() > 2){
+            if (rids.size() + to_rids.size() > 2) {
                 continue;
             }
 
-            if(rnd.get_d() < 0.2){
+            if (rnd.get_d() < 0.2) {
                 continue;
             }
 
@@ -419,9 +419,6 @@ bool PIBTS::try_build(uint32_t r) {
 #endif
     if (res == 0 || res == 2) {
         add_path(r);
-        //ASSERT(std::abs(old_score - cur_score) < 1e-6,
-        //       "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
-        //       std::to_string(std::abs(old_score - cur_score)));
         return false;
     }
 #ifdef PRINT_RECURSIVE
@@ -607,6 +604,23 @@ bool PIBTS::build(uint32_t r) {
     }
 #endif
     return true;
+}
+
+void PIBTS::reset(uint32_t r, std::vector<uint32_t> &destroyed) {
+    if (visited[r] == visited_counter) {
+        return;
+    }
+    visited[r] = visited_counter;
+    remove_path(r);
+    desires[r] = 0;
+    destroyed.push_back(r);
+
+    std::vector<uint32_t> rids = get_multi_used(r);
+    for (uint32_t to_r: rids) {
+        reset(to_r, destroyed);
+    }
+
+    add_path(r);
 }
 
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
@@ -895,19 +909,47 @@ void PIBTS::solve(uint64_t seed) {
     }
 
     temp = 0.001;
-    for (step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
-        uint32_t r = rnd.get(0, robots.size() - 1);
-        //if (rnd.get_d() < 0.3) {
-        //    try_rebuild_neighbors(r);
-        //} else {
-        try_echo_slam(r);
-        //try_build(r);
-        //}
-        temp *= 0.999;
-    }
 
     best_desires = desires;
     best_score = cur_score;
+
+    if (false) {
+        for (step = 0; get_now() < end_time; step++) {
+            uint32_t r = rnd.get(0, robots.size() - 1);
+            try_build(r);
+            temp *= 0.999;
+        }
+        if (best_score + 1e-6 < cur_score) {
+            //Printer() << "improve: " << best_score << " -> " << cur_score << '\n';
+            best_desires = desires;
+            best_score = cur_score;
+        }
+    } else {
+        while (get_now() < end_time) {
+            //Printer() << "earthquake: " << cur_score << " -> ";
+            int N = rnd.get(10, 20);
+            ++visited_counter;
+            std::vector<uint32_t> destroyed;
+            while (N--) {
+                uint32_t r = rnd.get(0, robots.size() - 1);
+                reset(r, destroyed);
+            }
+            std::shuffle(destroyed.begin(), destroyed.end(), rnd.generator);
+            //Printer() << cur_score << " (" << destroyed.size() << ") -> ";
+            for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
+                uint32_t r = rnd.get_d() < 0.5 ? rnd.get(destroyed) : rnd.get(0, robots.size() - 1);
+                try_build(r);
+                temp *= 0.999;
+                this->step++;
+            }
+            //Printer() << cur_score << "\n";
+            if (best_score + 1e-6 < cur_score) {
+                //Printer() << "improve: " << best_score << " -> " << cur_score << '\n';
+                best_desires = desires;
+                best_score = cur_score;
+            }
+        }
+    }
 }
 
 std::vector<Action> PIBTS::get_actions() const {
@@ -943,5 +985,5 @@ std::vector<int64_t> PIBTS::get_changes() const {
 }
 
 double PIBTS::get_score() const {
-    return cur_score;
+    return best_score;
 }

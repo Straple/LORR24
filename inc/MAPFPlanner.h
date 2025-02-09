@@ -8,7 +8,9 @@
 
 #include <settings.hpp>
 
+#ifdef ENABLE_SMART_PLANNER
 #include "../Solution2/inc/MAPFPlanner.h"
+#endif
 
 class MAPFPlanner {
 public:

@@ -89,7 +89,7 @@ void init_environment(SharedEnvironment &env) {
     // init operations weights
     {
         std::stringstream input("45 -7 38 -18 11 72 -34 72 -4 52 31 38 17 -32 7 45 24 48 -35 49 19 -75 0 25 -54 -26 2 -9 -71 -22 -2 38 29 18 -72 16 46 0 9 1 21 -7 15 33 19 -1");
-        //("17 -200 150 130 110 50 50 20 20 40 40 10 30 70 60 10 20 20");
+                //("17 -200 20 20 10 60 70 30 10 40 40 20 20 50 50 110 130 150");
         uint32_t k = 0;
         input >> k;
         get_operations_weights().resize(k);
@@ -106,7 +106,7 @@ void init_environment(SharedEnvironment &env) {
     get_omap() = OperationsMap(get_graph(), get_operations());
     // get_busyness_map() = BusynessMap(get_map());
 
-    ASSERT(get_operations_weights().size() == get_operations().size(), "unmatch sizes");
+    ASSERT(get_operations_weights().size() == get_operations().size(), "unmatch sizes: " + std::to_string(get_operations_weights().size()) + "!=" + std::to_string(get_operations().size()));
 
     init_default_planner(env);
 

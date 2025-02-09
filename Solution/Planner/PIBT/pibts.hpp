@@ -99,6 +99,11 @@ class PIBTS {
 
     bool build(uint32_t r);
 
+    // устанавливает робота r в операцию WWW
+    // если ему в этом кто-то мешает, то его он тоже рекурсивно сносит
+    // всех снесенных он запишет в
+    void reset(uint32_t r, std::vector<uint32_t> &destroyed);
+
 public:
     explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time);
 
