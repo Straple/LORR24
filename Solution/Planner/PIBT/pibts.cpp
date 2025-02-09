@@ -153,7 +153,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     }
     dist = dist * 10 - add_w;*/
 
-    ASSERT(desired < get_operations_weights().size(), "invalid desired");
+    //ASSERT(desired < get_operations_weights().size(), "invalid desired");
     //dist = dist * 100 - get_operations_weights()[desired];
     dist = dist * 50 - desired;
     return dist;
@@ -908,12 +908,12 @@ void PIBTS::solve(uint64_t seed) {
         build(r);
     }
 
-    temp = 0.001;
-
     best_desires = desires;
     best_score = cur_score;
 
-    if (false) {
+    temp = 0.001;
+
+    if constexpr (true) {
         for (step = 0; get_now() < end_time; step++) {
             uint32_t r = rnd.get(0, robots.size() - 1);
             try_build(r);
