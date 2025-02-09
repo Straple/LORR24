@@ -37,8 +37,6 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
 #endif
 
-    //update_environment(*env);
-
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
 
