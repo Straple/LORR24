@@ -56,6 +56,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
 
     uint32_t source = get_robots_handler().get_robot(r).node;
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
+    //get_wmap().get(source, task_target[t])
     uint64_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 6387
     //uint64_t dist = dist_to_target + dist_dp[t] * dist_dp[t]; // 6001
     //uint64_t dist = dist_to_target + dist_dp[t]; // 6201
@@ -254,6 +255,7 @@ void SchedulerSolver::update() {
                 int source = task.locations[i] + 1;
                 int target = task.locations[i + 1] + 1;
                 d += get_hm().get(get_graph().get_node(Position(source, 0)), target);
+                //get_wmap().get(get_graph().get_node(Position(source, 0)), target)
             }
             dist_dp[t] = d;
         }

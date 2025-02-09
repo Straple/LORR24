@@ -11,6 +11,7 @@
 #include <Objects/Environment/operations_map.hpp>
 #include <Objects/Environment/robot_handler.hpp>
 #include <Objects/Environment/info.hpp>
+#include <Objects/Environment/workload_map.hpp>
 
 #include <SharedEnv.h>
 #include <ActionModel.h>
