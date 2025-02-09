@@ -59,6 +59,8 @@ class PIBTS {
 
     [[nodiscard]] uint32_t get_used(uint32_t r) const;
 
+    [[nodiscard]] std::vector<uint32_t> get_multi_used(uint32_t r) const;
+
     [[nodiscard]] int64_t get_smart_dist_IMPL(uint32_t r, uint32_t desired) const;
 
     [[nodiscard]] int64_t get_smart_dist(uint32_t r, uint32_t desired) const;
@@ -68,6 +70,13 @@ class PIBTS {
     void add_path(uint32_t r);
 
     void remove_path(uint32_t r);
+
+    // return 0, if failed
+    // return 1, if success+accepted
+    // return 2, if success+not accepted
+    uint32_t try_echo_slam(std::vector<uint32_t>& rids, uint32_t &counter, uint32_t depth);
+
+    bool try_echo_slam(uint32_t r);
 
     // return 0, if failed
     // return 1, if success+accepted

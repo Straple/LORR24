@@ -89,6 +89,33 @@ uint32_t PIBTS::get_used(uint32_t r) const {
     return answer;
 }
 
+std::vector<uint32_t> PIBTS::get_multi_used(uint32_t r) const {
+    std::vector<uint32_t> answer;
+
+    auto add = [&](uint32_t r) {
+        if (std::find(answer.begin(), answer.end(), r) == answer.end()) {
+            answer.push_back(r);
+        }
+    };
+
+    auto &poses_path = get_omap().get_poses_path(robots[r].node, desires[r]);
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        uint32_t to_pos = poses_path[depth];
+        if (used_pos[to_pos][depth] != -1) {
+            add(used_pos[to_pos][depth]);
+        }
+    }
+
+    const auto &edges_path = get_omap().get_edges_path(robots[r].node, desires[r]);
+    for (uint32_t depth = 0; depth < DEPTH; depth++) {
+        uint32_t to_edge = edges_path[depth];
+        if (used_edge[to_edge][depth] != -1) {
+            add(used_edge[to_edge][depth]);
+        }
+    }
+    return answer;
+}
+
 int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     int64_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
 
@@ -127,8 +154,8 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     dist = dist * 10 - add_w;*/
 
     ASSERT(desired < get_operations_weights().size(), "invalid desired");
-    //dist = dist * 100 - get_operations_weights()[desired];
-    dist = dist * 50 - desired;
+    dist = dist * 100 - get_operations_weights()[desired];
+    //dist = dist * 50 - desired;
     return dist;
 }
 
@@ -187,6 +214,123 @@ void PIBTS::remove_path(uint32_t r) {
         }
     }
     update_score(r, desires[r], cur_score, -1);
+}
+
+uint32_t PIBTS::try_echo_slam(std::vector<uint32_t> &rids, uint32_t &counter, uint32_t depth) {
+    if (rids.empty()) {
+        if (consider()) {
+            return 1;// accepted
+        } else {
+            return 2;// not accepted
+        }
+    }
+
+    if (counter > 1000 ||//
+        (counter % 16 == 0 && get_now() >= end_time)) {
+        counter = -1;
+        return 2;
+    }
+
+    uint32_t r = rids[0];
+    rids.erase(rids.begin());
+
+    visited[r] = visited_counter;
+    uint32_t old_desired = desires[r];
+
+    for (uint32_t desired: robot_desires[r]) {
+        desires[r] = desired;
+        std::vector<uint32_t> to_rids = get_multi_used(r);
+        if (to_rids.empty()) {
+            add_path(r);
+            uint32_t res = try_echo_slam(rids, ++counter, depth + 1);
+            if (res == 1) {
+                return res;
+            } else if (res == 2) {
+                remove_path(r);
+                desires[r] = old_desired;
+                return res;
+            }
+            remove_path(r);
+        } else {
+            bool ok = true;
+            for (uint32_t to_r: to_rids) {
+                ASSERT(to_r != r, "invalid to_r");
+                ASSERT(std::find(rids.begin(), rids.end(), to_r) == rids.end(), "already in rids");
+                if (visited[to_r] == visited_counter) {
+                    ok = false;
+                }
+            }
+
+            if (!ok) {
+                continue;
+            }
+
+            if(rids.size() + to_rids.size() > 2){
+                continue;
+            }
+
+            if(rnd.get_d() < 0.2){
+                continue;
+            }
+
+            for (uint32_t to_r: to_rids) {
+                rids.push_back(to_r);
+                remove_path(to_r);
+            }
+            add_path(r);
+
+            uint32_t res = try_echo_slam(rids, ++counter, depth + 1);
+            if (res == 1) {
+                return res;
+            } else if (res == 2) {
+                remove_path(r);
+                for (uint32_t to_r: to_rids) {
+                    add_path(to_r);
+                }
+                desires[r] = old_desired;
+                return res;
+            }
+
+            remove_path(r);
+            for (uint32_t to_r: to_rids) {
+                add_path(to_r);
+            }
+
+            while (!to_rids.empty()) {
+                to_rids.pop_back();
+                rids.pop_back();
+            }
+        }
+    }
+
+    desires[r] = old_desired;
+    visited[r] = 0;
+    rids.insert(rids.begin(), r);
+    return 0;
+}
+
+bool PIBTS::try_echo_slam(uint32_t r) {
+    ++visited_counter;
+    old_score = cur_score;
+    remove_path(r);
+    uint32_t counter = 0;
+    std::vector<uint32_t> rids = {r};
+    uint32_t res = try_echo_slam(rids, counter, 0);
+#ifdef PRINT_RECURSIVE
+    if (res == 0) {
+        log << "invalid  try_echo_slam, count: " << counter << "\n";
+    }
+#endif
+    if (res == 0 || res == 2) {
+        add_path(r);
+        return false;
+    }
+#ifdef PRINT_RECURSIVE
+    if (std::abs(old_score - cur_score) > 1e-6) {
+        log << '\n';
+    }
+#endif
+    return true;
 }
 
 uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
@@ -756,7 +900,8 @@ void PIBTS::solve(uint64_t seed) {
         //if (rnd.get_d() < 0.3) {
         //    try_rebuild_neighbors(r);
         //} else {
-        try_build(r);
+        try_echo_slam(r);
+        //try_build(r);
         //}
         temp *= 0.999;
     }
