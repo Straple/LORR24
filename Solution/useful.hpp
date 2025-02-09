@@ -291,6 +291,7 @@ total: 347037
 //-i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 500 -p 1000000000
 //time:  466.095s
 //tasks: 35056 -> 35775 -> 37433 (planner depth=4)
+// revealed: 37538+GG, 26253-GG
 //
 //tasks: 34067, SCHEDULER_LNS_TIME = 100
 //tasks: 34422, SCHEDULER_LNS_TIME = 0
@@ -380,7 +381,7 @@ call(4): 5618, 81.861s
 call(5): 5433, 82.0859s
 call(6): 4523, 82.0304s
 call(7): 2260, 82.2095s
-total: 37549 (earthquake)
+total: 37549 (earthquake) (умные веса также)
 
 call(0): 2474, 81.1227s
 call(1): 4537, 81.3853s
@@ -394,37 +395,16 @@ total: 35026 (без весов)
 
 =========================
 
-S + SCHEDULER_TRICK
-call(0): 2359, 80.4237s
-call(1): 3876, 79.8499s
-call(2): 3732, 78.9627s
-call(3): 3508, 78.5293s
-call(4): 2990, 77.7912s
-call(5): 2609, 77.0402s
-call(6): 1059, 75.953s TIMEOUT
-call(7): 518, 74.7589s TIMEOUT
-total: 20651
-
-call(0): 2351, 160.696s
-call(1): 3866, 159.962s
-call(2): 3875, 159.383s
-call(3): 3339, 158.562s
-call(4): 3237, 157.932s
-call(5): 2556, 157.151s
-call(6): 1245, 156.468s
-call(7): 813, 155.536s
-total: 21282
-
 S
-call(0): 2212, 81.6705s
-call(1): 3648, 80.3537s
-call(2): 3967, 79.444s
-call(3): 3633, 78.8118s
-call(4): 3050, 77.4307s
-call(5): 2561, 77.7719s
-call(6): 1554, 76.5307s TIMEOUT
-call(7): 1368, 75.4808s TIMEOUT
-total: 21993
+call(0): 2215, 80.039s
+call(1): 3651, 79.2728s
+call(2): 3927, 78.5544s
+call(3): 3709, 77.8526s
+call(4): 3199, 77.1011s
+call(5): 2510, 76.2795s
+call(6): 2122, 75.4736s
+call(7): 1583, 74.7917s
+total: 22916
 */
 
 //6882
@@ -497,3 +477,44 @@ call(5): 4076, 81.9485s
 call(6): 3902, 81.6909s
 call(7): 2407, 81.8619s
 total: 34848
+
+
+random (100): Total plans equal: 93%, score 2339
+random (400): Total plans equal: 73%, score 3545 -> 3848
+
+Total plans equal: 72.4622%
+FF: 137474
+FR: 3744
+FC: 1548
+FW: 13783
+RF: 12273
+RR: 59441
+RC: 1028
+RW: 26015
+CF: 7428
+CR: 3625
+CC: 33148
+CW: 12798
+WF: 22379
+WR: 4617
+WC: 913
+WW: 59786
+
+если дать планировщику мои план
+Total plans equal: 21.3938%
+FF: 30251
+FR: 106355
+FC: 53942
+FW: 25466
+RF: 9213
+RR: 34432
+RC: 17287
+RW: 8278
+CF: 6457
+CR: 22855
+CC: 12124
+CW: 5577
+WF: 9503
+WR: 32331
+WC: 17161
+WW: 8768

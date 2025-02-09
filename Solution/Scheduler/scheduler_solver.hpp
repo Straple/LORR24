@@ -23,7 +23,7 @@ class SchedulerSolver {
     std::vector<uint32_t> free_tasks;
 
     // dp[r] = отсортированный вектор (dist, task_id)
-    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp;
+    std::vector<std::vector<std::pair<uint64_t, uint32_t>>> dp;
 
     std::vector<int> timestep_updated;
 
@@ -58,7 +58,7 @@ class SchedulerSolver {
         }
     }
 
-    [[nodiscard]] uint32_t get_dist(uint32_t r, uint32_t t) const;
+    [[nodiscard]] uint64_t get_dist(uint32_t r, uint32_t t) const;
 
     void set(uint32_t r, uint32_t t);
 

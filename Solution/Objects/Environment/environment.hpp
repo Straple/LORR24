@@ -13,7 +13,12 @@
 #include <Objects/Environment/info.hpp>
 
 #include <SharedEnv.h>
+#include <ActionModel.h>
 
 void init_environment(SharedEnvironment &env);
 
 void update_environment(SharedEnvironment &env);
+
+#ifdef ENABLE_SCHEDULER_TRICK
+std::vector<Action> &get_myplan();
+#endif

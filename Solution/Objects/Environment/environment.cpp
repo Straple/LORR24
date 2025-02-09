@@ -224,3 +224,10 @@ void update_environment(SharedEnvironment &env) {
 
     //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
 }
+
+#ifdef ENABLE_SCHEDULER_TRICK
+std::vector<Action> &get_myplan() {
+    static std::vector<Action> plan;
+    return plan;
+}
+#endif

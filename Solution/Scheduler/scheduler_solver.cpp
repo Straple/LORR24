@@ -49,24 +49,24 @@ bool SchedulerSolver::compare(double cur_score, double old_score, Randomizer &rn
     return cur_score <= old_score || rnd.get_d() < std::exp((old_score - cur_score) / temp);
 }
 
-uint32_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
+uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     if (t == -1) {
         return 1e6;
     }
 
     uint32_t source = get_robots_handler().get_robot(r).node;
-    uint32_t dist_to_target = get_hm().get(source, task_target[t]);
-    uint32_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 6387
-    //uint32_t dist = dist_to_target + dist_dp[t] * dist_dp[t]; // 6001
-    //uint32_t dist = dist_to_target + dist_dp[t]; // 6201
+    uint64_t dist_to_target = get_hm().get(source, task_target[t]);
+    uint64_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 6387
+    //uint64_t dist = dist_to_target + dist_dp[t] * dist_dp[t]; // 6001
+    //uint64_t dist = dist_to_target + dist_dp[t]; // 6201
 
-    //uint32_t dist = dist_to_target * 5 + dist_dp[t];  // 6262
-    //uint32_t dist = dist_to_target * 10 + dist_dp[t]; // 6399
-    //uint32_t dist = dist_to_target * 13 + dist_dp[t]; // 6195
-    //uint32_t dist = dist_to_target * 15 + dist_dp[t]; // 6416
-    //uint32_t dist = dist_to_target * 16 + dist_dp[t]; // 6466
-    //uint32_t dist = dist_to_target * 17 + dist_dp[t]; // 6372
-    //uint32_t dist = dist_to_target * 20 + dist_dp[t]; // 6283
+    //uint64_t dist = dist_to_target * 5 + dist_dp[t];  // 6262
+    //uint64_t dist = dist_to_target * 10 + dist_dp[t]; // 6399
+    //uint64_t dist = dist_to_target * 13 + dist_dp[t]; // 6195
+    //uint64_t dist = dist_to_target * 15 + dist_dp[t]; // 6416
+    //uint64_t dist = dist_to_target * 16 + dist_dp[t]; // 6466
+    //uint64_t dist = dist_to_target * 17 + dist_dp[t]; // 6372
+    //uint64_t dist = dist_to_target * 20 + dist_dp[t]; // 6283
 
     return dist;
 }
@@ -433,7 +433,10 @@ std::vector<int> SchedulerSolver::get_schedule() const {
     EPlanner eplanner(env);
     std::vector<Action> plan;
     auto desires_plan = eplanner.plan(SCHEDULER_TRICK_TIME, plan);
+    get_myplan().resize(desires.size());
     for (uint32_t r = 0; r < desires.size(); r++) {
+        get_myplan()[r] = get_operations()[desires_plan[r]][0];
+
         int t = result[r];
         if (t == -1) {
             continue;
@@ -444,15 +447,26 @@ std::vector<int> SchedulerSolver::get_schedule() const {
         ASSERT(task.idx_next_loc < task.locations.size(), "invalid idx_next_loc");
         int target = task.get_next_loc() + 1;
         const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
+        Operation op = get_operations()[desires_plan[r]];
         uint32_t to = poses.back();
-        for (uint32_t i = 1; i < poses.size(); i++) {
-            if (poses[i] != poses[0]) {
+        for (uint32_t i = 0; i < poses.size(); i++) {
+            if (op[i] == Action::FW) {
                 to = poses[i];
                 break;
             }
         }
 
-        task.locations.insert(task.locations.begin() + task.idx_next_loc, get_graph().get_pos_from_zip(to) - 1);
+        uint32_t p = get_graph().get_pos_from_zip(to);
+        Position pop(p, 0);
+        Position rpos = get_graph().get_pos(get_robots_handler().get_robot(r).node);
+
+        //if (op[0] == Action::W) {
+        //    p = rpos.get_pos();
+        //}
+
+        task.locations.insert(task.locations.begin() + task.idx_next_loc, p - 1);
+        //Printer() << "done: " << r << '\n';
+        //std::cout.flush();
     }
 #endif
     return result;
