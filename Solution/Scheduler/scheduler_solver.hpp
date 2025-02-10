@@ -32,7 +32,7 @@ class SchedulerSolver {
     // dist_dp[t] = расстояние задачи
     std::vector<uint32_t> dist_dp;
 
-    // dist_dp[t] = цель задачи (pos)
+    // task_target[t] = цель задачи (pos)
     std::vector<uint32_t> task_target;
 
     // phantom_agent_dist[r] = расстояние до выполнения задачи фантомного робота r

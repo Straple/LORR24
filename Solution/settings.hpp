@@ -13,7 +13,7 @@
 
 //#define ENABLE_SMART_PLANNER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
@@ -26,7 +26,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -56,7 +56,7 @@ static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
 static constexpr uint32_t SCHEDULER_TRICK_TIME = 200;
 
-static constexpr uint32_t SCHEDULER_LNS_TIME = 200;
+static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 
 static constexpr uint32_t INVALID_DIST = 0;
 

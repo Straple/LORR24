@@ -59,7 +59,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     update_goal_locations(proposed_schedule);
 
     //call the planner to compute the actions
-    planner->plan(time_limit, plan);
+    planner->plan(time_limit / 2, plan);
 
 #ifdef ENABLE_PRINT_LOG
     {
