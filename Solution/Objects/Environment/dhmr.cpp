@@ -8,131 +8,204 @@
 
 #include <unordered_set>
 #include <thread>
+#include <set>
 
-uint32_t
-DHMR::get_triv(uint32_t r, uint32_t desired, uint32_t robot_node, uint32_t target, std::vector<uint32_t> &visited,
-               uint32_t &visited_counter, std::vector<uint32_t> &dp) const {
-    visited_counter++;
+// 6885 без DHMR
 
-    constexpr uint32_t MAX_DEPTH = 10;
+// 6809 DHMR, но без веса агентам
+// 6942 DHMR + штраф за робота
 
-    uint32_t source = get_omap().get_nodes_path(robot_node, desired).back();
-    if (!source) {
-        return 0;
+// DHMR::update: 72.4483ms
+
+void DHMR::build(uint32_t r, uint32_t timestep) {
+    //Printer() << "DHMR::build(" << r << ")\n"; std:cout.flush();
+
+    constexpr uint32_t DEPTH = 1000; // 7
+
+    const uint32_t target = get_robots_handler().get_robot(r).target;
+
+    if(!target){
+        return;
     }
 
-    // (dist, node, depth)
-    std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> heap;
-    heap.push({get_hm().get(source, target), source, 0});
+    // (depth, node)
+    std::vector<std::tuple<uint32_t, uint32_t>> poses;
 
-    uint32_t answer = -1;
+    //std::unordered_set<uint32_t> visited_sphere;
 
-    while (!heap.empty()) {
-        auto [dist, node, depth] = heap.top();
-        heap.pop();
+    // с помощью Дейкстры обойдем шар узлов графа радиуса DEPTH
+    {
+        // (metric, node, depth)
+        std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>,
+                std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> heap;
 
-        if (visited[node] == visited_counter) {
-            continue;
+        heap.push({0, get_robots_handler().get_robot(r).node, 0});
+
+        while (!heap.empty()) {
+            auto [metric, node, depth] = heap.top();
+            heap.pop();
+
+            ASSERT(node, "invalid node");
+
+            if (visited_sphere[r][node] == timestep) {
+                continue;
+            }
+            visited_sphere[r][node] = timestep;
+
+            poses.emplace_back(depth, node);
+
+            if (depth >= DEPTH) {
+                ASSERT(depth == DEPTH, "invalid depth");
+                continue;
+            }
+
+            // F, C, R
+            for (uint32_t action = 0; action < 3; action++) {
+                uint32_t to = get_graph().get_to_node(node, action);
+
+                if (to && visited_sphere[r][to] != timestep) {
+                    heap.push({metric + get_graph().get_weight(node, action), to, depth + (action == 0)});
+                }
+            }
         }
-        visited[node] = visited_counter;
 
-        ASSERT(depth <= MAX_DEPTH, "invalid depth");
+        //std::sort(poses.begin(), poses.end(), std::greater<>());
+    }
 
-        if (depth == MAX_DEPTH || get_graph().get_pos(node).get_pos() == target) {
+    // (metric, node)
+    std::priority_queue<std::tuple<uint32_t, uint32_t>,
+            std::vector<std::tuple<uint32_t, uint32_t>>, std::greater<>> heap;
+
+    auto target_is_in_sphere = [&]() {
+        for (auto [depth, node]: poses) {
             if (get_graph().get_pos(node).get_pos() == target) {
-                ASSERT(get_hm().get(node, target) == 0, "invalid HM");
+                return true;
             }
-            answer = std::min(answer, dist);
-            continue;
         }
+        return false;
+    };
 
-        dist -= get_hm().get(node, target);
+    bool is_in_sphere = false;
+    if (target_is_in_sphere()) {
+        is_in_sphere = true;
+        // если таргет уже в сфере, то просто его же и добавим
+        for (auto [depth, node]: poses) {
+            if (get_graph().get_pos(node).get_pos() == target) {
+                heap.push({0, node});
+            }
+        }
+    } else {
+        // иначе добавим всех, кто на максимальной глубине
+        for (auto [depth, node]: poses) {
+            ASSERT(depth <= DEPTH, "invalid depth");
+            if (depth == DEPTH) {
+                heap.push({get_hm().get(node, target), node});
+            }
+        }
+    }
+    /*for (auto [depth, node]: poses) {
+        ASSERT(depth <= DEPTH, "invalid depth");
+        if (depth == DEPTH) {
+            heap.push({get_hm().get(node, target), node});
+        }
+    }*/
 
-        for (uint32_t action = 0; action < 3; action++) {
-            uint32_t to = get_graph().get_to_node(node, action);
-            ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
-            if (to && visited[to] != visited_counter) {
-                uint32_t to_dist = dist;
-                to_dist += get_graph().get_weight(node, action);
-                uint32_t to_pos = get_graph().get_pos(to).get_pos();
-                uint32_t to_r = pos_to_robot[to_pos];
-                if (to_r != -1 && to_r != r) {
-                    // + penalty for robot in to
-                    //static double workload = matrix.size() * 1.0 / get_map().get_count_free();
-                    //static double power = std::max(1.0, workload * 14 * 2 - 2);
-                    to_dist += 10;//power;
+    ASSERT(!heap.empty(), "heap is empty");
+
+    //std::unordered_set<uint32_t> visited;
+
+    auto simulate_dijkstra = [&]() {
+        while (!heap.empty()) {
+            auto [metric, node] = heap.top();
+            heap.pop();
+
+            ASSERT(visited_sphere[r][node] == timestep, "outside the sphere");
+
+            if (visited[r][node] == timestep) {
+                continue;
+            }
+            visited[r][node] = timestep;
+            matrix[r][node] = metric;
+
+            /*uint32_t d = get_hm().get(node, target);
+            if (metric != d) {
+                //Printer() << "bad: " << metric << " != " << d << ", is_in_sphere: " << is_in_sphere << '\n';
+                //Position target_pos(target, 0);
+                //ASSERT(metric == d, "invalid metric");
+            }*/
+
+            // F, C, R
+            for (uint32_t action = 0; action < 3; action++) {
+                uint32_t to = 0;
+                //get_graph().get_to_node(node, action);
+                if (action == 0) {
+                    to = get_graph().get_to_node(node, 1); // R
+                    to = get_graph().get_to_node(to, 1); // R
+                    to = get_graph().get_to_node(to, 0); // F
+                    if (to) {
+                        to = get_graph().get_to_node(to, 1); // R
+                        to = get_graph().get_to_node(to, 1); // R
+                    }
+                } else if (action == 1) {
+                    to = get_graph().get_to_node(node, 2);
+                } else if (action == 2) {
+                    to = get_graph().get_to_node(node, 1);
                 }
-                to_dist += get_hm().get(to, target);
-                heap.push({to_dist, to, depth + 1});
-            }
-        }
-    }
-    //std::cout << "cnt: " << cnt << ", ok: " << ok << '\n';
-    return answer;
-}
 
-uint32_t DHMR::get(uint32_t r, uint32_t desired, uint32_t robot_node, uint32_t target, std::vector<uint32_t> &visited,
-                   uint32_t &visited_counter, std::vector<uint32_t> &dp) const {
-    visited_counter++;
-    constexpr uint32_t MAX_DEPTH = 10;
-
-    uint32_t source = get_omap().get_nodes_path(robot_node, desired).back();
-    if (!source) {
-        return 0;
-    }
-
-    // (dist, node, depth)
-    std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> heap;
-    heap.push({get_hm().get(source, target), source, 0});
-
-    while (!heap.empty()) {
-        auto [dist, node, depth] = heap.top();
-        heap.pop();
-
-        if (visited[node] == visited_counter) {
-            continue;
-        }
-        visited[node] = visited_counter;
-
-        ASSERT(depth <= MAX_DEPTH, "invalid depth");
-
-        if (depth == MAX_DEPTH || get_graph().get_pos(node).get_pos() == target) {
-            //uint32_t triv = get_triv(r, desired, robot_node, target);
-            //if (triv != dist) {
-            //    Printer() << "invalid answers: " + std::to_string(triv) + " != " + std::to_string(dist) << "\n";
-            //}
-            //ASSERT(triv == dist, "invalid answers: " + std::to_string(triv) + " != " + std::to_string(dist));
-            return dist;
-        }
-
-        dist -= get_hm().get(node, target);
-
-        for (uint32_t action = 0; action < 3; action++) {
-            uint32_t to = get_graph().get_to_node(node, action);
-            ASSERT(0 <= to && to < get_graph().get_nodes_size(), "invalid to");
-            if (to && visited[to] != visited_counter) {
-                uint32_t to_dist = dist;
-                to_dist += get_graph().get_weight(node, action);
-                uint32_t to_pos = get_graph().get_pos(to).get_pos();
-                uint32_t to_r = pos_to_robot[to_pos];
-                if (to_r != -1 && to_r != r) {
-                    // + penalty for robot in to
-                    //static double workload = matrix.size() * 1.0 / get_map().get_count_free();
-                    //static double power = std::max(1.0, workload * 14 * 2 - 2);
-                    to_dist += 10;//power;
+                if (!to) {
+                    continue;
                 }
-                to_dist += get_hm().get(to, target);
-                heap.push({to_dist, to, depth + 1});
+
+                ASSERT(node == get_graph().get_to_node(to, action), "invalid to");
+
+                if (to && visited_sphere[r][to] == timestep && visited[r][to] != timestep) {
+                    uint32_t to_metric = metric;
+                    to_metric += get_graph().get_weight(to, action); // edge weight
+
+                    uint32_t to_pos = get_graph().get_pos(to).get_pos();
+                    uint32_t to_r = pos_to_robot[to_pos];
+
+                    // другой робот
+                    if (to_r != -1 && to_r != r) {
+                        to_metric += 1;
+                    }
+
+                    heap.push({to_metric, to});
+                }
             }
         }
-    }
+    };
 
-    FAILED_ASSERT("wtf???");
-    return 0;
+    simulate_dijkstra();
+
+    /*if (visited.size() != visited_sphere.size()) {
+        for (auto [depth, node]: poses) {
+            heap.push({get_hm().get(node, target), node});
+        }
+        simulate_dijkstra();
+    }*/
+
+    /*if (visited.size() != visited_sphere.size()) {
+        Printer() << "failed to build sphere:\n";
+        int cnt = 0;
+        std::cout << "{";
+        for (uint32_t node: visited_sphere) {
+            if (!visited.count(node)) {
+                cnt++;
+                Printer() << node << ", ";
+            }
+        }
+        std::cout << "}" << std::endl;
+        std::cout << "cnt: " << cnt << std::endl;
+    }*/
+    /*ASSERT(visited.size() == visited_sphere.size(),
+           "failed to build sphere: " + std::to_string(visited.size()) + " != " +
+           std::to_string(visited_sphere.size()));*/
 }
 
 void DHMR::update(uint32_t timestep, TimePoint end_time) {
-    return;
+#ifdef ENABLE_DHMR
+    ++timestep;
     ETimer timer;
     const auto &robots = get_robots_handler().get_robots();
 
@@ -144,16 +217,13 @@ void DHMR::update(uint32_t timestep, TimePoint end_time) {
     }
 
     {
-        matrix.resize(robots.size(), std::vector<uint32_t>(get_operations().size()));
+        matrix.resize(robots.size(), std::vector<uint32_t>(get_graph().get_nodes_size()));
+        visited_sphere.resize(robots.size(), std::vector<uint32_t>(get_graph().get_nodes_size()));
+        visited.resize(robots.size(), std::vector<uint32_t>(get_graph().get_nodes_size()));
+
         auto do_work = [&](uint32_t thr) {
-            std::vector<uint32_t> visited(get_graph().get_nodes_size());
-            uint32_t visited_counter = 1;
-            std::vector<uint32_t> dp;
-            for (uint32_t r = thr; r < robots.size() && get_now() < end_time && r < DHM_REBUILD_COUNT; r += THREADS) {
-                for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
-                    matrix[r][desired] = get_triv(r, desired, robots[r].node, robots[r].target, visited,
-                                                  visited_counter, dp);
-                }
+            for (uint32_t r = thr; r < robots.size(); r += THREADS) {
+                build(r, timestep);
             }
         };
 
@@ -165,21 +235,18 @@ void DHMR::update(uint32_t timestep, TimePoint end_time) {
             threads[thr].join();
         }
     }
-    /*for (uint32_t r = 0; r < robots.size(); r++) {
-        for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
-            matrix[r][desired] = get_triv(r, desired, robots[r].node, robots[r].target);
-        }
-    }*/
 #ifdef ENABLE_PRINT_LOG
     Printer() << "DHMR::update: " << timer << '\n';
 #endif
+
+#endif
 }
 
-uint32_t DHMR::get(uint32_t r, uint32_t desired) const {
+uint32_t DHMR::get(uint32_t r, uint32_t node) const {
     ASSERT(r < matrix.size(), "invalid robot");
-    ASSERT(matrix[r].size() == get_operations().size(), "invalid matrix");
-    ASSERT(0 <= desired && desired < matrix[r].size(), "invalid desired");
-    return matrix[r][desired];
+    ASSERT(matrix[r].size() == get_graph().get_nodes_size(), "invalid matrix");
+    ASSERT(0 <= node && node < matrix[r].size(), "invalid desired");
+    return matrix[r][node];
 }
 
 DHMR &get_dhmr() {
