@@ -55,6 +55,10 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
+    if(get_map_type() != MapType::SORTATION){
+        return;
+    }
+
     //return;
 
     get_map() = Map(env);

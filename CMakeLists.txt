@@ -74,7 +74,7 @@ file(GLOB SOURCES
         #Solution2/src/LNS/Parallel/*.cpp
         #Solution2/src/RHCR/interface/*.cpp
         #Solution2/src/RHCR/main/*.cpp
-        #Solution2/src/util/*.cpp*
+        #Solution2/src/util/*.cpp
         )
 
 include_directories("inc")
@@ -91,6 +91,7 @@ include_directories("Solution2/src")
 # Find Boost
 #ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 SET(Boost_USE_STATIC_LIBS ON)
+# iostreams
 find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup)
 
 include_directories(${Boost_INCLUDE_DIRS})

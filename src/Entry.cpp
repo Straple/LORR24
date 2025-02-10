@@ -37,6 +37,10 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
 #endif
 
+    if(get_map_type() != MapType::SORTATION){
+        return;
+    }
+
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
 

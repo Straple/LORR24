@@ -5,8 +5,8 @@
 //#include <Objects/Environment/graph.hpp>
 //#include <Objects/Environment/heuristic_matrix.hpp>
 
-constexpr uint16_t PENALTY_WEIGHT = 6;
-constexpr uint16_t OK_WEIGHT = 2;
+constexpr uint32_t PENALTY_WEIGHT = 30;
+constexpr uint32_t OK_WEIGHT = 2;
 
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
     for (int32_t x = x0; x <= x1; x++) {
@@ -111,7 +111,7 @@ void GraphGuidance::set_city() {
     set_grid();
 }
 
-void GraphGuidance::set_walls(){
+void GraphGuidance::set_walls() {
     for (uint32_t x = 0; x < rows; x++) {
         for (uint32_t y = 0; y < cols; y++) {
             uint32_t pos = x * cols + y + 1;
@@ -126,11 +126,61 @@ void GraphGuidance::set_walls(){
     }
 }
 
+void GraphGuidance::read(const std::string &filename) {
+    /*// the problem is we need to decide which direction?
+  if (ped-pst==1) {
+    // east
+    return (*map_weights)[pst*5+0];
+  } else if (ped-pst==ins->G.width) {
+    // south
+    return (*map_weights)[pst*5+1];
+  } else if (ped-pst==-1) {
+    // west
+    return (*map_weights)[pst*5+2];
+  } else if (ped-pst==-ins->G.width) {
+    // north
+    return (*map_weights)[pst*5+3];
+  } else if (ped-pst==0) {
+    // stay
+    return (*map_weights)[pst*5+4]; // means no move is needed.
+  }
+  else {
+    std::cout<<"invalid move: "<<pst<<" "<<ped<<endl;
+    exit(-1);
+  }*/
+
+    constexpr double MULT = 1;
+    nlohmann::json data = nlohmann::json::parse(std::ifstream(filename));
+    for (uint32_t x = 0; x < get_map().get_rows(); x++) {
+        for (uint32_t y = 0; y < get_map().get_cols(); y++) {
+            uint32_t pos = x * get_map().get_cols() + y;
+
+            double mn = 10;
+            graph[pos + 1][0][0] = std::min(mn, static_cast<double>(data[pos * 5 + 0]) * MULT);
+            graph[pos + 1][1][0] = std::min(mn, static_cast<double>(data[pos * 5 + 1]) * MULT);
+            graph[pos + 1][2][0] = std::min(mn, static_cast<double>(data[pos * 5 + 2]) * MULT);
+            graph[pos + 1][3][0] = std::min(mn, static_cast<double>(data[pos * 5 + 3]) * MULT);
+
+            for (uint32_t dir = 0; dir < 4; dir++) {
+                graph[pos + 1][dir][1] = std::min(mn, static_cast<double>(data[pos * 5 + 4]) * MULT);
+                graph[pos + 1][dir][2] = std::min(mn, static_cast<double>(data[pos * 5 + 4]) * MULT);
+                graph[pos + 1][dir][3] = std::min(mn, static_cast<double>(data[pos * 5 + 4]) * MULT);
+            }
+        }
+    }
+}
+
 GraphGuidance::GraphGuidance(uint32_t rows, uint32_t cols) : rows(rows), cols(cols), graph(rows * cols + 1) {
 }
 
 GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.cols), graph(env.rows * env.cols + 1) {
+    set_default();
+
 #ifdef ENABLE_GG
+    //read("scripts/warehouse_large_weight_008.w");
+    //read("scripts/sortation_large_weight_008.w");
+    //read("scripts/brc202d_weight_002.w");
+
     if (get_map_type() == MapType::WAREHOUSE) {
         set_warehouse();
     } else if (get_map_type() == MapType::SORTATION) {
@@ -144,66 +194,19 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
     } else {
         FAILED_ASSERT("undefined map");
     }
-#else
-    set_default();
 #endif
 
     set_walls();
 
-    // [pos][dir]
-    /*get_graph() = Graph(get_map(), *this);
-    get_hm() = HeuristicMatrix(get_graph());
-    std::vector<std::vector<uint64_t>> kek(get_map().get_size(), std::vector<uint64_t>(4));
-    uint64_t mx = 0;
-    for (uint32_t x = 0; x < rows; x++) {
-        for (uint32_t y = 0; y < cols; y++) {
-            uint32_t pos = x * cols + y + 1;
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                if (!Position(x, y, dir).is_valid()) {
-                    continue;
-                }
-                uint32_t source = get_graph().get_node(Position(x, y, dir));
-                uint64_t sum = 0;
-                for (uint32_t target = 1; target < get_map().get_size(); target++) {
-                    if (Position(target, 0).is_valid()) {
-                        sum += get_hm().get(source, target);
-                    }
-                }
-                kek[pos][dir] = sum;
-                mx = std::max(mx, sum);
-                uint32_t w = sum / get_map().get_size() + 1;
-                graph[pos][dir][0] = w;
-                graph[pos][dir][1] = w;
-                graph[pos][dir][2] = w;
-                graph[pos][dir][3] = w;
-            }
-        }
-    }
-
-    for (uint32_t x = 0; x < rows; x++) {
-        for (uint32_t y = 0; y < cols; y++) {
-            uint32_t pos = x * cols + y + 1;
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                if (!Position(x, y, dir).is_valid()) {
-                    continue;
-                }
-
-                for (uint32_t action = 0; action < 4; action++) {
-                    graph[pos][dir][action] = mx * 10 / kek[pos][dir];
-                }
-            }
-        }
-    }*/
-
-    /*{
+    {
         std::ofstream output("graph_guidance");
         output << *this;
     }
-    _exit(0);*/
+    //_exit(0);
 }
 
 GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
-    : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
+        : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
 
 #ifdef ENABLE_GG
     for (uint32_t x = 0; x < rows; x++) {

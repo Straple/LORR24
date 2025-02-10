@@ -302,7 +302,7 @@ total: 347037
 
 //-i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 500 -p 1000000000
 //ENABLE_SMART_PLANNER: 6758
-//MY: 6524
+//MY: 6524 -> 8231
 
 
 // (revealed tasks)

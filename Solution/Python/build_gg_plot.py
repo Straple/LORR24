@@ -45,7 +45,8 @@ def build_svgs():
         map = data[dir][act]
         ax = axes
         print("processing:", dir, act)
-        im = ax.imshow(map, cmap='viridis', vmin=mn, vmax=mx)
+        im = ax.imshow(map, cmap='viridis'#, vmin=mn, vmax=mx
+                       )
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
         fig.colorbar(im, ax=ax)
@@ -66,9 +67,9 @@ def paint():
         images.append(ax.imshow(map, cmap='viridis', vmin=mn, vmax=mx))
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
-        # fig.colorbar(images[-1], ax=ax)
+        #fig.colorbar(images[-1], ax=ax)
 
-    fig.colorbar(images[0], ax=axes.ravel().tolist())
+    #fig.colorbar(images[0], ax=axes.ravel().tolist())
     # plt.tight_layout()
     plt.show()
 
@@ -79,5 +80,5 @@ acts = ["FW", "R", "CR", "W"]
 if __name__ == '__main__':
     data, mn, mx = read('../../graph_guidance')
 
-    #paint()
+    paint()
     build_svgs()

@@ -90,6 +90,10 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
     uint32_t r = rnd.get(free_robots);
     uint32_t new_t = rnd.get(free_tasks);
 
+    if(desires[r] == new_t) {
+        return false;
+    }
+
     /*if (dp[r].empty() || rnd.get_d() < 0.2) {
         new_t = rnd.get(free_tasks);
     } else {
@@ -169,7 +173,7 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-        : env(env), desires(env->num_of_agents, -1), task_to_robot(500'000, -1) {
+        : env(env), desires(env->num_of_agents, -1), task_to_robot(1'000'000, -1) {
 }
 
 void SchedulerSolver::update() {

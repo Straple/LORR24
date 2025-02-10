@@ -32,6 +32,8 @@ class GraphGuidance {
 
     void set_walls();
 
+    void read(const std::string& filename);
+
 public:
 
     GraphGuidance() = default;
