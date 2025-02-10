@@ -14,9 +14,9 @@ void GuidanceMap::set_game(const Map &map) {
 }
 
 void GuidanceMap::set_warehouse(const Map &map) {
-    std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
-    input >> *this;
-    return;
+    //std::ifstream input("Solution/Data/guidance_map_warehouse.txt");
+    //input >> *this;
+    //return;
 
     for (uint32_t y = 4; y < 493; y += 7) {
         overlay({
@@ -121,12 +121,30 @@ void GuidanceMap::set_warehouse(const Map &map) {
         overlay(std::vector(132, std::string("^")), 4, y);
     }
 
+    overlay(std::vector(1, std::string(483, '<')), 5, 8);
+    overlay(std::vector(1, std::string(483, '>')), 4, 8);
+    overlay(std::vector(1, std::string(483, '<')), 3, 8);
+
+    overlay(std::vector(1, std::string(483, '>')), 132, 8);
+    overlay(std::vector(1, std::string(483, '<')), 133, 8);
+    overlay(std::vector(1, std::string(483, '>')), 134, 8);
+    overlay(std::vector(1, std::string(483, '<')), 135, 8);
+    overlay(std::vector(1, std::string(483, '>')), 136, 8);
+
     for(uint32_t y = 11; y < 490; y += 8){
-        overlay(std::vector(5, std::string("v")), 3, y);
+        overlay(std::vector(4, std::string("v")), 4, y);
     }
 
     for(uint32_t y = 15; y < 490; y += 8){
-        overlay(std::vector(5, std::string("^")), 3, y);
+        overlay(std::vector(4, std::string("^")), 4, y);
+    }
+
+    for(uint32_t y = 11; y < 490; y += 8){
+        overlay(std::vector(7, std::string("v")), 129, y);
+    }
+
+    for(uint32_t y = 15; y < 490; y += 8){
+        overlay(std::vector(7, std::string("^")), 129, y);
     }
 
     // маленькие края
@@ -194,10 +212,10 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         }
     }
 
-    /*{
+    {
         std::ofstream output("Solution/Data/guidance_map_warehouse.txt");
         output << *this;
-    }*/
+    }
     //std::exit(0);
 }
 
