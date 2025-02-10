@@ -55,12 +55,6 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
-    if(get_map_type() != MapType::SORTATION){
-        return;
-    }
-
-    //return;
-
     get_map() = Map(env);
 #ifdef ENABLE_GG_SOLVER
     // read GraphGuidance
@@ -86,10 +80,15 @@ void init_environment(SharedEnvironment &env) {
         // TODO: GuidanceMap для warehouse довольно плох
         //|| get_map_type() == MapType::WAREHOUSE
             ) {
+        //Printer() << "GuidanceMap\n";
+        // 52128
         get_gg() = GraphGuidance(get_guidance_map());
     } else {
+        //Printer() << "without GuidanceMap\n";
+        // 68650 or 73979
         get_gg() = GraphGuidance(env);
     }
+
     // init operations weights
     /*{
         std::stringstream input("45 -7 38 -18 11 72 -34 72 -4 52 31 38 17 -32 7 45 24 48 -35 49 19 -75 0 25 -54 -26 2 -9 -71 -22 -2 38 29 18 -72 16 46 0 9 1 21 -7 15 33 19 -1");

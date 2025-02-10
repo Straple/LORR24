@@ -18,16 +18,27 @@ void GuidanceMap::set_warehouse(const Map &map) {
     //input >> *this;
     //return;
 
-    for (uint32_t y = 4; y < 493; y += 7) {
-        overlay({
-                        ">vv<",
-                        "^vv^",
-                        "^vv^",
-                },
-                0, y);
-    }
+    // корзинки
+    {
+        for (uint32_t y = 4; y < 493; y += 7) {
+            overlay({
+                            ">vv<",
+                            "^vv^",
+                            "^vv^",
+                    },
+                    0, y);
+        }
 
-    for (uint32_t x = 9; x < 135; x += 7) {
+        for (uint32_t x = 9; x < 135; x += 7) {
+            overlay(
+                    {
+                            ">>>",
+                            "^<<",
+                            "v<<",
+                            ">>>",
+                    },
+                    x, 0);
+        }
         overlay(
                 {
                         ">>>",
@@ -35,26 +46,8 @@ void GuidanceMap::set_warehouse(const Map &map) {
                         "v<<",
                         ">>>",
                 },
-                x, 0);
-    }
-    overlay(
-            {
-                    ">>>",
-                    "^<<",
-                    "v<<",
-                    ">>>",
-            },
-            132, 0);
+                132, 0);
 
-    overlay(
-            {
-                    "<<<",
-                    ">>^",
-                    ">>v",
-                    "<<<",
-            },
-            4, 497);
-    for (uint32_t x = 8; x < 130; x += 7) {
         overlay(
                 {
                         "<<<",
@@ -62,17 +55,27 @@ void GuidanceMap::set_warehouse(const Map &map) {
                         ">>v",
                         "<<<",
                 },
-                x, 497);
-    }
+                4, 497);
+        for (uint32_t x = 8; x < 130; x += 7) {
+            overlay(
+                    {
+                            "<<<",
+                            ">>^",
+                            ">>v",
+                            "<<<",
+                    },
+                    x, 497);
+        }
 
-    for (uint32_t y = 9; y < 493; y += 7) {
-        overlay(
-                {
-                        "v^^v",
-                        "v^^v",
-                        ">^^<",
-                },
-                137, y);
+        for (uint32_t y = 9; y < 493; y += 7) {
+            overlay(
+                    {
+                            "v^^v",
+                            "v^^v",
+                            ">^^<",
+                    },
+                    137, y);
+        }
     }
 
     for (uint32_t x = 7; x <= 130; x += 6) {
@@ -131,19 +134,19 @@ void GuidanceMap::set_warehouse(const Map &map) {
     overlay(std::vector(1, std::string(483, '<')), 135, 8);
     overlay(std::vector(1, std::string(483, '>')), 136, 8);
 
-    for(uint32_t y = 11; y < 490; y += 8){
+    for (uint32_t y = 11; y < 490; y += 8) {
         overlay(std::vector(4, std::string("v")), 4, y);
     }
 
-    for(uint32_t y = 15; y < 490; y += 8){
+    for (uint32_t y = 15; y < 490; y += 8) {
         overlay(std::vector(4, std::string("^")), 4, y);
     }
 
-    for(uint32_t y = 11; y < 490; y += 8){
+    for (uint32_t y = 11; y < 490; y += 8) {
         overlay(std::vector(7, std::string("v")), 129, y);
     }
 
-    for(uint32_t y = 15; y < 490; y += 8){
+    for (uint32_t y = 15; y < 490; y += 8) {
         overlay(std::vector(7, std::string("^")), 129, y);
     }
 

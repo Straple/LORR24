@@ -128,26 +128,26 @@ void GraphGuidance::set_walls() {
 
 void GraphGuidance::read(const std::string &filename) {
     /*// the problem is we need to decide which direction?
-  if (ped-pst==1) {
-    // east
-    return (*map_weights)[pst*5+0];
-  } else if (ped-pst==ins->G.width) {
-    // south
-    return (*map_weights)[pst*5+1];
-  } else if (ped-pst==-1) {
-    // west
-    return (*map_weights)[pst*5+2];
-  } else if (ped-pst==-ins->G.width) {
-    // north
-    return (*map_weights)[pst*5+3];
-  } else if (ped-pst==0) {
-    // stay
-    return (*map_weights)[pst*5+4]; // means no move is needed.
-  }
-  else {
-    std::cout<<"invalid move: "<<pst<<" "<<ped<<endl;
-    exit(-1);
-  }*/
+      if (ped-pst==1) {
+        // east
+        return (*map_weights)[pst*5+0];
+      } else if (ped-pst==ins->G.width) {
+        // south
+        return (*map_weights)[pst*5+1];
+      } else if (ped-pst==-1) {
+        // west
+        return (*map_weights)[pst*5+2];
+      } else if (ped-pst==-ins->G.width) {
+        // north
+        return (*map_weights)[pst*5+3];
+      } else if (ped-pst==0) {
+        // stay
+        return (*map_weights)[pst*5+4]; // means no move is needed.
+      }
+      else {
+        std::cout<<"invalid move: "<<pst<<" "<<ped<<endl;
+        exit(-1);
+      }*/
 
     constexpr double MULT = 1;
     nlohmann::json data = nlohmann::json::parse(std::ifstream(filename));
@@ -177,15 +177,14 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
     set_default();
 
 #ifdef ENABLE_GG
-    //read("scripts/warehouse_large_weight_008.w");
-    //read("scripts/sortation_large_weight_008.w");
-    //read("scripts/brc202d_weight_002.w");
-
     if (get_map_type() == MapType::WAREHOUSE) {
+        //read("scripts/warehouse_large_weight_008.w");
         set_warehouse();
     } else if (get_map_type() == MapType::SORTATION) {
+        //read("scripts/sortation_large_weight_008.w");
         set_sortation();
     } else if (get_map_type() == MapType::GAME) {
+        //read("scripts/brc202d_weight_002.w");
         set_game();
     } else if (get_map_type() == MapType::CITY) {
         set_city();
@@ -198,15 +197,17 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
 
     set_walls();
 
-    {
+    /*{
         std::ofstream output("graph_guidance");
         output << *this;
     }
-    //_exit(0);
+    _exit(0);*/
 }
 
 GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
         : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
+
+    set_default();
 
 #ifdef ENABLE_GG
     for (uint32_t x = 0; x < rows; x++) {
