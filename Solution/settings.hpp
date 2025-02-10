@@ -21,6 +21,8 @@
 
 //#define ENABLE_DHM
 
+#define ENABLE_DHMR
+
 #define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
@@ -61,6 +63,8 @@ static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 static constexpr uint32_t INVALID_DIST = 0;
 
 static constexpr uint32_t PHANTOM_AGENT_AVAILABLE_DIST = 30;
+
+static constexpr uint32_t MAX_AGENTS_NUM = 10'000;
 
 uint32_t &get_unique_id();
 
