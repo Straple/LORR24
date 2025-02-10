@@ -81,10 +81,10 @@ uint32_t HeuristicMatrix::get(uint32_t source, uint32_t target) const {
         return INVALID_DIST;
     }
     ASSERT(0 < target && target < get_map().get_size(), "invalid dest");
-    ASSERT(Position(target, 0).is_valid(), "invalid");
+    /*ASSERT(Position(target, 0).is_valid(), "invalid");
     ASSERT(Position(target, 1).is_valid(), "invalid");
     ASSERT(Position(target, 2).is_valid(), "invalid");
-    ASSERT(Position(target, 3).is_valid(), "invalid");
+    ASSERT(Position(target, 3).is_valid(), "invalid");*/
 
     ASSERT(target < matrix.size(), "invalid target");
     ASSERT(source < matrix[target].size(), "invalid source");

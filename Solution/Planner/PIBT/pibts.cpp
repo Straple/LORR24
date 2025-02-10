@@ -5,6 +5,8 @@
 
 #include <settings.hpp>
 
+#include <thread>
+
 //#define PRINT_RECURSIVE
 
 bool PIBTS::consider() {
@@ -117,7 +119,7 @@ std::vector<uint32_t> PIBTS::get_multi_used(uint32_t r) const {
 }
 
 int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
-    int64_t dist = get_dhm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
+    int64_t dist = get_hm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
 
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
@@ -125,17 +127,17 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
         uint32_t node = path[path.size() - 2];
         {
             uint32_t to = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, robots[r].target)));
         }
         {
             uint32_t to = get_graph().get_to_node(node, 2);
-            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, robots[r].target)));
         }
 
         if (op[op.size() - 2] == Action::W) {
             node = get_graph().get_to_node(node, 1);
             node = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(get_dhm().get(node, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(get_hm().get(node, robots[r].target)));
         }
     }
 
@@ -626,21 +628,35 @@ void PIBTS::reset(uint32_t r, std::vector<uint32_t> &destroyed) {
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         : robots(robots), end_time(end_time) {
 
+#ifdef ENABLE_PRINT_LOG
+    ETimer timer;
+#endif
+
     visited.resize(robots.size());
     desires.resize(robots.size());
     best_desires.resize(robots.size());
 
     {
+#ifdef ENABLE_PRINT_LOG
+        ETimer timer;
+#endif
         std::array<uint32_t, DEPTH> value{};
         for (uint32_t depth = 0; depth < DEPTH; depth++) {
             value[depth] = -1;
         }
         used_pos.resize(get_graph().get_zipes_size(), value);
         used_edge.resize(get_graph().get_edges_size(), value);
+
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "init used: " << timer << '\n';
+#endif
     }
 
     // build order and power
     {
+#ifdef ENABLE_PRINT_LOG
+        ETimer timer;
+#endif
         order.resize(robots.size());
         iota(order.begin(), order.end(), 0);
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
@@ -731,6 +747,10 @@ Total	333405	9.472	0
             }*/
             robot_power[r] = power;//get_robots_handler().get_robot(r).priority;//power;
         }
+
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "init order and power: " << timer << '\n';
+#endif
     }
 
     // init neighbors
@@ -835,48 +855,90 @@ Total	333405	9.472	0
 
     // init smart_dist_dp
     {
+#ifdef ENABLE_PRINT_LOG
+        ETimer timer;
+#endif
         smart_dist_dp.resize(robots.size(), std::vector<int64_t>(get_operations().size()));
-        for (uint32_t r = 0; r < robots.size(); r++) {
+
+        auto do_work = [&](uint32_t thr) {
+            for (uint32_t r = thr; r < robots.size(); r += THREADS) {
+                for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+                    if (!validate_path(r, desired)) {
+                        continue;
+                    }
+                    smart_dist_dp[r][desired] += get_smart_dist_IMPL(r, desired);
+                }
+            }
+        };
+
+        std::vector<std::thread> threads(THREADS);
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr] = std::thread(do_work, thr);
+        }
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr].join();
+        }
+        /*for (uint32_t r = 0; r < robots.size(); r++) {
             for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
                 if (!validate_path(r, desired)) {
                     continue;
                 }
                 smart_dist_dp[r][desired] += get_smart_dist_IMPL(r, desired);
-
-                //int64_t collision = 0;
-
-                /*desires[r] = desired;
-                add_path(r);
-                for (uint32_t r2: neighbors[r]) {
-                    ASSERT(r != r2, "invalid r2");
-                    for (uint32_t desired2 = 0; desired2 < get_operations().size(); desired2++) {
-                        if (!validate_path(r2, desired2)) {
-                            continue;
-                        }
-                        desires[r2] = desired2;
-                        ASSERT(get_used(r2) == -1 || get_used(r2) == r, "invalid get_used");
-                        if (get_used(r2) == r) {
-                            //collision++;
-                            smart_dist_dp[r2][desired2]++;
-                        }
-                    }
-                }
-                remove_path(r);*/
-
-                //smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired) + collision;
             }
-        }
+        }*/
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "init smart_dist_dp: " << timer << '\n';
+#endif
     }
 
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        desires[r] = 0;
-        add_path(r);
+    {
+#ifdef ENABLE_PRINT_LOG
+        ETimer timer;
+#endif
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            desires[r] = 0;
+            add_path(r);
+        }
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "add paths: " << timer << '\n';
+#endif
     }
 
     // build robot_desires
     {
+#ifdef ENABLE_PRINT_LOG
+        ETimer timer;
+#endif
+
         robot_desires.resize(robots.size());
-        for (uint32_t r = 0; r < robots.size(); r++) {
+
+        auto do_work = [&](uint32_t thr) {
+            for (uint32_t r = thr; r < robots.size(); r += THREADS) {
+                // (priority, desired)
+                std::vector<std::pair<int64_t, uint32_t>> steps;
+                for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+                    if (!validate_path(r, desired)) {
+                        continue;
+                    }
+                    int64_t priority = get_smart_dist(r, desired);
+                    steps.emplace_back(priority, desired);
+                }
+                std::sort(steps.begin(), steps.end());
+                for (auto [priority, desired]: steps) {
+                    robot_desires[r].push_back(desired);
+                }
+            }
+        };
+
+        std::vector<std::thread> threads(THREADS);
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr] = std::thread(do_work, thr);
+        }
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr].join();
+        }
+
+        /*for (uint32_t r = 0; r < robots.size(); r++) {
             // (priority, desired)
             std::vector<std::pair<int64_t, uint32_t>> steps;
             for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
@@ -890,8 +952,15 @@ Total	333405	9.472	0
             for (auto [priority, desired]: steps) {
                 robot_desires[r].push_back(desired);
             }
-        }
+        }*/
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "init robot_desires: " << timer << '\n';
+#endif
     }
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "init PIBTS: " << timer << '\n';
+#endif
 }
 
 void PIBTS::solve(uint64_t seed) {

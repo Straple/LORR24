@@ -88,16 +88,16 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
     double old_score = cur_score;
 
     uint32_t r = rnd.get(free_robots);
-    uint32_t new_t = -1;
+    uint32_t new_t = rnd.get(free_tasks);
 
-    if (dp[r].empty() || rnd.get_d() < 0.2) {
+    /*if (dp[r].empty() || rnd.get_d() < 0.2) {
         new_t = rnd.get(free_tasks);
     } else {
         new_t = dp[r][rnd.get(0, std::min(dp[r].size(), static_cast<size_t>(dp[r].size() * 0.2 + 1)))].second;
         if (!env->task_pool.count(new_t) || env->task_pool[new_t].agent_assigned != -1) {
             new_t = rnd.get(free_tasks);
         }
-    }
+    }*/
 
     uint32_t old_t = desires[r];
     uint32_t other_r = task_to_robot[new_t];

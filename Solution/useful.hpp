@@ -290,7 +290,7 @@ total: 347037
 
 //-i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 500 -p 1000000000
 //time:  466.095s
-//tasks: 35056 -> 35775 -> 37433 (planner depth=4)
+//tasks: 35056 -> 35775 -> 37433 (planner depth=4). 37676
 // revealed: 37538+GG, 26253-GG
 //
 //tasks: 34067, SCHEDULER_LNS_TIME = 100
