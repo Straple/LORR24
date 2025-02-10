@@ -10,21 +10,22 @@
 #include <thread>
 #include <set>
 
-// 6885 без DHMR
-
-// 6809 DHMR, но без веса агентам
-// 6942 DHMR + штраф за робота
-
-// DHMR::update: 72.4483ms
+DHMR::DHMR(const Graph &graph) :
+        matrix(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size())),
+        visited_sphere(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size())),
+        visited(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size()))
+//visited_matrix(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size()))
+{
+}
 
 void DHMR::build(uint32_t r, uint32_t timestep) {
     //Printer() << "DHMR::build(" << r << ")\n"; std:cout.flush();
 
-    constexpr uint32_t DEPTH = 1000; // 7
+    constexpr uint32_t DEPTH = 10;
 
     const uint32_t target = get_robots_handler().get_robot(r).target;
 
-    if(!target){
+    if (!target) {
         return;
     }
 
@@ -167,7 +168,11 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
 
                     // другой робот
                     if (to_r != -1 && to_r != r) {
-                        to_metric += 1;
+
+                        // to_metric += 0; // 70129
+                        // to_metric += 1; // 70529
+                        // to_metric += 3; // 71332
+                        to_metric += 5; // 71427
                     }
 
                     heap.push({to_metric, to});
@@ -217,10 +222,6 @@ void DHMR::update(uint32_t timestep, TimePoint end_time) {
     }
 
     {
-        matrix.resize(robots.size(), std::vector<uint32_t>(get_graph().get_nodes_size()));
-        visited_sphere.resize(robots.size(), std::vector<uint32_t>(get_graph().get_nodes_size()));
-        visited.resize(robots.size(), std::vector<uint32_t>(get_graph().get_nodes_size()));
-
         auto do_work = [&](uint32_t thr) {
             for (uint32_t r = thr; r < robots.size(); r += THREADS) {
                 build(r, timestep);

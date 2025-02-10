@@ -104,11 +104,11 @@ void init_environment(SharedEnvironment &env) {
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
+    get_dhmr() = DHMR(get_graph());
     //get_wmap() = WorkloadMap(get_map(), get_graph());
     get_jg() = JG::JourneyGraph(&env);
     get_operations() = OperationsGenerator().get();
     get_omap() = OperationsMap(get_graph(), get_operations());
-    // get_busyness_map() = BusynessMap(get_map());
 
     //ASSERT(get_operations_weights().size() == get_operations().size(), "unmatch sizes: " + std::to_string(get_operations_weights().size()) + "!=" + std::to_string(get_operations().size()));
 
@@ -221,14 +221,14 @@ void update_environment(SharedEnvironment &env) {
 
     static int prev_timestep_updated = -1;
     if (prev_timestep_updated == env.curr_timestep) {
+        // for planner
+        get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
         return;
     }
     prev_timestep_updated = env.curr_timestep;
     get_dhm().update(env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
-
-    //get_wmap().update(env, get_now());
-
     //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
+    //get_wmap().update(env, get_now());
 }
 
 #ifdef ENABLE_SCHEDULER_TRICK

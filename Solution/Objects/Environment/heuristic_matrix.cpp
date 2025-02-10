@@ -28,20 +28,29 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
             continue;
         }
         visited[node] = true;
+        dists[node] = dist;
 
-        uint32_t inv = graph.get_to_node(graph.get_to_node(node, 1), 1);
-        //graph.get_node(graph.get_pos(node).rotate().rotate());
-        dists[inv] = dist;
+        for (uint32_t action = 0; action < 3; action++) {
+            uint32_t to = 0;
+            if (action == 0) {
+                to = get_graph().get_to_node(node, 1); // R
+                to = get_graph().get_to_node(to, 1); // R
+                to = get_graph().get_to_node(to, 0); // F
+                if (to) {
+                    to = get_graph().get_to_node(to, 1); // R
+                    to = get_graph().get_to_node(to, 1); // R
+                }
+            } else if (action == 1) {
+                to = get_graph().get_to_node(node, 2);
+            } else if (action == 2) {
+                to = get_graph().get_to_node(node, 1);
+            }
 
-        for (uint32_t action = 0; action < 3 /*WITHOUT WAIT = 3*/; action++) {
-            uint32_t to = graph.get_to_node(node, action);
             if (to && !visited[to]) {
-                uint32_t to_inv = graph.get_to_node(graph.get_to_node(to, 1), 1);
-                //graph.get_node(graph.get_pos(to).rotate().rotate());
-                uint64_t to_dist = dist + graph.get_weight(node, action);
+                uint64_t to_dist = dist + graph.get_weight(to, action);
                 ASSERT(to_dist == static_cast<uint16_t>(to_dist), "dist overflow");
-                if (dists[to_inv] > to_dist) {
-                    dists[to_inv] = to_dist;
+                if (dists[to] > to_dist) {
+                    dists[to] = to_dist;
                     heap.push({to_dist, to});
                 }
             }

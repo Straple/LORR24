@@ -119,25 +119,50 @@ std::vector<uint32_t> PIBTS::get_multi_used(uint32_t r) const {
 }
 
 int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
-    int64_t dist = get_hm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
-
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
+
+    int64_t dist =
+#ifdef ENABLE_DHMR
+            get_dhmr().get(r, path.back());
+#else
+            get_hm().get(path.back(), robots[r].target);
+#endif
+
     if (op.back() == Action::W) {
         uint32_t node = path[path.size() - 2];
         {
             uint32_t to = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(
+#ifdef ENABLE_DHMR
+                    get_dhmr().get(r, to)
+#else
+                    get_hm().get(to, robots[r].target)
+#endif
+            ));
         }
         {
             uint32_t to = get_graph().get_to_node(node, 2);
-            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, robots[r].target)));
+            dist = std::min(dist, static_cast<int64_t>(
+#ifdef ENABLE_DHMR
+                    get_dhmr().get(r, to)
+#else
+                    get_hm().get(to, robots[r].target)
+#endif
+            ));
         }
 
         if (op[op.size() - 2] == Action::W) {
-            node = get_graph().get_to_node(node, 1);
-            node = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(get_hm().get(node, robots[r].target)));
+            uint32_t to = node;
+            to = get_graph().get_to_node(to, 1);
+            to = get_graph().get_to_node(to, 1);
+            dist = std::min(dist, static_cast<int64_t>(
+#ifdef ENABLE_DHMR
+                    get_dhmr().get(r, to)
+#else
+                    get_hm().get(to, robots[r].target)
+#endif
+            ));
         }
     }
 
@@ -983,7 +1008,7 @@ void PIBTS::solve(uint64_t seed) {
     temp = 0.001;
 
     if constexpr (true) {
-        for (step = 0; get_now() < end_time; step++) {
+        for (step = 0; get_now() < end_time && step < PIBTS_STEPS; step++) {
             uint32_t r = rnd.get(0, robots.size() - 1);
             try_build(r);
             temp *= 0.999;
@@ -994,6 +1019,7 @@ void PIBTS::solve(uint64_t seed) {
             best_score = cur_score;
         }
     } else {
+        FAILED_ASSERT("deprecated");
         while (get_now() < end_time) {
             //Printer() << "earthquake: " << cur_score << " -> ";
             int N = rnd.get(10, 20);
