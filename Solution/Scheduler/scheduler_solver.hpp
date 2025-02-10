@@ -60,11 +60,13 @@ class SchedulerSolver {
 
     [[nodiscard]] uint64_t get_dist(uint32_t r, uint32_t t) const;
 
-    void set(uint32_t r, uint32_t t);
+    //void set(uint32_t r, uint32_t t);
+
+    void remove(uint32_t r);
+
+    void add(uint32_t r, uint32_t t);
 
     bool try_peek_task(Randomizer &rnd);
-
-    bool try_smart(Randomizer &rnd);
 
     void validate();
 

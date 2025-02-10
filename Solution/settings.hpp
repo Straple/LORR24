@@ -50,13 +50,13 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = 0;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 100;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
-static constexpr uint32_t SCHEDULER_TRICK_TIME = 200;
+static constexpr uint32_t SCHEDULER_TRICK_TIME = 0;
 
-static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
+static constexpr uint32_t SCHEDULER_LNS_TIME = 100;
 
 static constexpr uint32_t INVALID_DIST = 0;
 

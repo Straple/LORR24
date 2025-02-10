@@ -72,7 +72,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     return dist;
 }
 
-void SchedulerSolver::set(uint32_t r, uint32_t t) {
+/*void SchedulerSolver::set(uint32_t r, uint32_t t) {
     ASSERT(0 <= r && r < desires.size(), "invalid r");
 
     if (desires[r] != -1) {
@@ -86,96 +86,93 @@ void SchedulerSolver::set(uint32_t r, uint32_t t) {
         task_to_robot[t] = r;
     }
     cur_score += get_dist(r, desires[r]);
+}*/
+
+void SchedulerSolver::remove(uint32_t r) {
+    ASSERT(0 <= r && r < desires.size(), "invalid r");
+    uint32_t t = desires[r];
+    if (t == -1) {
+        return;
+    }
+
+    cur_score -= get_dist(r, t);
+    task_to_robot[t] = -1;
+    desires[r] = -1;
+}
+
+void SchedulerSolver::add(uint32_t r, uint32_t t) {
+    ASSERT(0 <= r && r < desires.size(), "invalid r");
+    ASSERT(0 <= t && t < task_to_robot.size(), "invalid t");
+    ASSERT(desires[r] == -1, "already have task");
+    ASSERT(task_to_robot[t] == -1, "already have robot");
+
+    cur_score += get_dist(r, t);
+    task_to_robot[t] = r;
+    desires[r] = t;
 }
 
 bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
     double old_score = cur_score;
 
     uint32_t r = rnd.get(free_robots);
-    uint32_t new_t = rnd.get(free_tasks);
+    uint32_t t = rnd.get(free_tasks);
 
-    //ASSERT(desires[r] != new_t, "invalid");
-
-    if(desires[r] == new_t) {
+    // уже используется
+    if (desires[r] == t) {
         return false;
     }
 
-    /*if (dp[r].empty() || rnd.get_d() < 0.2) {
-        new_t = rnd.get(free_tasks);
-    } else {
-        new_t = dp[r][rnd.get(0, std::min(dp[r].size(), static_cast<size_t>(dp[r].size() * 0.2 + 1)))].second;
-        if (!env->task_pool.count(new_t) || env->task_pool[new_t].agent_assigned != -1) {
-            new_t = rnd.get(free_tasks);
-        }
-    }*/
+    //auto old_desires = desires;
+    //auto old_task_to_robot = task_to_robot;
 
     uint32_t old_t = desires[r];
-    uint32_t other_r = task_to_robot[new_t];
+    uint32_t other_r = task_to_robot[t];
+    ASSERT(r != other_r, "invalid other_r");
     if (other_r != -1) {
-        set(other_r, -1);
-        set(r, new_t);
-        set(other_r, old_t);
+        remove(r);
+        remove(other_r);
+
+        add(r, t);
+        if (old_t != -1) {
+            add(other_r, old_t);
+        }
     } else {
-        set(r, new_t);
+        remove(r);
+        add(r, t);
     }
     validate();
 
     return consider(old_score, rnd, [&]() {
         if (other_r != -1) {
-            set(r, -1);
-            set(other_r, new_t);
-            set(r, old_t);
+            remove(r);
+            remove(other_r);
+
+            if(old_t != -1) {
+                add(r, old_t);
+            }
+            add(other_r, t);
         } else {
-            set(r, old_t);
+            remove(r);
+            if(old_t != -1) {
+                add(r, old_t);
+            }
         }
         validate();
-    });
-}
 
-bool SchedulerSolver::try_smart(Randomizer &rnd) {
-    double old_score = cur_score;
-
-    uint32_t r = rnd.get(free_robots);
-    //uint32_t new_t = rnd.get(free_tasks);
-    uint32_t new_t = free_tasks[0];
-    for (uint32_t t: free_tasks) {
-        if (get_dist(r, new_t) > get_dist(r, t)) {
-            new_t = t;
-        }
-    }
-
-    uint32_t old_t = desires[r];
-    uint32_t other_r = task_to_robot[new_t];
-    if (other_r != -1) {
-        set(other_r, -1);
-        set(r, new_t);
-        set(other_r, old_t);
-    } else {
-        set(r, new_t);
-    }
-    validate();
-
-    return consider(old_score, rnd, [&]() {
-        if (other_r != -1) {
-            set(r, -1);
-            set(other_r, new_t);
-            set(r, old_t);
-        } else {
-            set(r, old_t);
-        }
-        validate();
+        //ASSERT(desires == old_desires, "invalid desires");
+        //ASSERT(task_to_robot == old_task_to_robot, "invalid task_to_robot");
     });
 }
 
 void SchedulerSolver::validate() {
-    std::set<uint32_t> S;
+    /*std::set<uint32_t> S;
     for (uint32_t r = 0; r < desires.size(); r++) {
         if (desires[r] != -1) {
             ASSERT(!S.count(desires[r]), "already contains");
             S.insert(desires[r]);
             ASSERT(task_to_robot[desires[r]] == r, "invalid task to robot");
         }
-    }
+    }*/
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
@@ -292,9 +289,7 @@ void SchedulerSolver::update() {
 void SchedulerSolver::triv_solve(TimePoint end_time) {
     ETimer timer;
     for (uint32_t r: free_robots) {
-        if (desires[r] != -1) {
-            set(r, -1);
-        }
+        remove(r);
     }
 #ifdef ENABLE_TRIVIAL_SCHEDULER
     for (uint32_t r: free_robots) {
@@ -381,7 +376,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         ASSERT(env->task_pool[task_id].agent_assigned == -1, "already assigned");
         ASSERT(!used_task.count(task_id), "already used");
 
-        set(r, task_id);
+        add(r, task_id);
         used_task.insert(task_id);
 
         if (phantom_agent_dist[r] == 0) {
@@ -418,10 +413,8 @@ void SchedulerSolver::solve(TimePoint end_time) {
     ETimer timer;
     double old_score = get_score();
     uint32_t step = 0;
-    // TODO: multithreading
     for (; get_now() < end_time; step++) {
         try_peek_task(rnd);
-        //try_smart(rnd);
         temp *= 0.999;
     }
 #ifdef ENABLE_PRINT_LOG
