@@ -215,10 +215,10 @@ GuidanceMap::GuidanceMap(MapType type, const Map &map)
         }
     }
 
-    {
+    /*{
         std::ofstream output("Solution/Data/guidance_map_warehouse.txt");
         output << *this;
-    }
+    }*/
     //std::exit(0);
 }
 

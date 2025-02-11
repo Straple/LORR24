@@ -5,6 +5,7 @@
 #include "heuristics.h"
 #include "pibt.h"
 
+#include <Objects/Basic/assert.hpp>
 
 namespace DefaultPlanner {
 
@@ -37,6 +38,7 @@ namespace DefaultPlanner {
         assert(env->num_of_agents != 0);
         p.resize(env->num_of_agents);
         decision.resize(env->map.size(), -1);
+        prev_decision.resize(env->map.size(), -1);
         prev_states.resize(env->num_of_agents);
         next_states.resize(env->num_of_agents);
         decided.resize(env->num_of_agents, DCR({-1, DONE::DONE}));
@@ -62,6 +64,70 @@ namespace DefaultPlanner {
             p[ids[i]] = ((double) (ids.size() - i)) / ((double) (ids.size() + 1));
         }
         p_copy = p;
+
+        /*{
+            //default planner data
+            std::vector<int> decision2;
+            std::vector<int> prev_decision2;
+            std::vector<double> p2;
+            std::vector<State> prev_states2;
+            std::vector<State> next_states2;
+            std::vector<int> ids2;
+            std::vector<double> p_copy2;
+            std::vector<bool> occupied2;
+            std::vector<DefaultPlanner::DCR> decided2;
+            std::vector<bool> checked2;
+            std::vector<bool> require_guide_path2;
+            std::vector<int> dummy_goals2;
+            DefaultPlanner::TrajLNS trajLNS2;
+
+            {
+                assert(env->num_of_agents != 0);
+                p2.resize(env->num_of_agents);
+                decision2.resize(env->map.size(), -1);
+                prev_decision2.assign(env->map.size(), -1);
+                prev_states2.resize(env->num_of_agents);
+                next_states2.resize(env->num_of_agents);
+                decided2.resize(env->num_of_agents, DefaultPlanner::DCR({-1, DefaultPlanner::DONE::DONE}));
+                occupied2.resize(env->map.size(), false);
+                checked2.resize(env->num_of_agents, false);
+                ids2.resize(env->num_of_agents);
+                require_guide_path2.resize(env->num_of_agents, false);
+                for (int i = 0; i < ids2.size(); i++) {
+                    ids2[i] = i;
+                }
+
+                // initialise the heuristics tables containers
+                //init_heuristics(env);
+                std::mt19937 mt1;
+                mt1.seed(0);
+                srand(0);
+
+                new(&trajLNS2) DefaultPlanner::TrajLNS(env, DefaultPlanner::global_heuristictable,
+                                                       DefaultPlanner::global_neighbors);
+                trajLNS2.init_mem();
+
+                //assign intial priority to each agent
+                std::shuffle(ids2.begin(), ids2.end(), mt1);
+                for (int i = 0; i < ids2.size(); i++) {
+                    p2[ids2[i]] = ((double) (ids2.size() - i)) / ((double) (ids2.size() + 1));
+                }
+                p_copy2 = p2;
+            }
+
+            ASSERT(decision2 == decision, "invalid decision");
+            ASSERT(prev_decision2 == prev_decision, "invalid prev_decision");
+            ASSERT(p2 == p, "invalid p");
+            ASSERT(prev_states2 == prev_states, "invalid prev_states");
+            ASSERT(next_states2 == next_states, "invalid next_states");
+            ASSERT(ids2 == ids, "invalid ids");
+            ASSERT(p_copy2 == p_copy, "invalid p_copy");
+            //ASSERT(decided2 == decided, "invalid decided");
+            ASSERT(checked2 == checked, "invalid checked");
+            ASSERT(require_guide_path2 == require_guide_path, "invalid require_guide_path");
+            ASSERT(dummy_goals2 == dummy_goals, "invalid dummy_goals");
+            //ASSERT(trajLNS2 == trajLNS, "invalid require_guide_path");
+        }*/
     }
 
     /**
@@ -79,7 +145,6 @@ namespace DefaultPlanner {
      * Note that the default planner ignores the turning action costs, and post-processes turning actions as additional delays on top of original plan.
      */
     void plan(int time_limit, vector<Action> &actions, SharedEnvironment *env) {
-
         // calculate the time planner should stop optimsing traffic flows and return the plan.
         TimePoint start_time = std::chrono::steady_clock::now();
         //cap the time for distance to goal heuristic table initialisation to half of the given time_limit;
@@ -96,14 +161,13 @@ namespace DefaultPlanner {
         }
 
         // data sturcture for record the previous decision of each agent
-        prev_decision.clear();
-        prev_decision.resize(env->map.size(), -1);
+        prev_decision.assign(env->map.size(), -1);
 
         // update the status of each agent and prepare for planning
         int count = 0;
         for (int i = 0; i < env->num_of_agents; i++) {
             //initialise the shortest distance heuristic table for the goal location of the agent
-            if ((std::chrono::steady_clock::now() < end_time)) {
+            //if ((std::chrono::steady_clock::now() < end_time)) {
                 for (int j = 0; j < env->goal_locations[i].size(); j++) {
                     int goal_loc = env->goal_locations[i][j].first;
                     if (trajLNS.heuristics.at(goal_loc).empty()) {
@@ -111,7 +175,7 @@ namespace DefaultPlanner {
                         count++;
                     }
                 }
-            }
+            //}
 
 
             // set the goal location of each agent
@@ -159,8 +223,8 @@ namespace DefaultPlanner {
 
         // compute the congestion minimised guide path for the agents that need guide path update
         for (int i = 0; i < env->num_of_agents; i++) {
-            if (std::chrono::steady_clock::now() > end_time)
-                break;
+            //if (std::chrono::steady_clock::now() > end_time)
+            //    break;
             if (require_guide_path[i]) {
                 if (!trajLNS.trajs[i].empty())
                     remove_traj(trajLNS, i);

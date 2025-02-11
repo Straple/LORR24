@@ -5,7 +5,7 @@
 #include <iostream>
 #include <set>
 
-//#define ENABLE_DEFAULT_PLANNER
+#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
@@ -56,7 +56,7 @@ static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
-static constexpr uint32_t SCHEDULER_TRICK_TIME = 0;
+static constexpr uint32_t SCHEDULER_TRICK_TIME = 50;
 
 static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 

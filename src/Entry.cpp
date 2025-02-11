@@ -59,15 +59,25 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
 
 #ifdef ENABLE_PRINT_LOG
     {
+        static std::array<uint64_t, 5> total_counts{};
         std::array<uint32_t, 5> counts{};
         for (uint32_t r = 0; r < plan.size(); r++) {
             counts[plan[r]]++;
+            total_counts[plan[r]]++;
         }
+        Printer() << "Actions:\n";
         Printer() << "F: " << counts[0] << '\n';
         Printer() << "R: " << counts[1] << '\n';
         Printer() << "C: " << counts[2] << '\n';
         Printer() << "W: " << counts[3] << '\n';
         Printer() << "N: " << counts[4] << '\n';
+
+        Printer() << "Total action:\n";
+        Printer() << "F: " << total_counts[0] << '\n';
+        Printer() << "R: " << total_counts[1] << '\n';
+        Printer() << "C: " << total_counts[2] << '\n';
+        Printer() << "W: " << total_counts[3] << '\n';
+        Printer() << "N: " << total_counts[4] << '\n';
     }
 
 #ifdef ENABLE_SCHEDULER_TRICK

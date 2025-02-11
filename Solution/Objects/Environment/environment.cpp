@@ -9,7 +9,7 @@
 #include "planner.h"
 
 void init_default_planner(SharedEnvironment &env) {
-#if defined(ENABLE_DEFAULT_PLANNER) || defined(ENABLE_DEFAULT_SCHEDULER)
+#if defined(ENABLE_DEFAULT_SCHEDULER)
     ETimer timer;
     DefaultPlanner::initialize(100000, &env);
     for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
@@ -222,11 +222,11 @@ void update_environment(SharedEnvironment &env) {
     static int prev_timestep_updated = -1;
     if (prev_timestep_updated == env.curr_timestep) {
         // for planner
-        get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
+        //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
         return;
     }
     prev_timestep_updated = env.curr_timestep;
-    get_dhm().update(env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
+    //get_dhm().update(env, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
     //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));
     //get_wmap().update(env, get_now());
 }
