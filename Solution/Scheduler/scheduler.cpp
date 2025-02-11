@@ -40,14 +40,14 @@ int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
 
 const int INF = 1000000;
 
-void MyScheduler::solver_schedule(int time_limit, std::vector<int> &proposed_schedule) {
+void MyScheduler::solver_schedule(TimePoint end_time, std::vector<int> &proposed_schedule) {
     solver.update();
 #ifndef ENABLE_TRIVIAL_SCHEDULER
-    solver.rebuild_dp(get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME));
+    solver.rebuild_dp(std::min(end_time, get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME)));
 #endif
-    solver.triv_solve(get_now() + Milliseconds(SCHEDULER_TRIV_SOLVE_TIME));
-    solver.solve(get_now() + Milliseconds(SCHEDULER_LNS_TIME));
-    proposed_schedule = solver.get_schedule();
+    solver.triv_solve(std::min(end_time, get_now() + Milliseconds(SCHEDULER_TRIV_SOLVE_TIME)));
+    solver.solve(std::min(end_time, get_now() + Milliseconds(SCHEDULER_LNS_TIME)));
+    proposed_schedule = solver.get_schedule(end_time);
 }
 
 void MyScheduler::greedy_schedule(int time_limit, std::vector<int> &proposed_schedule) {
@@ -699,10 +699,10 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
     return done_proposed_schedule;
 }
 
-void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
+void MyScheduler::plan(TimePoint end_time, std::vector<int> &proposed_schedule) {
     ETimer timer;
-    solver_schedule(time_limit, proposed_schedule);
-    //artem_schedule(time_limit, proposed_schedule);
+    solver_schedule(end_time, proposed_schedule);
+    //artem_schedule(end_time, proposed_schedule);
 
     PRINT(Printer() << "Scheduler: " << timer << '\n';);
 }

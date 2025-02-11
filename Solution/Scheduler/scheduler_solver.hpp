@@ -84,7 +84,7 @@ public:
 
     void solve(TimePoint end_time);
 
-    [[nodiscard]] std::vector<int> get_schedule() const;
+    [[nodiscard]] std::vector<int> get_schedule(TimePoint end_time) const;
 
     [[nodiscard]] double get_score() const;
 };

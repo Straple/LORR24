@@ -16,9 +16,9 @@ public:
 
     explicit MyScheduler(SharedEnvironment *env);
 
-    void plan(int time_limit, std::vector<int> &proposed_schedule);
+    void plan(TimePoint end_time, std::vector<int> &proposed_schedule);
 
-    void solver_schedule(int time_limit, std::vector<int> &proposed_schedule);
+    void solver_schedule(TimePoint end_time, std::vector<int> &proposed_schedule);
 
     void greedy_schedule(int time_limit, std::vector<int> &proposed_schedule);
 

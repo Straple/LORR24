@@ -435,7 +435,7 @@ namespace DefaultPlanner {
     extern DefaultPlanner::TrajLNS trajLNS;
 }// namespace DefaultPlanner
 
-std::vector<int> SchedulerSolver::get_schedule() const {
+std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
     std::vector<int> result(desires.size());
     for (uint32_t r = 0; r < desires.size(); r++) {
         if (phantom_agent_dist[r]) {
@@ -449,22 +449,41 @@ std::vector<int> SchedulerSolver::get_schedule() const {
         env->curr_task_schedule = result;
         update_environment(*env);
         EPlanner eplanner(env);
-        auto [plan, desires_plan] = eplanner.plan(get_now() + Milliseconds(SCHEDULER_TRICK_TIME));
-        get_myplan().resize(desires.size());
+        auto [plan, desires_plan] = eplanner.plan(std::min(end_time, get_now() + Milliseconds(SCHEDULER_TRICK_TIME)));
+
+        // тут берется просто путь минимальный
+        // ооочень плохо 26647 -> 18279
+        /*std::vector<uint32_t> desires_plan(desires.size());
+        const auto & robots = get_robots_handler().get_robots();
+        for(uint32_t r = 0; r < desires.size(); r++){
+            // (priority, desired)
+            std::vector<std::pair<int64_t, uint32_t>> steps;
+            for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+                if (!get_omap().get_poses_path(robots[r].node, desired)[0]) {
+                    continue;
+                }
+                int64_t priority = get_hm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
+                steps.emplace_back(priority, desired);
+            }
+            std::sort(steps.begin(), steps.end());
+            desires_plan[r] = steps[0].second;
+        }*/
+
+        //get_myplan().resize(desires.size());
         for (uint32_t r = 0; r < desires.size(); r++) {
-            get_myplan()[r] = get_operations()[desires_plan[r]][0];
+            //get_myplan()[r] = get_operations()[desires_plan[r]][0];
 
             uint32_t source = get_robots_handler().get_robot(r).node;
             const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
             const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
             Operation op = get_operations()[desires_plan[r]];
             uint32_t to = poses.back();
-            for (uint32_t i = 0; i < poses.size(); i++) {
-                if (op[i] == Action::FW) {
-                    to = poses[i];
-                    break;
-                }
-            }
+            //for (uint32_t i = 0; i < poses.size(); i++) {
+            //    if (op[i] == Action::FW) {
+            //        to = poses[i];
+            //        break;
+            //    }
+            //}
 
             to = get_graph().get_pos_from_zip(to);
             ASSERT(get_map().is_free(to), "is not free");

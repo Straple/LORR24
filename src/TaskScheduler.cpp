@@ -44,7 +44,8 @@ void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     int limit = time_limit / 2 - DefaultPlanner::SCHEDULER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::schedule_plan(limit, proposed_schedule, env);
 #else
+    TimePoint end_time = get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME + SCHEDULER_LNS_TIME + SCHEDULER_TRICK_TIME);
     update_environment(*env);
-    my_scheduler.plan(time_limit, proposed_schedule);
+    my_scheduler.plan(end_time, proposed_schedule);
 #endif
 }
