@@ -459,6 +459,17 @@ call(6): 1631, 75.5848s
 call(7): 1340, 74.8567s
 total: 22393
 
+S + SCHEDULER_TRICK
+call(0): 2204, 180.332s
+call(1): 3792, 179.405s
+call(2): 3361, 178.656s
+call(3): 3196, 177.911s
+call(4): 2910, 177.164s
+call(5): 2341, 176.312s
+call(6): 1205, 175.574s
+call(7): 690, 174.581s
+total: 19699
+
 =======================
 P
 call(0): 2020, 81.0257s
@@ -758,5 +769,5 @@ Total time: 203.816s
 [2025-02-11 18:00:33.962882] [0x000076546a720740] [info]    Task 18095 is revealed
 
 // -i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 1000 -p 1000000000
-// 26647, SCHEDULER_TRICK
+// 26647, SCHEDULER_TRICK. 26251
 // 21796
