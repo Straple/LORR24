@@ -66,6 +66,25 @@ void init_default_heuristic(SharedEnvironment &env) {
     PRINT(Printer() << "init_default_heuristic: " << timer << '\n';);
 }
 
+void init_d2path() {
+    ETimer timer;
+    auto do_work = [&](uint32_t thr) {
+        for (uint32_t r = thr; r < trajLNS.env->num_of_agents; r += THREADS) {
+            init_dist_2_path(trajLNS.traj_dists[r], trajLNS.env, trajLNS.trajs[r]);
+        }
+    };
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr);
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+
+    PRINT(Printer() << "init_d2path: " << timer << '\n';);
+}
+
 void init_default_planner(SharedEnvironment &env) {
 #ifdef ENABLE_DEFAULT_PLANNER
     init_default_heuristic(env);
@@ -258,6 +277,7 @@ void update_environment(SharedEnvironment &env) {
 
     if (get_robots_handler().size() == 0) {
         get_robots_handler() = RobotsHandler(env.num_of_agents);
+        init_d2path();
     }
     get_robots_handler().update(env);
 
