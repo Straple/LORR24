@@ -21,7 +21,7 @@ public:
 
     explicit RobotsHandler(uint32_t agents_num);
 
-    void update(SharedEnvironment &env);
+    void update(const SharedEnvironment &env);
 
     [[nodiscard]] const Robot &get_robot(uint32_t r) const;
 

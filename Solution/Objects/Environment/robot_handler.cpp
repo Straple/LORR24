@@ -8,7 +8,7 @@
 RobotsHandler::RobotsHandler(uint32_t agents_num) : robots(agents_num) {
 }
 
-void RobotsHandler::update(SharedEnvironment &env) {
+void RobotsHandler::update(const SharedEnvironment &env) {
     ASSERT(env.curr_states.size() == robots.size(), "invalid sizes");
     for (uint32_t r = 0; r < robots.size(); r++) {
         ASSERT(r < env.curr_states.size(), "invalid r");
@@ -31,7 +31,7 @@ void RobotsHandler::update(SharedEnvironment &env) {
         }
 
         auto &task = env.task_pool.at(task_id);
-        uint32_t target = task.get_next_loc() + 1;
+        uint32_t target = task.locations[task.idx_next_loc] + 1;
 
         ASSERT(0 <= target && target < get_map().get_size(), "invalid target");
         ASSERT(Position(target, 0).is_valid(), "invalid");

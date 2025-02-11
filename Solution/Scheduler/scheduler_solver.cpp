@@ -4,6 +4,8 @@
 #include <Objects/Environment/environment.hpp>
 
 #include <Planner/eplanner.hpp>
+#include <Planner/Default/default_planner_solver.hpp>
+#include <planner.h>
 
 #include <atomic>
 #include <thread>
@@ -147,13 +149,13 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
             remove(r);
             remove(other_r);
 
-            if(old_t != -1) {
+            if (old_t != -1) {
                 add(r, old_t);
             }
             add(other_r, t);
         } else {
             remove(r);
-            if(old_t != -1) {
+            if (old_t != -1) {
                 add(r, old_t);
             }
         }
@@ -339,7 +341,8 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         } else if (get_test_type() == TestType::RANDOM_4) {
             max_assigned = 300;
         } else if (get_test_type() == TestType::GAME) {
-            max_assigned = 2500;
+            max_assigned = 2500; // 4752
+            // without: 3227
         }
 
         allowed_assigned = std::max(0, max_assigned - cnt_assigned);
@@ -423,6 +426,22 @@ void SchedulerSolver::solve(TimePoint end_time) {
 #endif
 }
 
+namespace DefaultPlanner {
+    extern std::vector<int> decision;
+    extern std::vector<int> prev_decision;
+    extern std::vector<double> p;
+    extern std::vector<State> prev_states;
+    extern std::vector<State> next_states;
+    extern std::vector<int> ids;
+    extern std::vector<double> p_copy;
+    extern std::vector<bool> occupied;
+    extern std::vector<DefaultPlanner::DCR> decided;
+    extern std::vector<bool> checked;
+    extern std::vector<bool> require_guide_path;
+    extern std::vector<int> dummy_goals;
+    extern DefaultPlanner::TrajLNS trajLNS;
+}
+
 std::vector<int> SchedulerSolver::get_schedule() const {
     std::vector<int> result(desires.size());
     for (uint32_t r = 0; r < desires.size(); r++) {
@@ -433,47 +452,139 @@ std::vector<int> SchedulerSolver::get_schedule() const {
         }
     }
 #ifdef ENABLE_SCHEDULER_TRICK
-    env->curr_task_schedule = result;
-    update_environment(*env);
-    EPlanner eplanner(env);
-    std::vector<Action> plan;
-    auto desires_plan = eplanner.plan(SCHEDULER_TRICK_TIME, plan);
-    get_myplan().resize(desires.size());
-    for (uint32_t r = 0; r < desires.size(); r++) {
-        get_myplan()[r] = get_operations()[desires_plan[r]][0];
+    {
+        env->curr_task_schedule = result;
+        update_environment(*env);
+        EPlanner eplanner(env);
+        std::vector<Action> plan;
+        auto desires_plan = eplanner.plan(50, plan);
+        get_myplan().resize(desires.size());
+        std::vector<uint32_t> desired_dirs(desires.size());
+        for (uint32_t r = 0; r < desires.size(); r++) {
+            get_myplan()[r] = get_operations()[desires_plan[r]][0];
 
-        int t = result[r];
-        if (t == -1) {
-            continue;
-        }
-        auto &task = env->task_pool.at(t);
-        uint32_t source = get_robots_handler().get_robot(r).node;
-        ASSERT(task.locations.size() == 2, "invalid locations");
-        ASSERT(task.idx_next_loc < task.locations.size(), "invalid idx_next_loc");
-        int target = task.get_next_loc() + 1;
-        const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
-        Operation op = get_operations()[desires_plan[r]];
-        uint32_t to = poses.back();
-        for (uint32_t i = 0; i < poses.size(); i++) {
-            if (op[i] == Action::FW) {
-                to = poses[i];
-                break;
+            uint32_t source = get_robots_handler().get_robot(r).node;
+            const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
+            const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
+            Operation op = get_operations()[desires_plan[r]];
+            uint32_t to = poses.back();
+            uint32_t desired = -1;
+            for (uint32_t i = 0; i < poses.size(); i++) {
+                if (op[i] == Action::FW) {
+                    to = poses[i];
+                    desired = get_graph().get_pos(nodes[i]).get_dir();
+                    break;
+                }
             }
+
+            desired_dirs[r] = desired;
+
+
+            /*int t = result[r];
+            if (t == -1) {
+                continue;
+            }
+            auto &task = env->task_pool.at(t);
+            uint32_t source = get_robots_handler().get_robot(r).node;
+            ASSERT(task.locations.size() == 2, "invalid locations");
+            ASSERT(task.idx_next_loc < task.locations.size(), "invalid idx_next_loc");
+            int target = task.get_next_loc() + 1;
+            const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
+            Operation op = get_operations()[desires_plan[r]];
+            uint32_t to = poses.back();
+            for (uint32_t i = 0; i < poses.size(); i++) {
+                if (op[i] == Action::FW) {
+                    to = poses[i];
+                    break;
+                }
+            }
+
+            uint32_t p = get_graph().get_pos_from_zip(to);
+            Position pop(p, 0);
+            Position rpos = get_graph().get_pos(get_robots_handler().get_robot(r).node);
+
+            //if (op[0] == Action::W) {
+            //    p = rpos.get_pos();
+            //}
+
+            task.locations.insert(task.locations.begin() + task.idx_next_loc, p - 1);
+            //Printer() << "done: " << r << '\n';
+            //std::cout.flush();
+
+            */
         }
 
-        uint32_t p = get_graph().get_pos_from_zip(to);
-        Position pop(p, 0);
-        Position rpos = get_graph().get_pos(get_robots_handler().get_robot(r).node);
+        auto targets = call_default_planner_solver(env, plan, desired_dirs);
+        for (uint32_t r = 0; r < desires.size(); r++) {
+            int t = result[r];
+            if (t == -1) {
+                continue;
+            }
+            auto &task = env->task_pool.at(t);
 
-        //if (op[0] == Action::W) {
-        //    p = rpos.get_pos();
-        //}
-
-        task.locations.insert(task.locations.begin() + task.idx_next_loc, p - 1);
-        //Printer() << "done: " << r << '\n';
-        //std::cout.flush();
+            //task.locations.insert(task.locations.begin() + task.idx_next_loc, targets[r]);
+        }
+        DefaultPlanner::initialize(0, env);
     }
 #endif
+    // build order and power
+    /*{
+        env->curr_task_schedule = result;
+        get_robots_handler().update(*env);
+
+        const auto &robots = get_robots_handler().get_robots();
+#ifdef ENABLE_PRINT_LOG
+        ETimer timer;
+#endif
+        std::vector<uint32_t> order(robots.size());
+        iota(order.begin(), order.end(), 0);
+        std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+            double lhs_x = robots[lhs].target ? robots[lhs].priority : 1e9;
+            double rhs_x = robots[rhs].target ? robots[rhs].priority : 1e9;
+            return lhs_x < rhs_x;
+        });
+
+        std::vector<int32_t> weight(robots.size());
+
+        for (uint32_t i = 0; i < robots.size(); i++) {
+            weight[order[i]] = i;
+        }
+        int32_t max_weight = robots.size() + 1;
+
+        const double workload = robots.size() * 1.0 / get_map().get_count_free();
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            double power = (max_weight - weight[r]) * 1.0 / max_weight;
+            if (!robots[r].target) {
+                power = 0;
+            }
+            ASSERT(0 <= r && r < DefaultPlanner::p.size(), "invalid r");
+            DefaultPlanner::p[r] = power * 100;
+            //robot_power[r] = power;//get_robots_handler().get_robot(r).priority;//power;
+        }
+
+#ifdef ENABLE_PRINT_LOG
+        Printer() << "init order and power: " << timer << '\n';
+#endif
+    }*/
+    // 4228
+
+    /*{
+        DefaultPlanner::decision.clear();
+        DefaultPlanner::prev_decision.clear();
+        DefaultPlanner::p.clear();
+        DefaultPlanner::prev_states.clear();
+        DefaultPlanner::next_states.clear();
+        DefaultPlanner::ids.clear();
+        DefaultPlanner::p_copy.clear();
+        DefaultPlanner::occupied.clear();
+        DefaultPlanner::decided.clear();
+        DefaultPlanner::checked.clear();
+        DefaultPlanner::require_guide_path.clear();
+        DefaultPlanner::dummy_goals.clear();
+        DefaultPlanner::trajLNS.~TrajLNS();
+
+        DefaultPlanner::initialize(0, env);
+    }*/
     return result;
 }
 
