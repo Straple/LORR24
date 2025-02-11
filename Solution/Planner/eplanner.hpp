@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Objects/Basic/time.hpp>
+
 #include <ActionModel.h>
 #include <SharedEnv.h>
 
@@ -10,5 +12,5 @@ public:
 
     EPlanner();
 
-    std::vector<uint32_t> plan(int time_limit, std::vector<Action> &plan);
+    std::pair<std::vector<Action>, std::vector<uint32_t>> plan(TimePoint end_time);
 };

@@ -8,25 +8,69 @@
 #include "heuristics.h"
 #include "planner.h"
 
-void init_default_planner(SharedEnvironment &env) {
-#if defined(ENABLE_DEFAULT_SCHEDULER)
-    ETimer timer;
-    DefaultPlanner::initialize(100000, &env);
-    for (uint32_t pos = 1; pos < get_map().get_size(); pos++) {
-        if (!get_map().is_free(pos)) {
-            continue;
-        }
-        for (uint32_t to = 1; to < get_map().get_size(); to++) {
-            if (!get_map().is_free(to)) {
-                continue;
-            }
-            DefaultPlanner::get_h(&env, pos - 1, to - 1);
-        }
-    }
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "init_default_planner: " << timer << '\n';
-#endif
+#include <thread>
 
+namespace DefaultPlanner {
+    extern DefaultPlanner::TrajLNS trajLNS;
+}
+
+using namespace DefaultPlanner;
+
+void init_default_heuristic(SharedEnvironment &env) {
+    ETimer timer;
+    init_heuristics(&env);
+
+    auto do_work = [&](uint32_t thr) {
+        for (uint32_t pos = thr + 1; pos < get_map().get_size(); pos += THREADS) {
+            if (get_map().is_free(pos)) {
+                HeuristicTable &ht = global_heuristictable[pos - 1];
+
+                init_heuristic(ht, &env, pos - 1);
+
+                Neighbors *ns = &trajLNS.neighbors;
+
+                std::vector<int> neighbors;
+                int cost, diff;
+                while (!ht.open.empty()) {
+                    HNode curr = ht.open.front();
+                    ht.open.pop_front();
+
+                    getNeighborLocs(ns, neighbors, curr.location);
+
+                    for (int next: neighbors) {
+                        cost = curr.value + 1;
+                        diff = curr.location - next;
+
+                        //assert(next >= 0 && next < get_map().get_size() - 1);
+                        //set current cost for reversed direction
+
+                        if (cost >= ht.htable[next])
+                            continue;
+
+                        ht.open.emplace_back(next, 0, cost);
+                        ht.htable[next] = cost;
+                    }
+                }
+            }
+        }
+    };
+
+    std::vector<std::thread> threads(THREADS);
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr] = std::thread(do_work, thr);
+    }
+    for (uint32_t thr = 0; thr < THREADS; thr++) {
+        threads[thr].join();
+    }
+
+#ifdef ENABLE_PRINT_LOG
+    Printer() << "init_default_heuristic: " << timer << '\n';
+#endif
+}
+
+void init_default_planner(SharedEnvironment &env) {
+#ifdef ENABLE_DEFAULT_PLANNER
+    init_default_heuristic(env);
 #endif
 }
 

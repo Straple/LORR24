@@ -17,11 +17,10 @@ EPlanner::EPlanner() {
     env = new SharedEnvironment();
 }
 
-std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) {
-    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit);
+std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint end_time) {
     ETimer timer;
 
-    plan.assign(env->num_of_agents, Action::W);
+    std::vector<Action> plan(env->num_of_agents, Action::W);
 
 #ifdef ENABLE_PIBTS
     {
@@ -100,7 +99,7 @@ std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) 
 
 
 #ifdef ENABLE_PRINT_LOG
-        static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
+        /*static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
         static std::vector<int> prev_desired(env->num_of_agents, 0);
         static std::vector<uint32_t> total_desires(get_operations().size());
         static std::vector<int64_t> total_changes(get_operations().size());
@@ -121,16 +120,16 @@ std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) 
         std::vector<std::tuple<int64_t, uint32_t>> kek;
         for (uint32_t d = 0; d < total_desires.size(); d++) {
             Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
-            if(d != 0) {
+            if (d != 0) {
                 kek.emplace_back(total_desires[d]//total_changes[d]
-                                 , d);
+                        , d);
             }
         }
         std::sort(kek.begin(), kek.end());
-        for(auto [score, d] : kek){
+        for (auto [score, d]: kek) {
             Printer() << get_operations()[d] << ' ';
         }
-        Printer() << '\n';
+        Printer() << '\n';*/
 
         /*if (env->curr_timestep == 999) {
             std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
@@ -150,7 +149,8 @@ std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) 
         }*/
         Printer() << "Planner: " << timer << '\n';
 #endif
-        return best_desires;
+
+        return {plan, best_desires};
     }
 #endif
 
@@ -194,12 +194,5 @@ std::vector<uint32_t> EPlanner::plan(int time_limit, std::vector<Action> &plan) 
 #endif
     }
 
-#endif
-
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "Planner: " << timer << '\n';
-    //if (timer.get_ms() > 300) {
-    //    Printer() << "TIMEOUT\n";
-    //}
 #endif
 }

@@ -85,6 +85,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
         static double sum_plans_equal = 0;
         uint32_t cnt_ok = 0;
         static std::array<std::array<uint32_t, 5>, 5> data;
+        get_myplan().resize(plan.size(), Action::W);
         for (uint32_t r = 0; r < plan.size(); r++) {
             cnt_ok += plan[r] == get_myplan()[r];
             ASSERT(static_cast<uint32_t>(plan[r]) < 4, "invalid plan");
