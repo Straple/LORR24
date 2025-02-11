@@ -91,7 +91,6 @@ struct PMPS {
     };
 
 private:
-
     // множество роботов
     const std::vector<Robot> &robots;
 
@@ -109,8 +108,4 @@ public:
     [[nodiscard]] std::vector<int64_t> get_changes() const;
 
     [[nodiscard]] double get_score() const;
-
-#ifdef ENABLE_PRINT_LOG
-    std::stringstream log;
-#endif
 };

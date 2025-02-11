@@ -1,19 +1,18 @@
 #include <Objects/Environment/dhmr.hpp>
 
 #include <Objects/Basic/assert.hpp>
-#include <Objects/Environment/robot_handler.hpp>
-#include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/graph.hpp>
+#include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/operations_map.hpp>
+#include <Objects/Environment/robot_handler.hpp>
 
-#include <unordered_set>
-#include <thread>
 #include <set>
+#include <thread>
+#include <unordered_set>
 
-DHMR::DHMR(const Graph &graph) :
-        matrix(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size())),
-        visited_sphere(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size())),
-        visited(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size()))
+DHMR::DHMR(const Graph &graph) : matrix(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size())),
+                                 visited_sphere(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size())),
+                                 visited(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size()))
 //visited_matrix(MAX_AGENTS_NUM, std::vector<uint32_t>(graph.get_nodes_size()))
 {
 }
@@ -38,7 +37,8 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
     {
         // (metric, node, depth)
         std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>,
-                std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> heap;
+                            std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>>
+                heap;
 
         heap.push({0, get_robots_handler().get_robot(r).node, 0});
 
@@ -75,7 +75,8 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
 
     // (metric, node)
     std::priority_queue<std::tuple<uint32_t, uint32_t>,
-            std::vector<std::tuple<uint32_t, uint32_t>>, std::greater<>> heap;
+                        std::vector<std::tuple<uint32_t, uint32_t>>, std::greater<>>
+            heap;
 
     auto target_is_in_sphere = [&]() {
         for (auto [depth, node]: poses) {
@@ -140,12 +141,12 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
                 uint32_t to = 0;
                 //get_graph().get_to_node(node, action);
                 if (action == 0) {
-                    to = get_graph().get_to_node(node, 1); // R
-                    to = get_graph().get_to_node(to, 1); // R
-                    to = get_graph().get_to_node(to, 0); // F
+                    to = get_graph().get_to_node(node, 1);// R
+                    to = get_graph().get_to_node(to, 1);  // R
+                    to = get_graph().get_to_node(to, 0);  // F
                     if (to) {
-                        to = get_graph().get_to_node(to, 1); // R
-                        to = get_graph().get_to_node(to, 1); // R
+                        to = get_graph().get_to_node(to, 1);// R
+                        to = get_graph().get_to_node(to, 1);// R
                     }
                 } else if (action == 1) {
                     to = get_graph().get_to_node(node, 2);
@@ -161,15 +162,14 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
 
                 if (to && visited_sphere[r][to] == timestep && visited[r][to] != timestep) {
                     uint32_t to_metric = metric;
-                    to_metric += get_graph().get_weight(to, action); // edge weight
+                    to_metric += get_graph().get_weight(to, action);// edge weight
 
                     if (action == 0) {
                         uint32_t to_pos = get_graph().get_pos(to).get_pos();
                         uint32_t to_r = pos_to_robot[to_pos];
 
                         // другой робот
-                        if (to_r != -1 && to_r != r
-                                ) {
+                        if (to_r != -1 && to_r != r) {
                             uint32_t our_dir = get_graph().get_pos(to).get_dir();
                             uint32_t him_dir = get_graph().get_pos(get_robots_handler().get_robot(to_r).node).get_dir();
 
@@ -177,7 +177,7 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
                                 // to_metric += 0; // 70129
                                 // to_metric += 1; // 70529
                                 // to_metric += 3; // 71332
-                                to_metric += 5; // 71427
+                                to_metric += 5;// 71427
                             }
                         }
                     }
@@ -243,9 +243,8 @@ void DHMR::update(uint32_t timestep, TimePoint end_time) {
             threads[thr].join();
         }
     }
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "DHMR::update: " << timer << '\n';
-#endif
+
+    PRINT(Printer() << "DHMR::update: " << timer << '\n';);
 
 #endif
 }

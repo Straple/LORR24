@@ -63,9 +63,7 @@ void init_default_heuristic(SharedEnvironment &env) {
         threads[thr].join();
     }
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "init_default_heuristic: " << timer << '\n';
-#endif
+    PRINT(Printer() << "init_default_heuristic: " << timer << '\n';);
 }
 
 void init_default_planner(SharedEnvironment &env) {
@@ -123,7 +121,7 @@ void init_environment(SharedEnvironment &env) {
     if (get_map_type() == MapType::RANDOM
         // TODO: GuidanceMap для warehouse довольно плох
         //|| get_map_type() == MapType::WAREHOUSE
-            ) {
+    ) {
         //Printer() << "GuidanceMap\n";
         // 52128
         get_gg() = GraphGuidance(get_guidance_map());
@@ -276,8 +274,10 @@ void update_environment(SharedEnvironment &env) {
 }
 
 #ifdef ENABLE_SCHEDULER_TRICK
+
 std::vector<Action> &get_myplan() {
     static std::vector<Action> plan;
     return plan;
 }
+
 #endif

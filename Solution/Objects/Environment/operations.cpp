@@ -129,13 +129,14 @@ std::vector<Operation> OperationsGenerator::get() {
         }
     }*/
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "Operations:\n" << result.size() << ' ';
-    for (auto operation: result) {
-        Printer() << operation << ' ';
-    }
-    Printer() << '\n';
-#endif
+    PRINT(
+            Printer() << "Operations:\n"
+                      << result.size() << ' ';
+            for (auto operation
+                 : result) {
+                Printer() << operation << ' ';
+            } Printer()
+            << '\n';);
     //std::exit(100);
     return result;
 }

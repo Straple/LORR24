@@ -74,7 +74,7 @@ class PIBTS {
     // return 0, if failed
     // return 1, if success+accepted
     // return 2, if success+not accepted
-    uint32_t try_echo_slam(std::vector<uint32_t>& rids, uint32_t &counter, uint32_t depth);
+    uint32_t try_echo_slam(std::vector<uint32_t> &rids, uint32_t &counter, uint32_t depth);
 
     bool try_echo_slam(uint32_t r);
 
@@ -118,8 +118,4 @@ public:
     [[nodiscard]] double get_score() const;
 
     uint32_t step = 0;
-
-#ifdef ENABLE_PRINT_LOG
-    //std::stringstream log;
-#endif
 };

@@ -1,5 +1,5 @@
-#include <Scheduler/scheduler.hpp>
 #include <Scheduler/journey_graph.hpp>
+#include <Scheduler/scheduler.hpp>
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/time.hpp>
@@ -14,7 +14,6 @@
 
 
 MyScheduler::MyScheduler(SharedEnvironment *env) : env(env), solver(env) {
-
 }
 
 int get_dist_to_start(uint32_t r, uint32_t t, SharedEnvironment *env) {
@@ -119,10 +118,9 @@ void MyScheduler::greedy_schedule(int time_limit, std::vector<int> &proposed_sch
         }
     }
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "free robots: " << free_robots.size() << '\n';
-    Printer() << "free tasks: " << free_tasks.size() << '\n';
-#endif
+    PRINT(
+            Printer() << "free robots: " << free_robots.size() << '\n';
+            Printer() << "free tasks: " << free_tasks.size() << '\n';);
 
     double workload = env->num_of_agents * 1.0 / get_map().get_count_free();
     uint32_t done_weight = 5;
@@ -311,11 +309,6 @@ int calc_full_distance(Task &task) {
 //     int DEVIDE_Y = std::sqrt(THREADS_TO_USE);
 //     int DEVIDE_X = DEVIDE_Y;
 
-// #ifdef ENABLE_PRINT_LOG
-//     Printer() << "free robots: " << free_robots.size() << '\n';
-//     Printer() << "free tasks: " << free_tasks.size() << '\n';
-// #endif
-
 
 //     std::sort(xs.begin(), xs.end());
 //     std::sort(ys.begin(), ys.end());
@@ -373,12 +366,10 @@ int calc_full_distance(Task &task) {
 //     // {
 //     //     const size_t Y_PART_SIZE = (ys.size()+DEVIDE_Y-1)/DEVIDE_Y;
 //     //     for (size_t part = 0; part < DEVIDE_Y; ++part){
-//     //         #ifdef ENABLE_PRINT_LOG
 //     //             int i = part*Y_PART_SIZE;
 //     //             if (i < ys.size()){
 //     //                 std::cout << "y sep number: " << part << " value: " << ys[i].cordinate << std::endl;
 //     //             }
-//     //         #endif ENABLE_PRINT_LOG
 
 //     //         for (size_t i = part*Y_PART_SIZE; i < std::min(ys.size(), (part+1)*Y_PART_SIZE); ++i){
 //     //             if (ys[i].is_robot){
@@ -393,12 +384,10 @@ int calc_full_distance(Task &task) {
 //     // {
 //     //     const size_t X_PART_SIZE = (ys.size()+DEVIDE_X-1)/DEVIDE_X;
 //     //     for (size_t part = 0; part < DEVIDE_X; ++part){
-//     //         #ifdef ENABLE_PRINT_LOG
 //     //             int i = part*X_PART_SIZE;
 //     //             if (i < ys.size()){
 //     //                 std::cout << "x sep number: " << part << " value: " << xs[i].cordinate << std::endl;
 //     //             }
-//     //         #endif ENABLE_PRINT_LOG
 //     //         for (size_t i = part*X_PART_SIZE; i < std::min(xs.size(), (part+1)*X_PART_SIZE); ++i){
 //     //             if (xs[i].is_robot){
 //     //                 robot_distrib[xs[i].index].second = part;
@@ -422,7 +411,6 @@ int calc_full_distance(Task &task) {
 //         devided_tasks[task_distrib[i].first][task_distrib[i].second].push_back(i);
 //     }
 
-// #ifdef ENABLE_PRINT_LOG
 
 //     for (size_t y = 0; y < DEVIDE_Y; y++) {
 //         for (size_t x = 0; x < DEVIDE_X; x++) {
@@ -433,8 +421,6 @@ int calc_full_distance(Task &task) {
 //             Printer() << "Tasks:  " << t_s << " (" << ((float) t_s) / (free_tasks.size()) * 100 << "%)" << '\n';
 //         }
 //     }
-
-// #endif
 
 
 //     auto RunHungary = [&](size_t y, size_t x) {
@@ -486,13 +472,6 @@ int calc_full_distance(Task &task) {
 //             }
 //         }
 //     }
-
-
-
-
-// #ifdef ENABLE_PRINT_LOG
-//     Printer() << "Scheduler: " << timer << '\n';
-// #endif
 
 //     //jg.OutDBG();
 // }
@@ -547,10 +526,9 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
     int DEVIDE_Y = sqrt(THREADS_TO_USE);
     int DEVIDE_X = DEVIDE_Y;
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "free robots: " << free_robots.size() << '\n';
-    Printer() << "free tasks: " << free_tasks.size() << '\n';
-#endif
+    PRINT(
+            Printer() << "free robots: " << free_robots.size() << '\n';
+            Printer() << "free tasks: " << free_tasks.size() << '\n';);
 
 
     std::sort(xs.begin(), xs.end());
@@ -608,12 +586,10 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
     // {
     //     const size_t Y_PART_SIZE = (ys.size()+DEVIDE_Y-1)/DEVIDE_Y;
     //     for (size_t part = 0; part < DEVIDE_Y; ++part){
-    //         #ifdef ENABLE_PRINT_LOG
     //             int i = part*Y_PART_SIZE;
     //             if (i < ys.size()){
     //                 std::cout << "y sep number: " << part << " value: " << ys[i].cordinate << std::endl;
     //             }
-    //         #endif ENABLE_PRINT_LOG
 
     //         for (size_t i = part*Y_PART_SIZE; i < std::min(ys.size(), (part+1)*Y_PART_SIZE); ++i){
     //             if (ys[i].is_robot){
@@ -628,12 +604,10 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
     // {
     //     const size_t X_PART_SIZE = (ys.size()+DEVIDE_X-1)/DEVIDE_X;
     //     for (size_t part = 0; part < DEVIDE_X; ++part){
-    //         #ifdef ENABLE_PRINT_LOG
     //             int i = part*X_PART_SIZE;
     //             if (i < ys.size()){
     //                 std::cout << "x sep number: " << part << " value: " << xs[i].cordinate << std::endl;
     //             }
-    //         #endif ENABLE_PRINT_LOG
     //         for (size_t i = part*X_PART_SIZE; i < std::min(xs.size(), (part+1)*X_PART_SIZE); ++i){
     //             if (xs[i].is_robot){
     //                 robot_distrib[xs[i].index].second = part;
@@ -658,19 +632,18 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         devided_tasks[task_distrib[i].first][task_distrib[i].second].push_back(i);
     }
 
-#ifdef ENABLE_PRINT_LOG
 
-    for (size_t y = 0; y < DEVIDE_Y; y++) {
-        for (size_t x = 0; x < DEVIDE_X; x++) {
-            Printer() << "Quarant: y: " << y << " x: " << x << '\n';
-            size_t r_s = devided_robots[y][x].size();
-            size_t t_s = devided_tasks[y][x].size();
-            Printer() << "Robots: " << r_s << " (" << ((float) r_s) / (free_robots.size()) * 100 << "%)" << '\n';
-            Printer() << "Tasks:  " << t_s << " (" << ((float) t_s) / (free_tasks.size()) * 100 << "%)" << '\n';
-        }
-    }
-
-#endif
+    PRINT(
+            for (size_t y = 0; y < DEVIDE_Y; y++) {
+                for (size_t x = 0; x < DEVIDE_X; x++) {
+                    Printer() << "Quarant: y: " << y << " x: " << x << '\n';
+                    size_t r_s = devided_robots[y][x].size();
+                    size_t t_s = devided_tasks[y][x].size();
+                    Printer() << "Robots: " << r_s << " (" << ((float) r_s) / (free_robots.size()) * 100 << "%)"
+                              << '\n';
+                    Printer() << "Tasks:  " << t_s << " (" << ((float) t_s) / (free_tasks.size()) * 100 << "%)" << '\n';
+                }
+            });
 
     std::vector<int> free_tasks_length(free_tasks.size());
     for (int i = 0; i < free_tasks.size(); ++i) {
@@ -687,7 +660,8 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         for (int i = 0; i < rb; i++) {
             for (int g = 0; g < tasks.size(); g++) {
                 dist_matrix[i + 1][g + 1] = (int) get_dist(free_robots[robots[i]], free_tasks[tasks[g]], env) +
-                                            free_tasks_length[tasks[g]];;
+                                            free_tasks_length[tasks[g]];
+                ;
             }
         }
         auto ans = Hungarian::DoHungarian(dist_matrix);
@@ -722,10 +696,6 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
         }
     }
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "Scheduler: " << timer << '\n';
-#endif
-
     return done_proposed_schedule;
 }
 
@@ -734,7 +704,5 @@ void MyScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
     solver_schedule(time_limit, proposed_schedule);
     //artem_schedule(time_limit, proposed_schedule);
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "Scheduler: " << timer << '\n';
-#endif
+    PRINT(Printer() << "Scheduler: " << timer << '\n';);
 }

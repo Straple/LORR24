@@ -6,6 +6,8 @@
 #include <random>
 #include <unordered_set>
 
+#include <Objects/Basic/time.hpp>
+
 namespace DefaultPlanner {
 
     std::mt19937 g(0);
@@ -74,6 +76,7 @@ namespace DefaultPlanner {
     }
 
     void update_fw_metrics(TrajLNS &lns) {
+        ETimer timer;
         for (int i = 0; i < lns.env->num_of_agents; i++) {
             lns.fw_metrics[i].id = i;
             lns.fw_metrics[i].rand = rand();
@@ -84,6 +87,7 @@ namespace DefaultPlanner {
             assert(dists.first >= 0);
             lns.fw_metrics[i].deviation = dists.first;
         }
+        PRINT(Printer() << "[DP] update_fw_metrics: " << timer << '\n';);
         return;
     }
 
@@ -120,6 +124,7 @@ namespace DefaultPlanner {
             remove_traj(lns, a);
             update_traj(lns, a);
         }
+        PRINT(Printer() << "[DP] frank_wolfe count: " << count << '\n';);
         return;
     }
 

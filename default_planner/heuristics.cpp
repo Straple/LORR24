@@ -53,6 +53,8 @@ namespace DefaultPlanner {
     int get_heuristic(HeuristicTable &ht, SharedEnvironment *env, int source, Neighbors *ns) {
         if (ht.htable[source] < MAX_TIMESTEP) return ht.htable[source];
 
+        throw "not build";
+
         std::vector<int> neighbors;
         int cost, diff;
         while (!ht.open.empty()) {

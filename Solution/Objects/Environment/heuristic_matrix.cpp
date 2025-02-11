@@ -33,12 +33,12 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
         for (uint32_t action = 0; action < 3; action++) {
             uint32_t to = 0;
             if (action == 0) {
-                to = get_graph().get_to_node(node, 1); // R
-                to = get_graph().get_to_node(to, 1); // R
-                to = get_graph().get_to_node(to, 0); // F
+                to = get_graph().get_to_node(node, 1);// R
+                to = get_graph().get_to_node(to, 1);  // R
+                to = get_graph().get_to_node(to, 0);  // F
                 if (to) {
-                    to = get_graph().get_to_node(to, 1); // R
-                    to = get_graph().get_to_node(to, 1); // R
+                    to = get_graph().get_to_node(to, 1);// R
+                    to = get_graph().get_to_node(to, 1);// R
                 }
             } else if (action == 1) {
                 to = get_graph().get_to_node(node, 2);
@@ -59,9 +59,7 @@ void HeuristicMatrix::build(uint32_t source, const Graph &graph) {
 }
 
 HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
-#ifdef ENABLE_PRINT_LOG
     ETimer timer;
-#endif
     matrix.resize(get_map().get_size());
 
     auto do_work = [&](uint32_t thr) {
@@ -79,10 +77,8 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
-#ifdef ENABLE_PRINT_LOG
-    // HM init: 60.5735s -> 49.3102s -> 44.5356s
-    Printer() << "HM init: " << timer << '\n';
-#endif
+
+    PRINT(Printer() << "HM init: " << timer << '\n';);
 }
 
 uint32_t HeuristicMatrix::get(uint32_t source, uint32_t target) const {

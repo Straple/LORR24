@@ -26,11 +26,9 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
     {
         // (score, actions)
         using ItemType = std::tuple<double, std::vector<Action>
-//#ifdef ENABLE_PRINT_LOG
-                // time, desires, changes, step, log_str
-                , int, std::vector<uint32_t>, std::vector<int64_t>, uint32_t//, std::string
-//#endif
-        >;
+                                    // time, desires, changes, step, log_str
+                                    ,
+                                    int, std::vector<uint32_t>, std::vector<int64_t>, uint32_t>;
 
         constexpr uint32_t THR = THREADS;
         std::vector<std::vector<ItemType>> results_pack(THR);
@@ -38,18 +36,12 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
         PIBTS main_pibt_solver(get_robots_handler().get_robots(), end_time);
 
         auto do_work = [&](uint32_t thr, uint64_t seed) {
-            //while(get_now() < end_time) {
             ETimer timer;
             PIBTS pibt = main_pibt_solver;
             pibt.solve(seed);
             auto time = timer.get_ms();
-            results_pack[thr].emplace_back(pibt.get_score(), pibt.get_actions()
-//#ifdef ENABLE_PRINT_LOG
-                    , time, pibt.get_desires(), pibt.get_changes(), pibt.step//, pibt.log.str()
-//#endif
-            );
-            //    seed = (seed * 78124) ^ 182745123;
-            //}
+            results_pack[thr].emplace_back(pibt.get_score(), pibt.get_actions(), time, pibt.get_desires(),
+                                           pibt.get_changes(), pibt.step);
         };
 
         static Randomizer rnd(228);
@@ -74,32 +66,22 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
             return std::get<0>(lhs) > std::get<0>(rhs);
         });
 
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "RESULTS(" << results.size() << "): ";
-#endif
-        for (const auto &[score, actions
-//#ifdef ENABLE_PRINT_LOG
-                    , time, desires, changes, steps//, log_str
-//#endif
-            ]: results) {
-#ifdef ENABLE_PRINT_LOG
-            Printer() << "(" << score << ", " << time << ", " << steps << ") ";
-#endif
+        PRINT(Printer() << "RESULTS(" << results.size() << "): ";);
+
+        for (const auto &[score, actions, time, desires, changes, steps]: results) {
+            PRINT(Printer() << "(" << score << ", " << time << ", " << steps << ") ";);
             if (best_score < score) {
                 best_score = score;
                 best_desires = desires;
                 plan = actions;
             }
         }
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "\nbest: " << best_score << '\n';
-        //Printer() << "best log:\n" << std::get<6>(results[0]) << '\n';
-        //Printer() << "worst log:\n" << std::get<6>(results.back()) << '\n';
-#endif
+
+        PRINT(Printer() << "\nbest: " << best_score << '\n';);
 
 
-#ifdef ENABLE_PRINT_LOG
-        /*static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
+        PRINT(
+                /*static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
         static std::vector<int> prev_desired(env->num_of_agents, 0);
         static std::vector<uint32_t> total_desires(get_operations().size());
         static std::vector<int64_t> total_changes(get_operations().size());
@@ -131,7 +113,7 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
         }
         Printer() << '\n';*/
 
-        /*if (env->curr_timestep == 999) {
+                /*if (env->curr_timestep == 999) {
             std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
             Printer() << "Operation matrix:\n";
             for (uint32_t d = 0; d < get_operations().size(); d++) {
@@ -147,8 +129,9 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
                 Printer() << get_operations()[d] << "->" << get_operations()[k] << ": " << count << '\n';
             }
         }*/
-        Printer() << "Planner: " << timer << '\n';
-#endif
+        );
+
+        PRINT(Printer() << "Planner: " << timer << '\n';);
 
         return {plan, best_desires};
     }
@@ -181,18 +164,14 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
         });
         plan = std::get<1>(results[0]);
 
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "RESULTS(" << results.size() << "): ";
-#endif
+        PRINT(Printer() << "RESULTS(" << results.size() << "): ";);
         for (const auto &[score, actions]: results) {
-#ifdef ENABLE_PRINT_LOG
-            Printer() << score << ' ';
-#endif
+            PRINT(Printer() << score << ' ';);
         }
-#ifdef ENABLE_PRINT_LOG
-        Printer() << '\n';
-#endif
+        PRINT(Printer() << '\n';);
     }
 
 #endif
+    FAILED_ASSERT("kek");
+    throw std::exception();
 }

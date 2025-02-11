@@ -18,8 +18,8 @@ bool PIBTS::consider() {
     //}
 
     return old_score - 1e-6 <= cur_score
-           // old_score > cur_score
-           #ifdef ENABLE_PIBTS_ANNEALING
+// old_score > cur_score
+#ifdef ENABLE_PIBTS_ANNEALING
            || rnd.get_d() < std::exp(-((old_score - cur_score) / old_score) / temp)
 #endif
             ;
@@ -135,21 +135,21 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             uint32_t to = get_graph().get_to_node(node, 1);
             dist = std::min(dist, static_cast<int64_t>(
 #ifdef ENABLE_DHMR
-                    get_dhmr().get(r, to)
+                                          get_dhmr().get(r, to)
 #else
-                    get_hm().get(to, robots[r].target)
+                                          get_hm().get(to, robots[r].target)
 #endif
-            ));
+                                                  ));
         }
         {
             uint32_t to = get_graph().get_to_node(node, 2);
             dist = std::min(dist, static_cast<int64_t>(
 #ifdef ENABLE_DHMR
-                    get_dhmr().get(r, to)
+                                          get_dhmr().get(r, to)
 #else
-                    get_hm().get(to, robots[r].target)
+                                          get_hm().get(to, robots[r].target)
 #endif
-            ));
+                                                  ));
         }
 
         if (op[op.size() - 2] == Action::W) {
@@ -158,11 +158,11 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
             to = get_graph().get_to_node(to, 1);
             dist = std::min(dist, static_cast<int64_t>(
 #ifdef ENABLE_DHMR
-                    get_dhmr().get(r, to)
+                                          get_dhmr().get(r, to)
 #else
-                    get_hm().get(to, robots[r].target)
+                                          get_hm().get(to, robots[r].target)
 #endif
-            ));
+                                                  ));
         }
     }
 
@@ -564,7 +564,7 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
                 return 2;// not accepted
             }
         } else if (to_r != -2// && visited[to_r] != visited_counter
-                ) {
+        ) {
             if (counter > 3000 && depth >= 6) {
                 continue;
             }
@@ -576,10 +576,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
             // и этот x построил to_r
             if (desires[to_r] != 0
-                #ifdef ENABLE_PIBTS_TRICK
+#ifdef ENABLE_PIBTS_TRICK
                 && rnd.get_d() < 0.8
 #endif
-                    ) {
+            ) {
                 continue;
             }
 
@@ -651,20 +651,16 @@ void PIBTS::reset(uint32_t r, std::vector<uint32_t> &destroyed) {
 }
 
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
-        : robots(robots), end_time(end_time) {
+    : robots(robots), end_time(end_time) {
 
-#ifdef ENABLE_PRINT_LOG
     ETimer timer;
-#endif
 
     visited.resize(robots.size());
     desires.resize(robots.size());
     best_desires.resize(robots.size());
 
     {
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
         std::array<uint32_t, DEPTH> value{};
         for (uint32_t depth = 0; depth < DEPTH; depth++) {
             value[depth] = -1;
@@ -672,16 +668,12 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         used_pos.resize(get_graph().get_zipes_size(), value);
         used_edge.resize(get_graph().get_edges_size(), value);
 
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "init used: " << timer << '\n';
-#endif
+        PRINT(Printer() << "init used: " << timer << '\n';);
     }
 
     // build order and power
     {
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
         order.resize(robots.size());
         iota(order.begin(), order.end(), 0);
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
@@ -741,9 +733,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
             robot_power[r] = power;//get_robots_handler().get_robot(r).priority;//power;
         }
 
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "init order and power: " << timer << '\n';
-#endif
+        PRINT(Printer() << "init order and power: " << timer << '\n';);
     }
 
     // init neighbors
@@ -757,9 +747,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         // used_pos[pos][depth] = robot id
         std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_pos(get_graph().get_zipes_size());
 
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
         for (uint32_t r = 0; r < robots.size(); r++) {
             for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
                 if (!validate_path(r, desired)) {
@@ -798,10 +786,8 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                 }
             }
         }
-#ifdef ENABLE_PRINT_LOG
         Printer() << "build used: " << timer << '\n';
         timer.reset();
-#endif
 
         for (uint32_t edge = 1; edge < used_edge.size(); edge++) {
             for (uint32_t depth = 0; depth < DEPTH; depth++) {
@@ -815,10 +801,8 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                 }
             }
         }
-#ifdef ENABLE_PRINT_LOG
         std::cout << "build edges: " << timer << '\n';
         timer.reset();
-#endif
 
         for (uint32_t pos = 1; pos < used_pos.size(); pos++) {
             for (uint32_t depth = 0; depth < DEPTH; depth++) {
@@ -832,25 +816,19 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                 }
             }
         }
-#ifdef ENABLE_PRINT_LOG
         std::cout << "build poses: " << timer << '\n';
-#endif
 
-#ifdef ENABLE_PRINT_LOG
         //warehouse_large_10000
     //build used: 15.2807ms
     //build edges: 3.43853ms
     //build poses: 5.34468ms
     //init neighbors: 30.1128ms
     Printer() << "init neighbors: " << timer << '\n';
-#endif
     }*/
 
     // init smart_dist_dp
     {
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
         smart_dist_dp.resize(robots.size(), std::vector<int64_t>(get_operations().size()));
 
         auto do_work = [&](uint32_t thr) {
@@ -879,29 +857,21 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                 smart_dist_dp[r][desired] += get_smart_dist_IMPL(r, desired);
             }
         }*/
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "init smart_dist_dp: " << timer << '\n';
-#endif
+        PRINT(Printer() << "init smart_dist_dp: " << timer << '\n';);
     }
 
     {
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
         for (uint32_t r = 0; r < robots.size(); r++) {
             desires[r] = 0;
             add_path(r);
         }
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "add paths: " << timer << '\n';
-#endif
+        PRINT(Printer() << "add paths: " << timer << '\n';);
     }
 
     // build robot_desires
     {
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
 
         robot_desires.resize(robots.size());
 
@@ -946,14 +916,10 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                 robot_desires[r].push_back(desired);
             }
         }*/
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "init robot_desires: " << timer << '\n';
-#endif
+        PRINT(Printer() << "init robot_desires: " << timer << '\n';);
     }
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "init PIBTS: " << timer << '\n';
-#endif
+    PRINT(Printer() << "init PIBTS: " << timer << '\n';);
 }
 
 void PIBTS::solve(uint64_t seed) {

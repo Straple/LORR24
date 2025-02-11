@@ -13,7 +13,7 @@
 
 //#define ENABLE_SMART_PLANNER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
@@ -26,9 +26,9 @@
 #define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-//#define BUILD_META_INFO
+#define BUILD_META_INFO
 
-//#define ENABLE_PRINT_LOG
+#define PRINT(args...) do { args } while(0)
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -36,7 +36,7 @@
 
 //#define ENABLE_PHANTOM_SCHEDULE
 
-//#define ENABLE_SCHEDULER_TRICK
+#define ENABLE_SCHEDULER_TRICK
 
 //#define ENABLE_GG_SOLVER
 
@@ -56,7 +56,7 @@ static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
-static constexpr uint32_t SCHEDULER_TRICK_TIME = 50;
+static constexpr uint32_t SCHEDULER_TRICK_TIME = 200;
 
 static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 
@@ -112,8 +112,6 @@ Printer operator<<(Printer printer, const T &value) {
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
-
-#define ENABLE_PRINT_LOG
 
 #define ENABLE_PIBTS_ANNEALING
 

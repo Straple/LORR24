@@ -139,11 +139,6 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
             std::max(1.0, workload * 14 * 2 - 2);
 #endif
 
-#ifdef ENABLE_PRINT_LOG
-    //Printer() << "workload: " << workload << '\n';
-    //Printer() << "power: " << power << '\n';
-#endif
-
     // set weights
     {
         //robot_paths.resize(get_robots_handler().size());
@@ -243,10 +238,9 @@ void DynamicHeuristicMatrix::update(SharedEnvironment &env, TimePoint end_time) 
         threads[thr].join();
     }
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "total rebuild: " << total_rebuild << '/' << pool.size() << '\n';
-    Printer() << "rebuild time: " << timer << '\n';
-#endif
+    PRINT(
+            Printer() << "total rebuild: " << total_rebuild << '/' << pool.size() << '\n';
+            Printer() << "rebuild time: " << timer << '\n';)
 
 #endif
 }

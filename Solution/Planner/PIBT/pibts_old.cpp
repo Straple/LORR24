@@ -174,7 +174,7 @@ int32_t PIBTS::get_smart_dist(uint32_t r, uint32_t desired) const {
 }
 
 void PIBTS::update_score(uint32_t r, uint32_t desired, double &cur_score, int sign) const {
-    int64_t old_dist = get_smart_dist(r, 0); // get_dhm().get(robots[r].node, robots[r].target);
+    int64_t old_dist = get_smart_dist(r, 0);// get_dhm().get(robots[r].node, robots[r].target);
     int64_t cur_dist = get_smart_dist(r, desired);
     int64_t diff = (old_dist - cur_dist);// * (old_dist - cur_dist) * (old_dist - cur_dist);
     double power = std::sqrt((max_weight - weight[r]) * 1.0 / robots.size());
@@ -413,11 +413,11 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         if (is_free_path(r)) {
             add_path(r);
             if (old_score - 1e-6 <= cur_score
-                // old_score > cur_score
-                #ifdef ENABLE_PIBTS_ANNEALING
+// old_score > cur_score
+#ifdef ENABLE_PIBTS_ANNEALING
                 || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
 #endif
-                    ) {
+            ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -674,11 +674,11 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             // отлично! там никого нет
             add_path(r);
             if (old_score - 1e-6 <= cur_score
-                // old_score > cur_score
-                #ifdef ENABLE_PIBTS_ANNEALING
+// old_score > cur_score
+#ifdef ENABLE_PIBTS_ANNEALING
                 || rnd.get_d() < 1.0 / (old_score - cur_score + 5) * temp
 #endif
-                    ) {
+            ) {
                 return 1;// accepted
             } else {
                 remove_path(r);
@@ -704,10 +704,10 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             // но to_r уже построен, потому что был какой-то x, который имел приоритет больше чем r
             // и этот x построил to_r
             if (desires[to_r] != 0
-                #ifdef ENABLE_PIBTS_TRICK
+#ifdef ENABLE_PIBTS_TRICK
                 && rnd.get_d() < visited_bound
 #endif
-                    ) {
+            ) {
                 continue;
             }
 
@@ -923,9 +923,6 @@ bool PIBTS::parallel_build(uint32_t r, Randomizer &rnd) {
         return false;
     }
     flush_state(s);
-//#ifdef ENABLE_PRINT_LOG
-//    Printer() << "->" << cur_score;
-//#endif
     ++version;
 
     return true;
@@ -943,7 +940,7 @@ void PIBTS::do_work(uint32_t thr) {
 }
 
 PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time, uint64_t seed)
-        : robots(robots), end_time(end_time), rnd(seed) {
+    : robots(robots), end_time(end_time), rnd(seed) {
 
     /*if (rnd.get_d() < 0.5) {
         visited_bound = 2;
@@ -1104,7 +1101,7 @@ void PIBTS::simulate_pibt() {
             false;
     rnd.get_d() < 0.5;
 #else
-    false;
+            false;
 #endif
     for (uint32_t r: order) {
         if (get_now() >= end_time) {

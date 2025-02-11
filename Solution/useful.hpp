@@ -693,3 +693,70 @@ Total time: 272.731s
 // 4327, с frank_wolfe
 // 3736, scheduler_trick + frank_wolfe
 // 3710 -> 4498 (чистить каждый раз их решение), scheduler_trick,
+
+Timestep: 227
+free robots: 468
+free tasks: 5468
+SchedulerSolver::rebuild_dp: 468/468 (100%), 13.0976ms
+cnt_assigned: 9532
+max_assigned: 10000
+allowed_assigned: 468
+SchedulerSolver::triv_solve: 735.741us
+SchedulerSolver::solve: 4.6881e+08->4.6881e+08, 0, 3.654us
+Scheduler: 14.2902ms
+Scheduler robots init: 10000/10000 (100%)
+[DP] init agents: 818.374us
+[DP] update trajs: 123.362ms
+[DP] update_fw_metrics: 1.71512ms
+[DP] frank_wolfe count: 296
+[DP] frank_wolfe: 735.426ms
+[DP] causalPIBT: 16.3471ms
+[DP] set actions: 200.734us
+[DP] move check: 220.514us
+Actions:
+F: 6666
+R: 768
+C: 271
+W: 2295
+N: 0
+Total action:
+F: 1388074
+R: 176502
+C: 61883
+W: 473541
+N: 0
+Entry time: 898.45ms
+Total time: 203.816s
+[2025-02-11 18:00:33.955174] [0x000076546a720740] [info]    [timestep=227] planner returns
+[2025-02-11 18:00:33.962373] [0x000076546a720740] [info]    [timestep=228] Agent 255 finishes task 4653
+[2025-02-11 18:00:33.962417] [0x000076546a720740] [info]    [timestep=228] Agent 810 finishes task 4920
+[2025-02-11 18:00:33.962426] [0x000076546a720740] [info]    [timestep=228] Agent 828 finishes task 1819
+[2025-02-11 18:00:33.962450] [0x000076546a720740] [info]    [timestep=228] Agent 1399 finishes task 6296
+[2025-02-11 18:00:33.962473] [0x000076546a720740] [info]    [timestep=228] Agent 1891 finishes task 11335
+[2025-02-11 18:00:33.962498] [0x000076546a720740] [info]    [timestep=228] Agent 2461 finishes task 6665
+[2025-02-11 18:00:33.962527] [0x000076546a720740] [info]    [timestep=228] Agent 3148 finishes task 11794
+[2025-02-11 18:00:33.962544] [0x000076546a720740] [info]    [timestep=228] Agent 3446 finishes task 14137
+[2025-02-11 18:00:33.962629] [0x000076546a720740] [info]    [timestep=228] Agent 5849 finishes task 5721
+[2025-02-11 18:00:33.962645] [0x000076546a720740] [info]    [timestep=228] Agent 6133 finishes task 6052
+[2025-02-11 18:00:33.962718] [0x000076546a720740] [info]    [timestep=228] Agent 8416 finishes task 3717
+[2025-02-11 18:00:33.962727] [0x000076546a720740] [info]    [timestep=228] Agent 8476 finishes task 1427
+[2025-02-11 18:00:33.962764] [0x000076546a720740] [info]    [timestep=228] Agent 9592 finishes task 8732
+[2025-02-11 18:00:33.962777] [0x000076546a720740] [info]    [timestep=228] Agent 9765 finishes task 737
+[2025-02-11 18:00:33.962790] [0x000076546a720740] [info]    Task 18082 is revealed
+[2025-02-11 18:00:33.962797] [0x000076546a720740] [info]    Task 18083 is revealed
+[2025-02-11 18:00:33.962807] [0x000076546a720740] [info]    Task 18084 is revealed
+[2025-02-11 18:00:33.962811] [0x000076546a720740] [info]    Task 18085 is revealed
+[2025-02-11 18:00:33.962818] [0x000076546a720740] [info]    Task 18086 is revealed
+[2025-02-11 18:00:33.962823] [0x000076546a720740] [info]    Task 18087 is revealed
+[2025-02-11 18:00:33.962827] [0x000076546a720740] [info]    Task 18088 is revealed
+[2025-02-11 18:00:33.962831] [0x000076546a720740] [info]    Task 18089 is revealed
+[2025-02-11 18:00:33.962835] [0x000076546a720740] [info]    Task 18090 is revealed
+[2025-02-11 18:00:33.962838] [0x000076546a720740] [info]    Task 18091 is revealed
+[2025-02-11 18:00:33.962844] [0x000076546a720740] [info]    Task 18092 is revealed
+[2025-02-11 18:00:33.962876] [0x000076546a720740] [info]    Task 18093 is revealed
+[2025-02-11 18:00:33.962880] [0x000076546a720740] [info]    Task 18094 is revealed
+[2025-02-11 18:00:33.962882] [0x000076546a720740] [info]    Task 18095 is revealed
+
+// -i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 1000 -p 1000000000
+// 26647, SCHEDULER_TRICK
+// 21796

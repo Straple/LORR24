@@ -6,6 +6,7 @@
 #include "pibt.h"
 
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Basic/time.hpp>
 
 namespace DefaultPlanner {
 
@@ -64,70 +65,6 @@ namespace DefaultPlanner {
             p[ids[i]] = ((double) (ids.size() - i)) / ((double) (ids.size() + 1));
         }
         p_copy = p;
-
-        /*{
-            //default planner data
-            std::vector<int> decision2;
-            std::vector<int> prev_decision2;
-            std::vector<double> p2;
-            std::vector<State> prev_states2;
-            std::vector<State> next_states2;
-            std::vector<int> ids2;
-            std::vector<double> p_copy2;
-            std::vector<bool> occupied2;
-            std::vector<DefaultPlanner::DCR> decided2;
-            std::vector<bool> checked2;
-            std::vector<bool> require_guide_path2;
-            std::vector<int> dummy_goals2;
-            DefaultPlanner::TrajLNS trajLNS2;
-
-            {
-                assert(env->num_of_agents != 0);
-                p2.resize(env->num_of_agents);
-                decision2.resize(env->map.size(), -1);
-                prev_decision2.assign(env->map.size(), -1);
-                prev_states2.resize(env->num_of_agents);
-                next_states2.resize(env->num_of_agents);
-                decided2.resize(env->num_of_agents, DefaultPlanner::DCR({-1, DefaultPlanner::DONE::DONE}));
-                occupied2.resize(env->map.size(), false);
-                checked2.resize(env->num_of_agents, false);
-                ids2.resize(env->num_of_agents);
-                require_guide_path2.resize(env->num_of_agents, false);
-                for (int i = 0; i < ids2.size(); i++) {
-                    ids2[i] = i;
-                }
-
-                // initialise the heuristics tables containers
-                //init_heuristics(env);
-                std::mt19937 mt1;
-                mt1.seed(0);
-                srand(0);
-
-                new(&trajLNS2) DefaultPlanner::TrajLNS(env, DefaultPlanner::global_heuristictable,
-                                                       DefaultPlanner::global_neighbors);
-                trajLNS2.init_mem();
-
-                //assign intial priority to each agent
-                std::shuffle(ids2.begin(), ids2.end(), mt1);
-                for (int i = 0; i < ids2.size(); i++) {
-                    p2[ids2[i]] = ((double) (ids2.size() - i)) / ((double) (ids2.size() + 1));
-                }
-                p_copy2 = p2;
-            }
-
-            ASSERT(decision2 == decision, "invalid decision");
-            ASSERT(prev_decision2 == prev_decision, "invalid prev_decision");
-            ASSERT(p2 == p, "invalid p");
-            ASSERT(prev_states2 == prev_states, "invalid prev_states");
-            ASSERT(next_states2 == next_states, "invalid next_states");
-            ASSERT(ids2 == ids, "invalid ids");
-            ASSERT(p_copy2 == p_copy, "invalid p_copy");
-            //ASSERT(decided2 == decided, "invalid decided");
-            ASSERT(checked2 == checked, "invalid checked");
-            ASSERT(require_guide_path2 == require_guide_path, "invalid require_guide_path");
-            ASSERT(dummy_goals2 == dummy_goals, "invalid dummy_goals");
-            //ASSERT(trajLNS2 == trajLNS, "invalid require_guide_path");
-        }*/
     }
 
     /**
@@ -165,9 +102,10 @@ namespace DefaultPlanner {
 
         // update the status of each agent and prepare for planning
         int count = 0;
+        ETimer timer;
         for (int i = 0; i < env->num_of_agents; i++) {
             //initialise the shortest distance heuristic table for the goal location of the agent
-            //if ((std::chrono::steady_clock::now() < end_time)) {
+            if (get_now() < end_time) {
                 for (int j = 0; j < env->goal_locations[i].size(); j++) {
                     int goal_loc = env->goal_locations[i][j].first;
                     if (trajLNS.heuristics.at(goal_loc).empty()) {
@@ -175,7 +113,7 @@ namespace DefaultPlanner {
                         count++;
                     }
                 }
-            //}
+            }
 
 
             // set the goal location of each agent
@@ -209,7 +147,7 @@ namespace DefaultPlanner {
                 next_states[i] = State(decided[i].loc, -1, -1);
             }
 
-            // reset the pibt priority if the agent reached prvious goal location and switch to new goal location
+            // reset the pibt priority if the agent reached previous goal location and switch to new goal location
             if (require_guide_path[i])
                 p[i] = p_copy[i];
             else if (!env->goal_locations[i].empty())
@@ -220,6 +158,8 @@ namespace DefaultPlanner {
                 p[i] = p[i] + 10;
             }
         }
+        PRINT(Printer() << "[DP] init agents: " << timer << '\n';
+              timer.reset(););
 
         // compute the congestion minimised guide path for the agents that need guide path update
         for (int i = 0; i < env->num_of_agents; i++) {
@@ -232,9 +172,15 @@ namespace DefaultPlanner {
             }
         }
 
+        PRINT(Printer() << "[DP] update trajs: " << timer << '\n';
+              timer.reset(););
+
         // iterate and recompute the guide path to optimise traffic flow
         std::unordered_set<int> updated;
         frank_wolfe(trajLNS, updated, end_time);
+
+        PRINT(Printer() << "[DP] frank_wolfe: " << timer << '\n';
+              timer.reset(););
 
         // sort agents based on the current priority
         std::sort(ids.begin(), ids.end(), [&](int a, int b) {
@@ -254,6 +200,9 @@ namespace DefaultPlanner {
             }
         }
 
+        PRINT(Printer() << "[DP] causalPIBT: " << timer << '\n';
+              timer.reset(););
+
         // post processing the targeted next location to turning or moving actions
         actions.resize(env->num_of_agents);
         for (int id: ids) {
@@ -270,6 +219,9 @@ namespace DefaultPlanner {
             checked.at(id) = false;
         }
 
+        PRINT(Printer() << "[DP] set actions: " << timer << '\n';
+              timer.reset(););
+
         // recursively check if the FW action can be executed by checking whether all agents in the front of the agent can move forward
         // if any agent cannot move foward due to turning, all agents behind the turning agent will not move forward.
         for (int id = 0; id < env->num_of_agents; id++) {
@@ -278,6 +230,8 @@ namespace DefaultPlanner {
             }
         }
 
+        PRINT(Printer() << "[DP] move check: " << timer << '\n';
+              timer.reset(););
 
         prev_states = next_states;
     }
