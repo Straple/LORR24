@@ -21,7 +21,7 @@
 
 //#define ENABLE_DHM
 
-#define ENABLE_DHMR
+//#define ENABLE_DHMR
 
 #define ENABLE_GG
 
