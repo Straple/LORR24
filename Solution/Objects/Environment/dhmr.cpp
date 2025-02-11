@@ -163,16 +163,23 @@ void DHMR::build(uint32_t r, uint32_t timestep) {
                     uint32_t to_metric = metric;
                     to_metric += get_graph().get_weight(to, action); // edge weight
 
-                    uint32_t to_pos = get_graph().get_pos(to).get_pos();
-                    uint32_t to_r = pos_to_robot[to_pos];
+                    if (action == 0) {
+                        uint32_t to_pos = get_graph().get_pos(to).get_pos();
+                        uint32_t to_r = pos_to_robot[to_pos];
 
-                    // другой робот
-                    if (to_r != -1 && to_r != r) {
+                        // другой робот
+                        if (to_r != -1 && to_r != r
+                                ) {
+                            uint32_t our_dir = get_graph().get_pos(to).get_dir();
+                            uint32_t him_dir = get_graph().get_pos(get_robots_handler().get_robot(to_r).node).get_dir();
 
-                        // to_metric += 0; // 70129
-                        // to_metric += 1; // 70529
-                        // to_metric += 3; // 71332
-                        to_metric += 5; // 71427
+                            if (our_dir != him_dir) {
+                                // to_metric += 0; // 70129
+                                // to_metric += 1; // 70529
+                                // to_metric += 3; // 71332
+                                to_metric += 5; // 71427
+                            }
+                        }
                     }
 
                     heap.push({to_metric, to});
