@@ -3,8 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 
-#include <Planner/eplanner.hpp>
 #include <Planner/Default/default_planner_solver.hpp>
+#include <Planner/eplanner.hpp>
 #include <planner.h>
 
 #include <atomic>
@@ -41,10 +41,9 @@ void SchedulerSolver::rebuild_dp(TimePoint end_time) {
     for (uint32_t thr = 0; thr < THREADS; thr++) {
         threads[thr].join();
     }
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "SchedulerSolver::rebuild_dp: " << counter << "/" << order.size() << " ("
-              << counter * 100.0 / order.size() << "%), " << timer << '\n';
-#endif
+    PRINT(
+            Printer() << "SchedulerSolver::rebuild_dp: " << counter << "/" << order.size() << " ("
+                      << counter * 100.0 / order.size() << "%), " << timer << '\n';);
 }
 
 bool SchedulerSolver::compare(double cur_score, double old_score, Randomizer &rnd) const {
@@ -59,7 +58,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint32_t source = get_robots_handler().get_robot(r).node;
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
     //get_wmap().get(source, task_target[t])
-    uint64_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 6387
+    uint64_t dist = dist_to_target * dist_to_target + dist_dp[t];// 6387
     //uint64_t dist = dist_to_target + dist_dp[t] * dist_dp[t]; // 6001
     //uint64_t dist = dist_to_target + dist_dp[t]; // 6201
 
@@ -178,7 +177,7 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-        : env(env), desires(env->num_of_agents, -1), task_to_robot(1'000'000, -1) {
+    : env(env), desires(env->num_of_agents, -1), task_to_robot(1'000'000, -1) {
 }
 
 void SchedulerSolver::update() {
@@ -194,9 +193,9 @@ void SchedulerSolver::update() {
     for (auto &[t, task]: env->task_pool) {
         int r = task.agent_assigned;
         if (
-                r == -1 || // нет агента
-                task.idx_next_loc == 0 // мы можем поменять задачу
-                ) {
+                r == -1 ||            // нет агента
+                task.idx_next_loc == 0// мы можем поменять задачу
+        ) {
             task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
             free_tasks.push_back(t);
         }
@@ -213,12 +212,12 @@ void SchedulerSolver::update() {
             continue;
         }
         if (
-            // нет задачи
+                // нет задачи
                 !env->task_pool.count(t)
                 //#ifndef ENABLE_TRIVIAL_SCHEDULER
                 || env->task_pool.at(t).idx_next_loc == 0
-            //#endif
-                ) {
+                //#endif
+        ) {
             free_robots.push_back(r);
         }
     }
@@ -239,8 +238,7 @@ void SchedulerSolver::update() {
                 // и если он не в таргете стоит
                 env->curr_states[r].location != task.locations.back() &&
                 dist < PHANTOM_AGENT_AVAILABLE_DIST &&
-                free_robots.size() + 1 <= free_tasks.size()
-                    ) {
+                free_robots.size() + 1 <= free_tasks.size()) {
 
                 free_robots.push_back(r);
                 phantom_agent_dist[r] = dist;
@@ -282,10 +280,9 @@ void SchedulerSolver::update() {
     }
     validate();
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "free robots: " << free_robots.size() << '\n';
-    Printer() << "free tasks: " << free_tasks.size() << '\n';
-#endif
+    PRINT(
+            Printer() << "free robots: " << free_robots.size() << '\n';
+            Printer() << "free tasks: " << free_tasks.size() << '\n';);
 }
 
 void SchedulerSolver::triv_solve(TimePoint end_time) {
@@ -341,17 +338,16 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         } else if (get_test_type() == TestType::RANDOM_4) {
             max_assigned = 300;
         } else if (get_test_type() == TestType::GAME) {
-            max_assigned = 2500; // 4752
+            max_assigned = 2500;// 4752
             // without: 3227
         }
 
         allowed_assigned = std::max(0, max_assigned - cnt_assigned);
 
-#ifdef ENABLE_PRINT_LOG
-        Printer() << "cnt_assigned: " << cnt_assigned << '\n';
-        Printer() << "max_assigned: " << max_assigned << '\n';
-        Printer() << "allowed_assigned: " << allowed_assigned << '\n';
-#endif
+        PRINT(
+                Printer() << "cnt_assigned: " << cnt_assigned << '\n';
+                Printer() << "max_assigned: " << max_assigned << '\n';
+                Printer() << "allowed_assigned: " << allowed_assigned << '\n';);
     }
 
     while (!Heap.empty() && get_now() < end_time && allowed_assigned > 0) {
@@ -402,9 +398,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
 #endif
 
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "SchedulerSolver::triv_solve: " << timer << '\n';
-#endif
+    PRINT(Printer() << "SchedulerSolver::triv_solve: " << timer << '\n';);
 }
 
 void SchedulerSolver::solve(TimePoint end_time) {
@@ -420,10 +414,9 @@ void SchedulerSolver::solve(TimePoint end_time) {
         try_peek_task(rnd);
         temp *= 0.999;
     }
-#ifdef ENABLE_PRINT_LOG
-    Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << ", " << step << ", " << timer
-              << '\n';
-#endif
+    PRINT(
+            Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << ", " << step << ", " << timer
+                      << '\n';);
 }
 
 namespace DefaultPlanner {
@@ -440,7 +433,7 @@ namespace DefaultPlanner {
     extern std::vector<bool> require_guide_path;
     extern std::vector<int> dummy_goals;
     extern DefaultPlanner::TrajLNS trajLNS;
-}
+}// namespace DefaultPlanner
 
 std::vector<int> SchedulerSolver::get_schedule() const {
     std::vector<int> result(desires.size());
@@ -454,6 +447,40 @@ std::vector<int> SchedulerSolver::get_schedule() const {
 #ifdef ENABLE_SCHEDULER_TRICK
     {
         env->curr_task_schedule = result;
+        update_environment(*env);
+        EPlanner eplanner(env);
+        auto [plan, desires_plan] = eplanner.plan(get_now() + Milliseconds(SCHEDULER_TRICK_TIME));
+        get_myplan().resize(desires.size());
+        for (uint32_t r = 0; r < desires.size(); r++) {
+            get_myplan()[r] = get_operations()[desires_plan[r]][0];
+
+            uint32_t source = get_robots_handler().get_robot(r).node;
+            const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
+            const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
+            Operation op = get_operations()[desires_plan[r]];
+            uint32_t to = poses.back();
+            for (uint32_t i = 0; i < poses.size(); i++) {
+                if (op[i] == Action::FW) {
+                    to = poses[i];
+                    break;
+                }
+            }
+
+            to = get_graph().get_pos_from_zip(to);
+            ASSERT(get_map().is_free(to), "is not free");
+
+            int t = result[r];
+            if (t == -1) {
+                continue;
+            }
+            auto &task = env->task_pool.at(t);
+
+            task.locations.insert(task.locations.begin() + task.idx_next_loc, to - 1);
+        }
+
+        //DefaultPlanner::initialize(0, env);
+
+        /*env->curr_task_schedule = result;
         update_environment(*env);
         EPlanner eplanner(env);
         std::vector<Action> plan;
@@ -478,40 +505,6 @@ std::vector<int> SchedulerSolver::get_schedule() const {
             }
 
             desired_dirs[r] = desired;
-
-
-            /*int t = result[r];
-            if (t == -1) {
-                continue;
-            }
-            auto &task = env->task_pool.at(t);
-            uint32_t source = get_robots_handler().get_robot(r).node;
-            ASSERT(task.locations.size() == 2, "invalid locations");
-            ASSERT(task.idx_next_loc < task.locations.size(), "invalid idx_next_loc");
-            int target = task.get_next_loc() + 1;
-            const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
-            Operation op = get_operations()[desires_plan[r]];
-            uint32_t to = poses.back();
-            for (uint32_t i = 0; i < poses.size(); i++) {
-                if (op[i] == Action::FW) {
-                    to = poses[i];
-                    break;
-                }
-            }
-
-            uint32_t p = get_graph().get_pos_from_zip(to);
-            Position pop(p, 0);
-            Position rpos = get_graph().get_pos(get_robots_handler().get_robot(r).node);
-
-            //if (op[0] == Action::W) {
-            //    p = rpos.get_pos();
-            //}
-
-            task.locations.insert(task.locations.begin() + task.idx_next_loc, p - 1);
-            //Printer() << "done: " << r << '\n';
-            //std::cout.flush();
-
-            */
         }
 
         auto targets = call_default_planner_solver(env, plan, desired_dirs);
@@ -522,9 +515,9 @@ std::vector<int> SchedulerSolver::get_schedule() const {
             }
             auto &task = env->task_pool.at(t);
 
-            //task.locations.insert(task.locations.begin() + task.idx_next_loc, targets[r]);
+            task.locations.insert(task.locations.begin() + task.idx_next_loc, targets[r]);
         }
-        DefaultPlanner::initialize(0, env);
+        DefaultPlanner::initialize(0, env);*/
     }
 #endif
     // build order and power
@@ -533,9 +526,7 @@ std::vector<int> SchedulerSolver::get_schedule() const {
         get_robots_handler().update(*env);
 
         const auto &robots = get_robots_handler().get_robots();
-#ifdef ENABLE_PRINT_LOG
         ETimer timer;
-#endif
         std::vector<uint32_t> order(robots.size());
         iota(order.begin(), order.end(), 0);
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
@@ -562,9 +553,7 @@ std::vector<int> SchedulerSolver::get_schedule() const {
             //robot_power[r] = power;//get_robots_handler().get_robot(r).priority;//power;
         }
 
-#ifdef ENABLE_PRINT_LOG
         Printer() << "init order and power: " << timer << '\n';
-#endif
     }*/
     // 4228
 
