@@ -17,6 +17,7 @@ namespace DefaultPlanner {
 using namespace DefaultPlanner;
 
 void init_default_heuristic(SharedEnvironment &env) {
+#if defined(ENABLE_DEFAULT_PLANNER) || defined(ENABLE_DEFAULT_SCHEDULER)
     ETimer timer;
     init_heuristics(&env);
 
@@ -64,9 +65,11 @@ void init_default_heuristic(SharedEnvironment &env) {
     }
 
     PRINT(Printer() << "init_default_heuristic: " << timer << '\n';);
+#endif
 }
 
 void init_d2path() {
+#ifdef ENABLE_DEFAULT_PLANNER
     ETimer timer;
     auto do_work = [&](uint32_t thr) {
         for (uint32_t r = thr; r < trajLNS.env->num_of_agents; r += THREADS) {
@@ -83,6 +86,7 @@ void init_d2path() {
     }
 
     PRINT(Printer() << "init_d2path: " << timer << '\n';);
+#endif
 }
 
 void init_default_planner(SharedEnvironment &env) {

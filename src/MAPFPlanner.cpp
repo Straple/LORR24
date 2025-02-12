@@ -5,8 +5,8 @@
 #include "const.h"
 #include "planner.h"
 
-#include <settings.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <settings.hpp>
 
 /**
  * Initialises the MAPF planner with a given time limit for preprocessing.
@@ -46,6 +46,7 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     smart_planner.plan(time_limit, actions);
 #else
     update_environment(*env);
-    eplanner.plan(env->plan_start_time + Milliseconds(time_limit - 50), actions);
+    auto [plan, desired_plan] = eplanner.plan(env->plan_start_time + Milliseconds(time_limit - 50));
+    actions = std::move(plan);
 #endif
 }

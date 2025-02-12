@@ -304,13 +304,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
 
         int32_t max_assigned = desires.size();
-        /*if (get_test_type() == TestType::RANDOM_5) {
-            max_assigned = 400;
-        } else if (get_test_type() == TestType::RANDOM_4) {
-            max_assigned = 300;
-        } else if (get_test_type() == TestType::GAME) {
-            max_assigned = 6500;
-        }*/
 
         allowed_assigned = std::max(0, max_assigned - cnt_assigned);
 
@@ -414,7 +407,7 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
             result[r] = static_cast<int>(desires[r]);
         }
     }
-#ifdef ENABLE_SCHEDULER_TRICK
+#if defined(ENABLE_SCHEDULER_TRICK) && defined(ENABLE_DEFAULT_PLANNER)
     if (get_test_type() == TestType::SORTATION ||
         get_test_type() == TestType::WAREHOUSE ||
         get_test_type() == TestType::GAME) {
