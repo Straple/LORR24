@@ -57,37 +57,10 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
 
     uint32_t source = get_robots_handler().get_robot(r).node;
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
-    //get_wmap().get(source, task_target[t])
-    uint64_t dist = dist_to_target * dist_to_target + dist_dp[t];// 6387
-    //uint64_t dist = dist_to_target + dist_dp[t] * dist_dp[t]; // 6001
-    //uint64_t dist = dist_to_target + dist_dp[t]; // 6201
-
-    //uint64_t dist = dist_to_target * 5 + dist_dp[t];  // 6262
-    //uint64_t dist = dist_to_target * 10 + dist_dp[t]; // 6399
-    //uint64_t dist = dist_to_target * 13 + dist_dp[t]; // 6195
-    //uint64_t dist = dist_to_target * 15 + dist_dp[t]; // 6416
-    //uint64_t dist = dist_to_target * 16 + dist_dp[t]; // 6466
-    //uint64_t dist = dist_to_target * 17 + dist_dp[t]; // 6372
-    //uint64_t dist = dist_to_target * 20 + dist_dp[t]; // 6283
-
+    // uint64_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 41680
+    uint64_t dist = dist_to_target + dist_dp[t]; // 40350
     return dist;
 }
-
-/*void SchedulerSolver::set(uint32_t r, uint32_t t) {
-    ASSERT(0 <= r && r < desires.size(), "invalid r");
-
-    if (desires[r] != -1) {
-        ASSERT(0 <= desires[r] && desires[r] < task_to_robot.size(), "invalid");
-        task_to_robot[desires[r]] = -1;
-    }
-    cur_score -= get_dist(r, desires[r]);
-    desires[r] = t;
-    if (t != -1) {
-        ASSERT(0 <= t && t < task_to_robot.size(), "invalid");
-        task_to_robot[t] = r;
-    }
-    cur_score += get_dist(r, desires[r]);
-}*/
 
 void SchedulerSolver::remove(uint32_t r) {
     ASSERT(0 <= r && r < desires.size(), "invalid r");
