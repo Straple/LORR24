@@ -166,8 +166,10 @@ void SchedulerSolver::update() {
     for (auto &[t, task]: env->task_pool) {
         int r = task.agent_assigned;
         if (
-                r == -1 ||            // нет агента
-                task.idx_next_loc == 0// мы можем поменять задачу
+                r == -1// нет агента
+#ifdef ENABLE_SCHEDULER_CHANGE_TASK
+                || task.idx_next_loc == 0// мы можем поменять задачу
+#endif
         ) {
             task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
             free_tasks.push_back(t);
@@ -187,9 +189,9 @@ void SchedulerSolver::update() {
         if (
                 // нет задачи
                 !env->task_pool.count(t)
-                //#ifndef ENABLE_TRIVIAL_SCHEDULER
+#ifdef ENABLE_SCHEDULER_CHANGE_TASK
                 || env->task_pool.at(t).idx_next_loc == 0
-                //#endif
+#endif
         ) {
             free_robots.push_back(r);
         }

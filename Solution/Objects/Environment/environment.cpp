@@ -25,8 +25,9 @@ void init_default_heuristic(SharedEnvironment &env) {
         for (uint32_t pos = thr + 1; pos < get_map().get_size(); pos += THREADS) {
             if (get_map().is_free(pos)) {
                 HeuristicTable &ht = global_heuristictable[pos - 1];
-
                 init_heuristic(ht, &env, pos - 1);
+
+#ifndef ENABLE_DEFAULT_PLANNER
 
                 Neighbors *ns = &trajLNS.neighbors;
 
@@ -52,6 +53,16 @@ void init_default_heuristic(SharedEnvironment &env) {
                         ht.htable[next] = cost;
                     }
                 }
+#else // ENABLE_DEFAULT_SCHEDULER
+                for(uint32_t dir = 0; dir < 4; dir++) {
+                    uint32_t source = get_graph().get_node(Position(pos, dir));
+                    for (uint32_t target = 1; target < get_map().get_size(); target++) {
+                        if(get_map().is_free(target)) {
+                            ht.htable[target - 1] = std::min(ht.htable[target - 1], static_cast<int>(get_hm().get(source, target)));
+                        }
+                    }
+                }
+#endif
             }
         }
     };
@@ -90,9 +101,7 @@ void init_d2path() {
 }
 
 void init_default_planner(SharedEnvironment &env) {
-#ifdef ENABLE_DEFAULT_PLANNER
     init_default_heuristic(env);
-#endif
 }
 
 void init_environment(SharedEnvironment &env) {
@@ -259,11 +268,7 @@ void update_environment(SharedEnvironment &env) {
     //get_wmap().update(env, get_now());
 }
 
-#ifdef ENABLE_SCHEDULER_TRICK
-
 std::vector<Action> &get_myplan() {
     static std::vector<Action> plan;
     return plan;
 }
-
-#endif
