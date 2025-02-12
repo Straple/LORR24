@@ -183,6 +183,11 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     //ASSERT(desired < get_operations_weights().size(), "invalid desired");
     //dist = dist * 100 - get_operations_weights()[desired];
     dist = dist * 50 - desired;
+
+    // стой и никому не мешай
+    if (robots[r].is_disable()) {
+        dist = desired;
+    }
     return dist;
 }
 

@@ -13,7 +13,7 @@
 
 //#define ENABLE_SMART_PLANNER
 
-#define ENABLE_ASSERT
+//#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
@@ -26,9 +26,9 @@
 #define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-#define BUILD_META_INFO
+//#define BUILD_META_INFO
 
-#define PRINT(args...) do { args } while(0)
+#define PRINT(args...) // do { args } while(0)
 
 #define ENABLE_PIBTS_ANNEALING
 

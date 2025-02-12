@@ -422,11 +422,9 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
         update_environment(*env);
         EPlanner eplanner(env);
         auto [plan, desires_plan] = eplanner.plan(std::min(end_time, get_now() + Milliseconds(SCHEDULER_TRICK_TIME)));
+        get_myplan() = plan;
 
-        //get_myplan().resize(desires.size());
         for (uint32_t r = 0; r < desires.size(); r++) {
-            //get_myplan()[r] = get_operations()[desires_plan[r]][0];
-
             uint32_t source = get_robots_handler().get_robot(r).node;
             const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
             const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
