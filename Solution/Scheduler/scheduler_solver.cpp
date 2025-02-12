@@ -445,7 +445,8 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
         }
     }
 #ifdef ENABLE_SCHEDULER_TRICK
-    {
+    if (get_test_type() == TestType::SORTATION ||
+        get_test_type() == TestType::WAREHOUSE) {
         env->curr_task_schedule = result;
         update_environment(*env);
         EPlanner eplanner(env);
@@ -496,47 +497,6 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
 
             task.locations.insert(task.locations.begin() + task.idx_next_loc, to - 1);
         }
-
-        //DefaultPlanner::initialize(0, env);
-
-        /*env->curr_task_schedule = result;
-        update_environment(*env);
-        EPlanner eplanner(env);
-        std::vector<Action> plan;
-        auto desires_plan = eplanner.plan(50, plan);
-        get_myplan().resize(desires.size());
-        std::vector<uint32_t> desired_dirs(desires.size());
-        for (uint32_t r = 0; r < desires.size(); r++) {
-            get_myplan()[r] = get_operations()[desires_plan[r]][0];
-
-            uint32_t source = get_robots_handler().get_robot(r).node;
-            const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
-            const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
-            Operation op = get_operations()[desires_plan[r]];
-            uint32_t to = poses.back();
-            uint32_t desired = -1;
-            for (uint32_t i = 0; i < poses.size(); i++) {
-                if (op[i] == Action::FW) {
-                    to = poses[i];
-                    desired = get_graph().get_pos(nodes[i]).get_dir();
-                    break;
-                }
-            }
-
-            desired_dirs[r] = desired;
-        }
-
-        auto targets = call_default_planner_solver(env, plan, desired_dirs);
-        for (uint32_t r = 0; r < desires.size(); r++) {
-            int t = result[r];
-            if (t == -1) {
-                continue;
-            }
-            auto &task = env->task_pool.at(t);
-
-            task.locations.insert(task.locations.begin() + task.idx_next_loc, targets[r]);
-        }
-        DefaultPlanner::initialize(0, env);*/
     }
 #endif
     // build order and power
