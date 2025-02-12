@@ -677,10 +677,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         order.resize(robots.size());
         iota(order.begin(), order.end(), 0);
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-            double lhs_x = robots[lhs].target ? robots[lhs].priority : 1e9;
-            double rhs_x = robots[rhs].target ? robots[rhs].priority : 1e9;
-            //return robots[lhs].priority < robots[rhs].priority;
-            return lhs_x < rhs_x;
+            return robots[lhs].priority < robots[rhs].priority;
         });
 
         std::vector<int32_t> weight(robots.size());
@@ -705,32 +702,10 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            if (!robots[r].target) {
+            if (robots[r].is_disable()) {
                 power = 0;
             }
-            //power = power * power;
-            /*if (get_test_type() == TestType::CITY_1) {
-                power = power * power;
-            } else if (get_test_type() == TestType::CITY_2) {
-                power = power * power;
-            } else if (get_test_type() == TestType::GAME) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_1) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_2) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_3) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_4) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_5) {
-                power = power * power;
-            } else if (get_test_type() == TestType::SORTATION) {
-                power = power * power;
-            } else if (get_test_type() == TestType::WAREHOUSE) {
-                power = power * power;
-            }*/
-            robot_power[r] = power;//get_robots_handler().get_robot(r).priority;//power;
+            robot_power[r] = power;
         }
 
         PRINT(Printer() << "init order and power: " << timer << '\n';);

@@ -207,21 +207,14 @@ void update_environment(SharedEnvironment &env) {
         if (get_map_type() == MapType::RANDOM) {
             if (env.num_of_agents == 100) {
                 get_test_type() = TestType::RANDOM_1;
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 200) {
                 get_test_type() = TestType::RANDOM_2;
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 400) {
                 get_test_type() = TestType::RANDOM_3;
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 700) {
                 get_test_type() = TestType::RANDOM_4;
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
             } else if (env.num_of_agents == 800) {
                 get_test_type() = TestType::RANDOM_5;
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
-            } else {
-                // FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::CITY) {
             // FAILED_ASSERT("TODO");
@@ -231,49 +224,18 @@ void update_environment(SharedEnvironment &env) {
             // ASSERT(env.num_of_agents < 3500, "invalid num of agents");
         } else if (get_map_type() == MapType::GAME) {
             get_test_type() = TestType::GAME;
-            // timesteps = 5000
-            // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
-            // agents = 6500
-            // ASSERT(env.num_of_agents == get_test_info().steps_num, "invalid num of agents");
         } else if (get_map_type() == MapType::WAREHOUSE) {
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::WAREHOUSE;
-                // timesteps = 5000
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
-            } else {
-                // FAILED_ASSERT("invalid test");
             }
         } else if (get_map_type() == MapType::SORTATION) {
             if (env.num_of_agents == 10'000) {
                 get_test_type() = TestType::SORTATION;
-                // ASSERT(env.curr_timestep < get_test_info().steps_num, "invalid timestep");
-            } else {
-                // FAILED_ASSERT("invalid test");
             }
         } else {
             FAILED_ASSERT("invalid map");
         }
     }
-
-    /*std::set<int> tasks_size;
-    for(auto &[t, task] : env.task_pool) {
-        tasks_size.insert(static_cast<int>(task.locations.size()));
-    }
-
-    if(get_map_type() == MapType::RANDOM) {
-        ASSERT(tasks_size.size() <= 5, "invalid task size");
-    } else if(get_map_type() == MapType::GAME) {
-        // OK
-        ASSERT(tasks_size.size() == 2, "invalid task size");
-
-        // failed
-        auto s = std::set<int>{1, 2};
-        ASSERT(tasks_size == s, "invalid task size");
-    } else{
-        ASSERT(tasks_size == std::set<int>{2}, "invalid task size");
-    }
-
-    return;*/
 
     if (get_robots_handler().size() == 0) {
         get_robots_handler() = RobotsHandler(env.num_of_agents);

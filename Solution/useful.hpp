@@ -771,3 +771,5 @@ Total time: 203.816s
 // -i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 1000 -p 1000000000
 // 26647, SCHEDULER_TRICK. 26251
 // 21796
+
+// -i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 1000 -p 1000000000

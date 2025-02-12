@@ -1,9 +1,14 @@
 #include <Objects/Environment/robot_handler.hpp>
 
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Environment/dynamic_heuristic_matrix.hpp>
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
-#include <Objects/Environment/dynamic_heuristic_matrix.hpp>
+
+bool Robot::is_disable() const {
+    ASSERT((priority == -1) == !target, "invalid disable");
+    return priority == -1;
+}
 
 RobotsHandler::RobotsHandler(uint32_t agents_num) : robots(agents_num) {
 }
@@ -14,16 +19,12 @@ void RobotsHandler::update(const SharedEnvironment &env) {
         ASSERT(r < env.curr_states.size(), "invalid r");
 
         Position pos(env.curr_states[r].location + 1, env.curr_states[r].orientation);
-        ASSERT(pos.is_valid(),
-               "invalid position: " + std::to_string(pos.get_x()) + " " + std::to_string(pos.get_y()) + " " +
-               std::to_string(pos.get_dir()));
+        ASSERT(pos.is_valid(), "invalid position");
         uint32_t node = get_graph().get_node(pos);
 
-        robots[r].prev_node = robots[r].node;
         robots[r].node = node;
-        robots[r].prev_target = robots[r].target;
         robots[r].target = 0;
-        robots[r].priority = 0;
+        robots[r].priority = -1;
 
         int task_id = env.curr_task_schedule[r];
         if (!env.task_pool.count(task_id)) {
@@ -44,11 +45,7 @@ void RobotsHandler::update(const SharedEnvironment &env) {
             uint32_t node = robots[r].node;
             for (int i = task.idx_next_loc; i < task.locations.size(); i++) {
                 int to_pos = task.locations[i] + 1;
-                //if (i == 0) {
-                //    task_dist += get_hm().get(node, to_pos) * get_hm().get(node, to_pos);
-                //} else {
-                    task_dist += get_hm().get(node, to_pos);
-                //}
+                task_dist += get_hm().get(node, to_pos);
                 node = get_graph().get_node(Position(to_pos, 0));
             }
         }
@@ -58,32 +55,34 @@ void RobotsHandler::update(const SharedEnvironment &env) {
         robots[r].target = target;
         robots[r].priority = task_dist;
     }
-    /*for (uint32_t r = 0; r < robots.size(); r++) {
-        if (!robots[r].prev_node) {
-            continue;
-        }
-        if (robots[r].target != robots[r].prev_target) {
-            robots[r].penalty = 1;
-        } else if (get_hm().get(robots[r].prev_node, robots[r].target) <=
-                   get_hm().get(robots[r].node, robots[r].target)) {
-            robots[r].penalty++;
-            //robots[r].penalty /= 1.2;
-        } else {
-            robots[r].penalty--;
-            //robots[r].penalty *= 1.2;
-        }
-    }*/
-    /*double max_priority = -1e300;
-    double min_priority = 1e300;
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        //robots[r].priority += robots[r].penalty * 0.01;
 
-        max_priority = std::max(max_priority, robots[r].priority);
-        min_priority = std::min(min_priority, robots[r].priority);
+    // влияет только на PIBTS
+#ifdef DISABLE_AGENTS
+    uint32_t max_task_assigned = get_test_info().max_task_assigned;
+    if (max_task_assigned < robots.size()) {
+        std::vector<std::pair<double, uint32_t>> ids;
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            ids.emplace_back(robots[r].priority, r);
+        }
+        std::sort(ids.begin(), ids.end());
+
+        for (auto [metric, r]: ids) {
+            // не инициализирован
+            if (!robots[r].target) {
+                continue;
+            }
+            // есть задача
+            if (max_task_assigned > 0) {
+                // enable
+                max_task_assigned--;
+            } else {
+                // disable
+                robots[r].priority = -1;
+                robots[r].target = 0;
+            }
+        }
     }
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        robots[r].priority = 1 - (robots[r].priority - min_priority) / (max_priority - min_priority);
-    }*/
+#endif
 }
 
 const Robot &RobotsHandler::get_robot(uint32_t r) const {

@@ -57,8 +57,8 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
 
     uint32_t source = get_robots_handler().get_robot(r).node;
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
-    // uint64_t dist = dist_to_target * dist_to_target + dist_dp[t]; // 41680
-    uint64_t dist = dist_to_target + dist_dp[t]; // 40350
+    // uint64_t dist = dist_to_target * dist_to_target + dist_dp[t];
+    uint64_t dist = dist_to_target + dist_dp[t];
     return dist;
 }
 
@@ -235,7 +235,6 @@ void SchedulerSolver::update() {
                 int source = task.locations[i] + 1;
                 int target = task.locations[i + 1] + 1;
                 d += get_hm().get(get_graph().get_node(Position(source, 0)), target);
-                //get_wmap().get(get_graph().get_node(Position(source, 0)), target)
             }
             dist_dp[t] = d;
         }
@@ -305,15 +304,13 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
 
         int32_t max_assigned = desires.size();
-
-        if (get_test_type() == TestType::RANDOM_5) {
+        /*if (get_test_type() == TestType::RANDOM_5) {
             max_assigned = 400;
         } else if (get_test_type() == TestType::RANDOM_4) {
             max_assigned = 300;
         } else if (get_test_type() == TestType::GAME) {
-            max_assigned = 2500;// 4752
-            // without: 3227
-        }
+            max_assigned = 6500;
+        }*/
 
         allowed_assigned = std::max(0, max_assigned - cnt_assigned);
 
@@ -419,29 +416,12 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
     }
 #ifdef ENABLE_SCHEDULER_TRICK
     if (get_test_type() == TestType::SORTATION ||
-        get_test_type() == TestType::WAREHOUSE) {
+        get_test_type() == TestType::WAREHOUSE ||
+        get_test_type() == TestType::GAME) {
         env->curr_task_schedule = result;
         update_environment(*env);
         EPlanner eplanner(env);
         auto [plan, desires_plan] = eplanner.plan(std::min(end_time, get_now() + Milliseconds(SCHEDULER_TRICK_TIME)));
-
-        // тут берется просто путь минимальный
-        // ооочень плохо 26647 -> 18279
-        /*std::vector<uint32_t> desires_plan(desires.size());
-        const auto & robots = get_robots_handler().get_robots();
-        for(uint32_t r = 0; r < desires.size(); r++){
-            // (priority, desired)
-            std::vector<std::pair<int64_t, uint32_t>> steps;
-            for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
-                if (!get_omap().get_poses_path(robots[r].node, desired)[0]) {
-                    continue;
-                }
-                int64_t priority = get_hm().get(get_omap().get_nodes_path(robots[r].node, desired).back(), robots[r].target);
-                steps.emplace_back(priority, desired);
-            }
-            std::sort(steps.begin(), steps.end());
-            desires_plan[r] = steps[0].second;
-        }*/
 
         //get_myplan().resize(desires.size());
         for (uint32_t r = 0; r < desires.size(); r++) {
@@ -452,12 +432,12 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
             const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
             Operation op = get_operations()[desires_plan[r]];
             uint32_t to = poses.back();
-            //for (uint32_t i = 0; i < poses.size(); i++) {
-            //    if (op[i] == Action::FW) {
-            //        to = poses[i];
-            //        break;
-            //    }
-            //}
+            for (uint32_t i = 0; i < poses.size(); i++) {
+                if (op[i] == Action::FW) {
+                    to = poses[i];
+                    break;
+                }
+            }
 
             to = get_graph().get_pos_from_zip(to);
             ASSERT(get_map().is_free(to), "is not free");
@@ -472,60 +452,6 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
         }
     }
 #endif
-    // build order and power
-    /*{
-        env->curr_task_schedule = result;
-        get_robots_handler().update(*env);
-
-        const auto &robots = get_robots_handler().get_robots();
-        ETimer timer;
-        std::vector<uint32_t> order(robots.size());
-        iota(order.begin(), order.end(), 0);
-        std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-            double lhs_x = robots[lhs].target ? robots[lhs].priority : 1e9;
-            double rhs_x = robots[rhs].target ? robots[rhs].priority : 1e9;
-            return lhs_x < rhs_x;
-        });
-
-        std::vector<int32_t> weight(robots.size());
-
-        for (uint32_t i = 0; i < robots.size(); i++) {
-            weight[order[i]] = i;
-        }
-        int32_t max_weight = robots.size() + 1;
-
-        const double workload = robots.size() * 1.0 / get_map().get_count_free();
-        for (uint32_t r = 0; r < robots.size(); r++) {
-            double power = (max_weight - weight[r]) * 1.0 / max_weight;
-            if (!robots[r].target) {
-                power = 0;
-            }
-            ASSERT(0 <= r && r < DefaultPlanner::p.size(), "invalid r");
-            DefaultPlanner::p[r] = power * 100;
-            //robot_power[r] = power;//get_robots_handler().get_robot(r).priority;//power;
-        }
-
-        Printer() << "init order and power: " << timer << '\n';
-    }*/
-    // 4228
-
-    /*{
-        DefaultPlanner::decision.clear();
-        DefaultPlanner::prev_decision.clear();
-        DefaultPlanner::p.clear();
-        DefaultPlanner::prev_states.clear();
-        DefaultPlanner::next_states.clear();
-        DefaultPlanner::ids.clear();
-        DefaultPlanner::p_copy.clear();
-        DefaultPlanner::occupied.clear();
-        DefaultPlanner::decided.clear();
-        DefaultPlanner::checked.clear();
-        DefaultPlanner::require_guide_path.clear();
-        DefaultPlanner::dummy_goals.clear();
-        DefaultPlanner::trajLNS.~TrajLNS();
-
-        DefaultPlanner::initialize(0, env);
-    }*/
     return result;
 }
 
