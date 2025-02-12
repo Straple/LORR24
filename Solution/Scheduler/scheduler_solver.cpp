@@ -430,12 +430,12 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
             const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
             Operation op = get_operations()[desires_plan[r]];
             uint32_t to = poses.back();
-            for (uint32_t i = 0; i < poses.size(); i++) {
+            /*for (uint32_t i = 0; i < poses.size(); i++) {
                 if (op[i] == Action::FW) {
                     to = poses[i];
                     break;
                 }
-            }
+            }*/
 
             to = get_graph().get_pos_from_zip(to);
             ASSERT(get_map().is_free(to), "is not free");
