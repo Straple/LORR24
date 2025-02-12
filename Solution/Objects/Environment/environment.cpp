@@ -27,7 +27,7 @@ void init_default_heuristic(SharedEnvironment &env) {
                 HeuristicTable &ht = global_heuristictable[pos - 1];
                 init_heuristic(ht, &env, pos - 1);
 
-#ifndef ENABLE_DEFAULT_PLANNER
+#ifdef ENABLE_DEFAULT_PLANNER
 
                 Neighbors *ns = &trajLNS.neighbors;
 
