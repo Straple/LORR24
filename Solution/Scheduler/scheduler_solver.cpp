@@ -171,7 +171,9 @@ void SchedulerSolver::update() {
                 || task.idx_next_loc == 0// мы можем поменять задачу
 #endif
         ) {
+#ifdef ENABLE_SCHEDULER_CHANGE_TASK
             task.agent_assigned = -1;// IMPORTANT! remove task agent assigned
+#endif
             free_tasks.push_back(t);
         }
     }

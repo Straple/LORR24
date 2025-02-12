@@ -31,6 +31,8 @@ void RobotsHandler::update(const SharedEnvironment &env) {
             continue;
         }
 
+        ASSERT(task_id != -1, "invalid task");
+
         auto &task = env.task_pool.at(task_id);
         uint32_t target = task.locations[task.idx_next_loc] + 1;
 

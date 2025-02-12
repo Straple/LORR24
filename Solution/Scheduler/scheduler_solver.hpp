@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstdint>
 
-class SchedulerSolver {
+struct SchedulerSolver {
 
     double cur_score = 0;
 

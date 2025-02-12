@@ -5,13 +5,12 @@
 #include <SharedEnv.h>
 #include <Tasks.h>
 
-class MyScheduler {
+struct MyScheduler {
 
     SharedEnvironment *env = nullptr;
 
     SchedulerSolver solver;
 
-public:
     MyScheduler() = default;
 
     explicit MyScheduler(SharedEnvironment *env);

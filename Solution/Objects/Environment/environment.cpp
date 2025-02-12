@@ -213,7 +213,7 @@ void init_environment(SharedEnvironment &env) {
 void update_environment(SharedEnvironment &env) {
     double task_reveal = env.task_pool.size() * 1.0 / env.num_of_agents;
     // true everywhere
-    ASSERT(std::abs(task_reveal - 1.5) < 1e-3, "invalid task reveal");
+    //ASSERT(std::abs(task_reveal - 1.5) < 1e-3, "invalid task reveal");
 
     // update test type
     {

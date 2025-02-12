@@ -106,8 +106,11 @@ void Entry::update_goal_locations(std::vector<int> &proposed_schedule) {
         if (t_id == -1)
             continue;
 
-        int i_loc = env->task_pool[t_id].idx_next_loc;
+        ASSERT(env->task_pool.count(t_id), "no contains task");
+        auto &task = env->task_pool[t_id];
+        int i_loc = task.idx_next_loc;
+        ASSERT(i_loc < env->task_pool[t_id].locations.size(), "invalid i_loc");
         env->goal_locations[i].push_back(
-                {env->task_pool[t_id].locations.at(i_loc), env->task_pool[t_id].t_revealed});
+                {task.locations.at(i_loc), task.t_revealed});
     }
 }

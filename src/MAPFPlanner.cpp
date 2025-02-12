@@ -27,6 +27,11 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
 #endif
 }
 
+namespace DefaultPlanner {
+    extern std::unordered_set<int> free_agents;
+    extern std::unordered_set<int> free_tasks;
+};// namespace DefaultPlanner
+
 /**
  * Plans a path using default planner
  *
@@ -45,8 +50,38 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     actions.clear();
     smart_planner.plan(time_limit, actions);
 #else
+    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
+
+#ifdef ENABLE_DEFAULT_SCHEDULER_TRICK
+    {
+        for (uint32_t r = 0; r < get_robots_handler().size(); r++) {
+            uint32_t t = env->curr_task_schedule[r];
+            if (t != -1) {
+                env->task_pool.at(t).agent_assigned = r;
+            }
+        }
+
+        update_environment(*env);
+        static MyScheduler my_scheduler(env);
+        std::vector<int> plan;
+        my_scheduler.plan(end_time, plan);
+
+        DefaultPlanner::free_agents.clear();
+        DefaultPlanner::free_tasks.clear();
+
+        DefaultPlanner::free_agents.insert(my_scheduler.solver.free_robots.begin(), my_scheduler.solver.free_robots.end());
+        for (uint32_t t: my_scheduler.solver.free_tasks) {
+            ASSERT(env->task_pool.count(t), "task no contains");
+            ASSERT(env->task_pool.at(t).task_id == t, "invalid t");
+            ASSERT(env->task_pool.at(t).agent_assigned == -1, "already assigned");
+            ASSERT(env->task_pool.at(t).idx_next_loc == 0, "idx_next_loc != 0");
+            DefaultPlanner::free_tasks.insert(t);
+        }
+        //free_tasks.insert(my_scheduler.solver.free_tasks.begin(), my_scheduler.solver.free_tasks.end());
+    }
+#endif
     update_environment(*env);
-    auto [plan, desired_plan] = eplanner.plan(env->plan_start_time + Milliseconds(time_limit - 50));
+    auto [plan, desired_plan] = eplanner.plan(end_time);
     actions = std::move(plan);
 #endif
 }
