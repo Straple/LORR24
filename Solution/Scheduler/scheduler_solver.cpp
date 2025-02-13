@@ -16,7 +16,7 @@ void SchedulerSolver::rebuild_dp(uint32_t r) {
         dp[r].emplace_back(get_dist(r, t), t);
     }
     std::sort(dp[r].begin(), dp[r].end());
-    timestep_updated[r] = env->curr_timestep;
+    timestep_updated[r] = env->curr_timestep + 1;
 }
 
 void SchedulerSolver::rebuild_dp(TimePoint end_time) {
@@ -321,6 +321,23 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
                 Printer() << "allowed_assigned: " << allowed_assigned << '\n';);
     }
 
+    auto validate_task = [&](uint32_t task_id) {
+        // task is already used
+        if (used_task.count(task_id)) {
+            return false;
+        }
+        auto it = env->task_pool.find(task_id);
+        if (// this task is not available
+                it == env->task_pool.end() ||
+                // robot already used this task
+                it->second.agent_assigned != -1) {
+            return false;
+        }
+        return true;
+    };
+
+    uint32_t count_skip = 0;
+
     while (!Heap.empty() && get_now() < end_time && allowed_assigned > 0) {
         auto [dist, r, index] = Heap.top();
         Heap.pop();
@@ -328,16 +345,14 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         uint32_t task_id = dp[r][index].second;
         ASSERT(dist == dp[r][index].first + phantom_agent_dist[r], "invalid dist");
 
-        // not used in this timestep
-        if (used_task.count(task_id)
-            // this task is available
-            || !env->task_pool.count(task_id)
-            // robot already used this task
-            || env->task_pool[task_id].agent_assigned != -1) {
+        if (!validate_task(task_id)) {
+            index++;
 
-            if (index + 1 < dp[r].size()) {
-                Heap.push({dp[r][index + 1].first + phantom_agent_dist[r], r, index + 1});
+            if (index < dp[r].size()) {
+                Heap.push({dp[r][index].first + phantom_agent_dist[r], r, index});
             }
+
+            count_skip++;
 
             continue;
         }
@@ -369,7 +384,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
 #endif
 
-    PRINT(Printer() << "SchedulerSolver::triv_solve: " << timer << '\n';);
+    PRINT(Printer() << "SchedulerSolver::triv_solve: " << timer << ", count_skip: " << count_skip << '\n';);
 }
 
 void SchedulerSolver::solve(TimePoint end_time) {
