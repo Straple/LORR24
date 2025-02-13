@@ -330,8 +330,6 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
             graph[pos][dir][3] = w1;// W
         }
     }
-#else
-    set_default();
 #endif
 
     set_walls();

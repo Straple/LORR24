@@ -23,6 +23,8 @@ def read(filename):
                     data.append([])
                     for y in range(0, cols):
                         pos = x * cols + y
+                        if map[pos] == 0:
+                            map[pos] = -100
                         data[-1].append(map[pos])
                         if dir != 4 and act != 4:
                             mn = min(mn, map[pos])
@@ -61,6 +63,7 @@ def build(directory):
         # fig.colorbar(images[-1], ax=axes.ravel().tolist())
         plt.savefig(directory + "usage" + str(id) + ".svg", format='svg', dpi=1200)
 
+
 def build2(directory):
     data, mn, mx = read(directory + "meta")
 
@@ -78,14 +81,29 @@ def build2(directory):
         # plt.show()
         plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
 
-if __name__ == '__main__':
-    #build("../../r/20/")
 
-    data, mn, mx = read('../../meta')
+def paint_one(data, mn, mx):
+    fig, axes = plt.subplots(1, 1, figsize=(10, 10))
+    images = []
+    dir = 4
+    act = 4
+    map = data[dir][act]
+    ax = axes
+    # print(dir, act, map)
+    images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
+    ax.set_title(dirs[dir] + " & " + acts[act])
+    ax.axis('off')
+    fig.colorbar(images[-1], ax=ax)
 
-    #build2("../../")
+    # plt.plot(np.where(map == -500, map, None), color="red", label="1")
 
-    '''fig, axes = plt.subplots(5, 5, figsize=(10, 10))
+    # fig.colorbar(images[-1], ax=axes.ravel().tolist())
+    # plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
+    plt.show()
+
+
+def paint_all(data, mn, mx):
+    fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []
     for i in range(25):
         dir = i // 5
@@ -102,22 +120,16 @@ if __name__ == '__main__':
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
     plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
-    plt.show()'''
-
-    fig, axes = plt.subplots(1, 1, figsize=(10, 10))
-    images = []
-    dir = 4
-    act = 4
-    map = data[dir][act]
-    ax = axes
-    # print(dir, act, map)
-    images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
-    ax.set_title(dirs[dir] + " & " + acts[act])
-    ax.axis('off')
-    fig.colorbar(images[-1], ax=ax)
-
-    # plt.plot(np.where(map == -500, map, None), color="red", label="1")
-
-    # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    #plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
     plt.show()
+
+
+if __name__ == '__main__':
+    # build("../../r/20/")
+
+    data, mn, mx = read('../../meta')
+
+    # build2("../../")
+
+    #paint_all(data, mn, mx)
+
+    paint_one(data, mn, mx)
