@@ -50,7 +50,7 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     actions.clear();
     smart_planner.plan(time_limit, actions);
 #else
-    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 10);
+    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 20);
 
 #ifdef ENABLE_DEFAULT_SCHEDULER_TRICK
     {

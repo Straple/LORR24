@@ -32,7 +32,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     }
 
     //call the task scheduler to assign tasks to agents
-    scheduler->plan(time_limit / 2, proposed_schedule);
+    scheduler->plan(time_limit, proposed_schedule);
 
     PRINT(
             uint32_t cnt = 0;
@@ -46,7 +46,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     update_goal_locations(proposed_schedule);
 
     //call the planner to compute the actions
-    planner->plan(time_limit / 2, plan);
+    planner->plan(time_limit, plan);
 
     PRINT(
             static std::array<uint64_t, 5> total_counts{};
