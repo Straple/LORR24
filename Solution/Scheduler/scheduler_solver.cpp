@@ -57,8 +57,10 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
 
     uint32_t source = get_robots_handler().get_robot(r).node;
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
-    // uint64_t dist = dist_to_target * dist_to_target + dist_dp[t];
     uint64_t dist = dist_to_target + dist_dp[t];
+    if(get_test_type() == TestType::GAME || get_test_type() == TestType::WAREHOUSE || get_test_type() == TestType::SORTATION){
+        dist = dist_to_target * dist_to_target + dist_dp[t];
+    }
     return dist;
 }
 
