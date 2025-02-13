@@ -25,7 +25,7 @@
 
 //#define ENABLE_DHMR
 
-//#define ENABLE_GG
+#define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
@@ -60,7 +60,7 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = 0;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 200;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 100;
 
