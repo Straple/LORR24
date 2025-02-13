@@ -5,8 +5,8 @@
 //#include <Objects/Environment/graph.hpp>
 //#include <Objects/Environment/heuristic_matrix.hpp>
 
-constexpr uint32_t PENALTY_WEIGHT = 30;
-constexpr uint32_t OK_WEIGHT = 2;
+constexpr uint32_t PENALTY_WEIGHT = 200;
+constexpr uint32_t OK_WEIGHT = 20;
 
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
     for (int32_t x = x0; x <= x1; x++) {
@@ -16,6 +16,18 @@ void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t
             ASSERT(dir < 4, "invalid dir");
             ASSERT(action < 4, "invalid action");
             graph[pos][dir][action] = value;
+        }
+    }
+}
+
+void GraphGuidance::add(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
+    for (int32_t x = x0; x <= x1; x++) {
+        for (int32_t y = y0; y <= y1; y++) {
+            int32_t pos = x * cols + y + 1;
+            ASSERT(0 < pos && pos < graph.size(), "invalid pos");
+            ASSERT(dir < 4, "invalid dir");
+            ASSERT(action < 4, "invalid action");
+            graph[pos][dir][action] += value;
         }
     }
 }
@@ -68,6 +80,20 @@ void GraphGuidance::set_warehouse() {
             set(0, y, rows - 1, y, 1, 0, OK_WEIGHT);
         }
         bit = (bit + 1) % 8;
+    }
+
+    // [KEK]: повышает вес верхней и нижней плашки, что уменьшает загруженность агентов там
+    // 36754 -> 37548
+    {
+        add(3, 0, 7, cols - 1, 0, 0, 1);
+        add(3, 0, 7, cols - 1, 1, 0, 1);
+        add(3, 0, 7, cols - 1, 2, 0, 1);
+        add(3, 0, 7, cols - 1, 3, 0, 1);
+
+        add(130, 0, 137, cols - 1, 0, 0, 1);
+        add(130, 0, 137, cols - 1, 1, 0, 1);
+        add(130, 0, 137, cols - 1, 2, 0, 1);
+        add(130, 0, 137, cols - 1, 3, 0, 1);
     }
 }
 
@@ -127,6 +153,7 @@ void GraphGuidance::set_walls() {
 }
 
 void GraphGuidance::read(const std::string &filename) {
+    PRINT(Printer() << "GraphGuidance::read(\"" << filename << "\")\n";);
     /*// the problem is we need to decide which direction?
       if (ped-pst==1) {
         // east
@@ -149,13 +176,13 @@ void GraphGuidance::read(const std::string &filename) {
         exit(-1);
       }*/
 
-    constexpr double MULT = 1;
+    constexpr double MULT = 50;
     nlohmann::json data = nlohmann::json::parse(std::ifstream(filename));
     for (uint32_t x = 0; x < get_map().get_rows(); x++) {
         for (uint32_t y = 0; y < get_map().get_cols(); y++) {
             uint32_t pos = x * get_map().get_cols() + y;
 
-            double mn = 10;
+            double mn = 1000;
             graph[pos + 1][0][0] = std::min(mn, static_cast<double>(data[pos * 5 + 0]) * MULT);
             graph[pos + 1][1][0] = std::min(mn, static_cast<double>(data[pos * 5 + 1]) * MULT);
             graph[pos + 1][2][0] = std::min(mn, static_cast<double>(data[pos * 5 + 2]) * MULT);
@@ -205,7 +232,7 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
 }
 
 GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
-        : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
+    : rows(gmap.get_rows()), cols(gmap.get_cols()), graph(gmap.get_rows() * gmap.get_cols() + 1) {
 
     set_default();
 
@@ -273,34 +300,34 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
 
             // смотрит в нужное направление
             // >
-            graph[pos][dir][0] = w1; // FW
-            graph[pos][dir][1] = w1; // CR
-            graph[pos][dir][2] = w1; // CCR
-            graph[pos][dir][3] = w1; // W
+            graph[pos][dir][0] = w1;// FW
+            graph[pos][dir][1] = w1;// CR
+            graph[pos][dir][2] = w1;// CCR
+            graph[pos][dir][3] = w1;// W
 
             dir = (dir + 1) % 4;
 
             // v
-            graph[pos][dir][0] = w3; // FW
-            graph[pos][dir][1] = w1; // CR
-            graph[pos][dir][2] = w1; // CCR
-            graph[pos][dir][3] = w1; // W
+            graph[pos][dir][0] = w3;// FW
+            graph[pos][dir][1] = w1;// CR
+            graph[pos][dir][2] = w1;// CCR
+            graph[pos][dir][3] = w1;// W
 
             dir = (dir + 1) % 4;
 
             // <
-            graph[pos][dir][0] = w3; // FW
-            graph[pos][dir][1] = w1; // CR
-            graph[pos][dir][2] = w1; // CCR
-            graph[pos][dir][3] = w1; // W
+            graph[pos][dir][0] = w3;// FW
+            graph[pos][dir][1] = w1;// CR
+            graph[pos][dir][2] = w1;// CCR
+            graph[pos][dir][3] = w1;// W
 
             dir = (dir + 1) % 4;
 
             // ^
-            graph[pos][dir][0] = w3; // FW
-            graph[pos][dir][1] = w1; // CR
-            graph[pos][dir][2] = w1; // CCR
-            graph[pos][dir][3] = w1; // W
+            graph[pos][dir][0] = w3;// FW
+            graph[pos][dir][1] = w1;// CR
+            graph[pos][dir][2] = w1;// CCR
+            graph[pos][dir][3] = w1;// W
         }
     }
 #else

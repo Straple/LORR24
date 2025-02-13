@@ -53,11 +53,11 @@ void init_default_heuristic(SharedEnvironment &env) {
                         ht.htable[next] = cost;
                     }
                 }
-#else // ENABLE_DEFAULT_SCHEDULER
-                for(uint32_t dir = 0; dir < 4; dir++) {
+#else// ENABLE_DEFAULT_SCHEDULER
+                for (uint32_t dir = 0; dir < 4; dir++) {
                     uint32_t source = get_graph().get_node(Position(pos, dir));
                     for (uint32_t target = 1; target < get_map().get_size(); target++) {
-                        if(get_map().is_free(target)) {
+                        if (get_map().is_free(target)) {
                             ht.htable[target - 1] = std::min(ht.htable[target - 1], static_cast<int>(get_hm().get(source, target)));
                         }
                     }
@@ -98,10 +98,6 @@ void init_d2path() {
 
     PRINT(Printer() << "init_d2path: " << timer << '\n';);
 #endif
-}
-
-void init_default_planner(SharedEnvironment &env) {
-    init_default_heuristic(env);
 }
 
 void init_environment(SharedEnvironment &env) {
@@ -155,11 +151,9 @@ void init_environment(SharedEnvironment &env) {
         //|| get_map_type() == MapType::WAREHOUSE
     ) {
         //Printer() << "GuidanceMap\n";
-        // 52128
         get_gg() = GraphGuidance(get_guidance_map());
     } else {
         //Printer() << "without GuidanceMap\n";
-        // 68650 or 73979
         get_gg() = GraphGuidance(env);
     }
 
@@ -186,7 +180,7 @@ void init_environment(SharedEnvironment &env) {
 
     //ASSERT(get_operations_weights().size() == get_operations().size(), "unmatch sizes: " + std::to_string(get_operations_weights().size()) + "!=" + std::to_string(get_operations().size()));
 
-    init_default_planner(env);
+    init_default_heuristic(env);
 
     // generate random agents
     /*Randomizer rnd(74124);
