@@ -175,6 +175,7 @@ void init_environment(SharedEnvironment &env) {
 #endif
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
+    get_rhm() = RawHeuristicMatrix(get_graph());
     get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
     get_dhmr() = DHMR(get_graph());
     //get_wmap() = WorkloadMap(get_map(), get_graph());
