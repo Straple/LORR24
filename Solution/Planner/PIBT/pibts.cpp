@@ -710,6 +710,17 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
             if (robots[r].is_disable()) {
                 power = 0;
             }
+            if (get_test_type() == TestType::GAME) {
+                power = power * power;
+            } else if (get_test_type() == TestType::RANDOM_4) {
+                power = power * power;
+            } else if (get_test_type() == TestType::RANDOM_5) {
+                power = power * power;
+            } else if (get_test_type() == TestType::WAREHOUSE) {
+                power = std::sqrt(power);
+            } else if (get_test_type() == TestType::WAREHOUSE) {
+                power = std::sqrt(power);
+            }
             robot_power[r] = power;
         }
 
