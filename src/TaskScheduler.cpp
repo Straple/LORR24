@@ -41,8 +41,10 @@ void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
 #ifdef ENABLE_DEFAULT_SCHEDULER
     //give at most half of the entry time_limit to scheduler;
     //-SCHEDULER_TIMELIMIT_TOLERANCE for timing error tolerance
+    ETimer timer;
     int limit = time_limit / 2 - DefaultPlanner::SCHEDULER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::schedule_plan(limit, proposed_schedule, env);
+    PRINT(Printer() << "Default Scheduler: " << timer << '\n';);
 #else
     TimePoint end_time = get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME + SCHEDULER_LNS_TIME + SCHEDULER_TRICK_TIME);
     update_environment(*env);
