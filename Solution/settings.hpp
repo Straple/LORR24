@@ -25,7 +25,7 @@
 
 //#define ENABLE_DHMR
 
-#define ENABLE_GG
+//#define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
