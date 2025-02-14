@@ -704,7 +704,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                 power = power * power;
             } else if (get_test_type() == TestType::WAREHOUSE) {
                 power = std::sqrt(power);
-            } else if (get_test_type() == TestType::WAREHOUSE) {
+            } else if (get_test_type() == TestType::SORTATION) {
                 power = std::sqrt(power);
             }
             robot_power[r] = power;
