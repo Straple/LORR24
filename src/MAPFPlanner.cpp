@@ -53,7 +53,9 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 20);
 
     update_environment(*env);
+#ifdef ENABLE_GUIDANCE_PATH_PLANNER
     get_gpp().update(env->curr_timestep, end_time);
+#endif
 
 #ifdef ENABLE_DEFAULT_SCHEDULER_TRICK
     {

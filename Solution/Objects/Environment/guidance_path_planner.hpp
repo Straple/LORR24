@@ -6,7 +6,7 @@
 #include <Objects/Basic/time.hpp>
 #include <settings.hpp>
 
-static constexpr uint32_t GPP_DEPTH = 30;
+static constexpr uint32_t GPP_DEPTH = 15;
 
 // нужно уменьшить близорукость агентов
 // эта штука планирует путь (возможно с конфликтами) некоторой длины
@@ -17,7 +17,10 @@ class GuidancePathPlanner {
     std::vector<std::vector<uint32_t>> guidance_paths;
 
     // pos_to_robot[pos] = robot id or -1
-    std::vector<uint32_t> pos_to_robot;
+    // std::vector<uint32_t> pos_to_robot;
+
+    // weight[pos]
+    std::vector<uint32_t> weight;
 
     void build(uint32_t r);
 

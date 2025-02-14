@@ -122,11 +122,13 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
 
+    uint32_t target = robots[r].target;
+
     int64_t dist =
 #ifdef ENABLE_DHMR
             get_dhmr().get(r, path.back());
 #else
-            get_hm().get(path.back(), robots[r].target);
+            get_hm().get(path.back(), target);
 #endif
 
     if (op.back() == Action::W) {
@@ -137,7 +139,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
 #ifdef ENABLE_DHMR
                                           get_dhmr().get(r, to)
 #else
-                                          get_hm().get(to, robots[r].target)
+                                          get_hm().get(to, target)
 #endif
                                                   ));
         }
@@ -147,7 +149,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
 #ifdef ENABLE_DHMR
                                           get_dhmr().get(r, to)
 #else
-                                          get_hm().get(to, robots[r].target)
+                                          get_hm().get(to, target)
 #endif
                                                   ));
         }
@@ -160,28 +162,12 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
 #ifdef ENABLE_DHMR
                                           get_dhmr().get(r, to)
 #else
-                                          get_hm().get(to, robots[r].target)
+                                          get_hm().get(to, target)
 #endif
                                                   ));
         }
     }
 
-    /*int32_t add_w = 0;
-    for (uint32_t i = 0; i < op.size(); i++) {
-        if (op[i] == Action::W) {
-            add_w -= 1;
-        } else if (op[i] == Action::FW) {
-            add_w += 4;
-        } else if (op[i] == Action::CR || op[i] == Action::CCR) {
-            add_w -= 1;
-        } else {
-            FAILED_ASSERT("invalid action");
-        }
-    }
-    dist = dist * 10 - add_w;*/
-
-    //ASSERT(desired < get_operations_weights().size(), "invalid desired");
-    //dist = dist * 100 - get_operations_weights()[desired];
     dist = dist * 50 - desired;
 
     // стой и никому не мешай
