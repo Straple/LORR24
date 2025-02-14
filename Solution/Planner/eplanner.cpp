@@ -44,7 +44,7 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
                                            pibt.get_changes(), pibt.step);
         };
 
-        static Randomizer rnd(228);
+        static Randomizer rnd;
         std::vector<std::thread> threads(THR);
         for (uint32_t thr = 0; thr < THR; thr++) {
             threads[thr] = std::thread(do_work, thr, rnd.get());
