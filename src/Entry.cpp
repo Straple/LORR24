@@ -27,7 +27,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
             Printer() << "\n";
             Printer() << "Timestep: " << env->curr_timestep << '\n';);
 
-    if (get_map_type() != MapType::RANDOM) {
+    if (get_map_type() != MapType::RANDOM && get_map_type() != MapType::GAME) {
         return;
     }
 

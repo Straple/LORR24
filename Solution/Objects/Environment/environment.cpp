@@ -125,7 +125,7 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
-    if(get_map_type() != MapType::RANDOM){
+    if(get_map_type() != MapType::RANDOM && get_map_type() != MapType::GAME){
         return;
     }
 
