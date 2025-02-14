@@ -52,6 +52,9 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
 #else
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 20);
 
+    update_environment(*env);
+    get_gpp().update(env->curr_timestep, end_time);
+
 #ifdef ENABLE_DEFAULT_SCHEDULER_TRICK
     {
         for (uint32_t r = 0; r < get_robots_handler().size(); r++) {
@@ -80,7 +83,6 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
         //free_tasks.insert(my_scheduler.solver.free_tasks.begin(), my_scheduler.solver.free_tasks.end());
     }
 #endif
-    update_environment(*env);
     auto [plan, desired_plan] = eplanner.plan(end_time);
     actions = std::move(plan);
 #endif

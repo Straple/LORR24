@@ -795,3 +795,6 @@ Total time: 203.816s
 // 21796: S
 
 // -i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 1000 -p 1000000000
+
+// -i example_problems/random.domain/random_32_32_20_400.json -o test.json -s 1000 -t 130 -p 1000000000
+// 7084

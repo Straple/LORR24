@@ -10,26 +10,27 @@
 #include <unordered_set>
 
 void GuidancePathPlanner::build(uint32_t r) {
+    const uint32_t source = get_robots_handler().get_robot(r).node;
     const uint32_t target = get_robots_handler().get_robot(r).target;
 
     if (!target) {
         return;
     }
 
-    // (metric, node, depth)
-    std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>,
-                        std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>>
+    // (metric, node, depth, prev)
+    std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>,
+                        std::vector<std::tuple<uint32_t, uint32_t, uint32_t, uint32_t>>, std::greater<>>
             heap;
+
+    heap.emplace(get_hm().get(source, target), source, 1, -1);
 
     // parent[to] = from
     std::unordered_map<uint32_t, uint32_t> parent;
 
     std::unordered_set<uint32_t> visited;
 
-    heap.emplace(0, get_robots_handler().get_robot(r).node, 0);
-    parent[get_robots_handler().get_robot(r).node] = -1;
     while (!heap.empty()) {
-        auto [metric, node, depth] = heap.top();
+        auto [metric, node, depth, prev] = heap.top();
         heap.pop();
 
         ASSERT(node, "invalid node");
@@ -39,27 +40,58 @@ void GuidancePathPlanner::build(uint32_t r) {
         }
         visited.insert(node);
 
+        parent[node] = prev;
 
         if (get_graph().get_pos(node).get_pos() == target || depth >= GPP_DEPTH) {
-            // TODO: path recovery
+            auto &path = guidance_paths[r];
+            path.clear();
+            do {
+                path.push_back(node);
+                node = parent[node];
+            } while (node != -1);
+            ASSERT(path.size() <= GPP_DEPTH, "kek: " + std::to_string(path.size()) + "!=" + std::to_string(GPP_DEPTH));
+            std::reverse(path.begin(), path.end());
+            while (path.size() < GPP_DEPTH) {
+                uint32_t x = path.back();
+                path.push_back(x);
+            }
+            ASSERT(path.size() == GPP_DEPTH, "invalid path: " + std::to_string(path.size()) + "!=" + std::to_string(GPP_DEPTH));
             return;
         }
+
+        metric -= get_hm().get(node, target);
 
         // F, C, R
         for (uint32_t action = 0; action < 3; action++) {
             uint32_t to = get_graph().get_to_node(node, action);
 
             if (to && !visited.count(to)) {
-                heap.push({metric + get_graph().get_weight(node, action), to, depth + 1});
+                uint32_t to_metric = metric + get_hm().get(node, target);
+                // get_graph().get_weight(node, action)
+                uint32_t to_pos = get_graph().get_pos(to).get_pos();
+                if (action == 0 && pos_to_robot[to_pos] != -1) {
+                    to_metric += 1;// penalty for the agent
+                }
+                heap.push({to_metric, to, depth + 1, node});
             }
         }
     }
+
+    FAILED_ASSERT("unable to what?");
 }
 
 void GuidancePathPlanner::update(uint32_t timestep, TimePoint end_time) {
+#ifdef ENABLE_GUIDANCE_PATH_PLANNER
     ++timestep;
     ETimer timer;
     const auto &robots = get_robots_handler().get_robots();
+
+    guidance_paths.resize(robots.size());
+    for (uint32_t r = 0; r < robots.size(); r++) {
+        if (!guidance_paths[r].empty()) {
+            guidance_paths[r].erase(guidance_paths[r].begin());
+        }
+    }
 
     pos_to_robot.assign(get_map().get_size(), -1);
     for (uint32_t r = 0; r < robots.size(); r++) {
@@ -85,4 +117,15 @@ void GuidancePathPlanner::update(uint32_t timestep, TimePoint end_time) {
     }
 
     PRINT(Printer() << "GuidancePathPlanner::update: " << timer << '\n';);
+
+#endif
+}
+
+const std::vector<uint32_t> &GuidancePathPlanner::get(uint32_t r) const {
+    return guidance_paths[r];
+}
+
+GuidancePathPlanner &get_gpp() {
+    static GuidancePathPlanner gpp;
+    return gpp;
 }

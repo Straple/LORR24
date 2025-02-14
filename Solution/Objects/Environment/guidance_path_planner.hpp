@@ -6,7 +6,7 @@
 #include <Objects/Basic/time.hpp>
 #include <settings.hpp>
 
-static constexpr uint32_t GPP_DEPTH = 10;
+static constexpr uint32_t GPP_DEPTH = 30;
 
 // нужно уменьшить близорукость агентов
 // эта штука планирует путь (возможно с конфликтами) некоторой длины
@@ -23,4 +23,8 @@ class GuidancePathPlanner {
 
 public:
     void update(uint32_t timestep, TimePoint end_time);
+
+    [[nodiscard]] const std::vector<uint32_t> &get(uint32_t r) const;
 };
+
+GuidancePathPlanner &get_gpp();
