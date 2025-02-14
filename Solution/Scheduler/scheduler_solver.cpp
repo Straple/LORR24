@@ -61,7 +61,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     if (/*[KEK]: похуже набирает get_test_type() == TestType::GAME ||*/ get_test_type() == TestType::WAREHOUSE || get_test_type() == TestType::SORTATION) {
         dist = dist_to_target * dist_to_target + dist_dp[t];
     } else if (get_map_type() == MapType::RANDOM) {
-        dist = dist_to_target * 5 + dist_dp[t];
+        dist = dist_to_target * dist_to_target + dist_dp[t];
     }
     return dist;
 }
