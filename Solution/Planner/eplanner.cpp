@@ -81,54 +81,55 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
 
 
         PRINT(
-                /*static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
-        static std::vector<int> prev_desired(env->num_of_agents, 0);
-        static std::vector<uint32_t> total_desires(get_operations().size());
-        static std::vector<int64_t> total_changes(get_operations().size());
-        for (uint32_t r = 0; r < env->num_of_agents; r++) {
-            if (results.empty()) {
-                break;
-            }
-            uint32_t desired = std::get<3>(results[0])[r];
-            int64_t change = std::get<4>(results[0])[r];
-            ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
-            total_desires[desired]++;
-            total_changes[desired] += change;
+                static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
+                static std::vector<int> prev_desired(env->num_of_agents, 0);
+                static std::vector<uint32_t> total_desires(get_operations().size());
+                static std::vector<int64_t> total_changes(get_operations().size());
+                for (uint32_t r = 0; r < env->num_of_agents; r++) {
+                    if (results.empty()) {
+                        break;
+                    }
+                    uint32_t desired = std::get<3>(results[0])[r];
+                    int64_t change = std::get<4>(results[0])[r];
+                    ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
+                    total_desires[desired]++;
+                    total_changes[desired] += change;
 
-            operation_matrix[prev_desired[r]][desired]++;
-            prev_desired[r] = desired;
-        }
-        Printer() << "Desires:\n";
-        std::vector<std::tuple<int64_t, uint32_t>> kek;
-        for (uint32_t d = 0; d < total_desires.size(); d++) {
-            Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
-            if (d != 0) {
-                kek.emplace_back(total_desires[d]//total_changes[d]
-                        , d);
-            }
-        }
-        std::sort(kek.begin(), kek.end());
-        for (auto [score, d]: kek) {
-            Printer() << get_operations()[d] << ' ';
-        }
-        Printer() << '\n';*/
+                    operation_matrix[prev_desired[r]][desired]++;
+                    prev_desired[r] = desired;
+                } Printer()
+                << "Desires:\n";
+                std::vector<std::tuple<int64_t, uint32_t>> kek;
+                for (uint32_t d = 0; d < total_desires.size(); d++) {
+                    Printer() << d << ' ' << get_operations()[d] << ' ' << total_desires[d] << ' ' << total_changes[d] << '\n';
+                    if (d != 0) {
+                        kek.emplace_back(total_desires[d]//total_changes[d]
+                                         ,
+                                         d);
+                    }
+                } std::sort(kek.begin(), kek.end());
+                for (auto [score, d]
+                     : kek) {
+                    Printer() << get_operations()[d] << ' ';
+                } Printer()
+                << '\n';
 
                 /*if (env->curr_timestep == 999) {
-            std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
-            Printer() << "Operation matrix:\n";
-            for (uint32_t d = 0; d < get_operations().size(); d++) {
-                for (uint32_t k = 0; k < get_operations().size(); k++) {
-                    Printer() << operation_matrix[d][k] << ' ';
-                    pool.emplace_back(operation_matrix[d][k], d, k);
-                }
-                Printer() << '\n';
-            }
+                    std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
+                    Printer() << "Operation matrix:\n";
+                    for (uint32_t d = 0; d < get_operations().size(); d++) {
+                        for (uint32_t k = 0; k < get_operations().size(); k++) {
+                            Printer() << operation_matrix[d][k] << ' ';
+                            pool.emplace_back(operation_matrix[d][k], d, k);
+                        }
+                        Printer() << '\n';
+                    }
 
-            std::sort(pool.begin(), pool.end());
-            for (auto [count, d, k]: pool) {
-                Printer() << get_operations()[d] << "->" << get_operations()[k] << ": " << count << '\n';
-            }
-        }*/
+                    std::sort(pool.begin(), pool.end());
+                    for (auto [count, d, k]: pool) {
+                        Printer() << get_operations()[d] << "->" << get_operations()[k] << ": " << count << '\n';
+                    }
+                }*/
         );
 
         PRINT(Printer() << "Planner: " << timer << '\n';);

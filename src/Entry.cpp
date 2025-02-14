@@ -27,9 +27,9 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
             Printer() << "\n";
             Printer() << "Timestep: " << env->curr_timestep << '\n';);
 
-    if (get_map_type() != MapType::RANDOM && get_map_type() != MapType::GAME) {
-        return;
-    }
+    //if (get_map_type() != MapType::RANDOM && get_map_type() != MapType::GAME) {
+    //    return;
+    //}
 
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
