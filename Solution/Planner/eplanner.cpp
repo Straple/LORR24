@@ -81,7 +81,7 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
 
 
         PRINT(
-                static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
+                /*static std::vector operation_matrix(get_operations().size(), std::vector<int64_t>(get_operations().size()));
                 static std::vector<int> prev_desired(env->num_of_agents, 0);
                 static std::vector<uint32_t> total_desires(get_operations().size());
                 static std::vector<int64_t> total_changes(get_operations().size());
@@ -112,7 +112,7 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
                      : kek) {
                     Printer() << get_operations()[d] << ' ';
                 } Printer()
-                << '\n';
+                << '\n';*/
 
                 /*if (env->curr_timestep == 999) {
                     std::vector<std::tuple<uint64_t, uint32_t, uint32_t>> pool;
