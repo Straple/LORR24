@@ -47,7 +47,7 @@ void SchedulerSolver::rebuild_dp(TimePoint end_time) {
 }
 
 bool SchedulerSolver::compare(double cur_score, double old_score, Randomizer &rnd) const {
-    return cur_score <= old_score || rnd.get_d() < std::exp((old_score - cur_score) / temp);
+    return cur_score <= old_score || rnd.get_d() < std::exp(((old_score - cur_score) / old_score) / temp);
 }
 
 uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
@@ -57,11 +57,13 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
 
     uint32_t source = get_robots_handler().get_robot(r).node;
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
-    uint64_t dist = dist_to_target + dist_dp[t];
-    if (/*[KEK]: похуже набирает get_test_type() == TestType::GAME ||*/ get_test_type() == TestType::WAREHOUSE || get_test_type() == TestType::SORTATION) {
-        dist = dist_to_target * dist_to_target + dist_dp[t];
+    uint64_t dist = dist_to_target + task_metric[t];
+    if (get_test_type() == TestType::WAREHOUSE || get_test_type() == TestType::SORTATION) {
+        dist = dist_to_target * dist_to_target + task_metric[t];
     } else if (get_map_type() == MapType::RANDOM) {
-        dist = dist_to_target * dist_to_target + dist_dp[t];
+        dist = dist_to_target * dist_to_target + task_metric[t];
+    } else if (get_map_type() == MapType::CITY) {
+        dist = dist_to_target * 4 + task_metric[t];
     }
     return dist;
 }
@@ -229,23 +231,26 @@ void SchedulerSolver::update() {
     }
 #endif
 
-    // build dist_dp, task_target
-    for (uint32_t t: free_tasks) {
-        if (dist_dp.size() <= t) {
-            dist_dp.resize(t + 1, -1);
-            task_target.resize(t + 1);
-        }
-        auto &task = env->task_pool[t];
-        task_target[t] = task.locations[0] + 1;
-        if (dist_dp[t] == -1) {
+    // build task_metric, task_target
+    {
+        ETimer timer;
+        for (uint32_t t: free_tasks) {
+            if (task_metric.size() <= t) {
+                task_metric.resize(t + 1, -1);
+                task_target.resize(t + 1);
+            }
+            auto &task = env->task_pool[t];
+            task_target[t] = task.locations[0] + 1;
+
             uint32_t d = 0;
             for (int i = 0; i + 1 < task.locations.size(); i++) {
                 int source = task.locations[i] + 1;
                 int target = task.locations[i + 1] + 1;
                 d += get_hm().get(get_graph().get_node(Position(source, 0)), target);
             }
-            dist_dp[t] = d;
+            task_metric[t] = d;
         }
+        PRINT(Printer() << "init task_dist: " << timer << '\n';);
     }
 
     for (uint32_t t: free_tasks) {
@@ -392,7 +397,7 @@ void SchedulerSolver::solve(TimePoint end_time) {
         return;
     }
     static Randomizer rnd;
-    temp = 0.5;
+    temp = 1;
     ETimer timer;
     double old_score = get_score();
     uint32_t step = 0;
@@ -401,7 +406,7 @@ void SchedulerSolver::solve(TimePoint end_time) {
         temp *= 0.999;
     }
     PRINT(
-            Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << ", " << step << ", " << timer
+            Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() > 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer
                       << '\n';);
 }
 

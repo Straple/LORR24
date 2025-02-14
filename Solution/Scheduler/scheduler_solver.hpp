@@ -29,8 +29,8 @@ struct SchedulerSolver {
 
     SharedEnvironment *env = nullptr;
 
-    // dist_dp[t] = расстояние задачи
-    std::vector<uint32_t> dist_dp;
+    // task_metric[t]
+    std::vector<uint32_t> task_metric;
 
     // task_target[t] = цель задачи (pos)
     std::vector<uint32_t> task_target;
