@@ -59,7 +59,10 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     uint64_t dist_to_target = get_hm().get(source, task_target[t]);
     uint64_t dist = dist_to_target + task_metric[t];
     if (get_test_type() == TestType::WAREHOUSE || get_test_type() == TestType::SORTATION) {
-        dist = dist_to_target * dist_to_target + task_metric[t];
+        // dist = dist_to_target * dist_to_target + task_metric[t]; // 38242
+        dist = dist_to_target * 5 + task_metric[t];// 38797
+        // dist = dist_to_target * 3 + task_metric[t]; // 38566
+        // dist = dist_to_target * 6 + task_metric[t]; // 38777
     } else if (get_map_type() == MapType::RANDOM) {
         // dist = dist_to_target * dist_to_target + task_metric[t]; // 7175
         // dist = dist_to_target + task_metric[t]; // 7107
@@ -70,6 +73,10 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
         // dist = dist_to_target * 6 + task_metric[t]; // 7252
     } else if (get_map_type() == MapType::CITY) {
         dist = dist_to_target * 5 + task_metric[t];
+    } else if (get_map_type() == MapType::GAME) {
+        dist = dist_to_target * 5 + task_metric[t]; // 8647
+        // dist = dist_to_target + task_metric[t];// 8617
+        // dist = dist_to_target * dist_to_target + task_metric[t]; // 8460
     }
     ASSERT(static_cast<uint32_t>(dist) == dist, "overflow");
     return dist;
