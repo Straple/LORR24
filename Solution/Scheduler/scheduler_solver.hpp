@@ -23,7 +23,7 @@ struct SchedulerSolver {
     std::vector<uint32_t> free_tasks;
 
     // dp[r] = отсортированный вектор (dist, task_id)
-    std::vector<std::vector<std::pair<uint64_t, uint32_t>>> dp;
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp;
 
     std::vector<int> timestep_updated;
 

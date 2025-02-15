@@ -65,6 +65,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     } else if (get_map_type() == MapType::CITY) {
         dist = dist_to_target * 4 + task_metric[t];
     }
+    ASSERT(static_cast<uint32_t>(dist) == dist, "overflow");
     return dist;
 }
 
@@ -156,7 +157,10 @@ void SchedulerSolver::validate() {
 }
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
-    : env(env), desires(env->num_of_agents, -1), task_to_robot(1'000'000, -1) {
+    : env(env), desires(env->num_of_agents, -1), task_to_robot(1'000'000, -1), dp(10'000, std::vector<std::pair<uint32_t, uint32_t>>(15'000)) {
+    for (uint32_t r = 0; r < dp.size(); r++) {
+        dp[r].clear();
+    }
 }
 
 void SchedulerSolver::update() {
