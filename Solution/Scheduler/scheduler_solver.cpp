@@ -63,7 +63,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     } else if (get_map_type() == MapType::RANDOM) {
         dist = dist_to_target * dist_to_target + task_metric[t];
     } else if (get_map_type() == MapType::CITY) {
-        dist = dist_to_target * 4 + task_metric[t];
+        dist = dist_to_target * 5 + task_metric[t];
     }
     ASSERT(static_cast<uint32_t>(dist) == dist, "overflow");
     return dist;

@@ -122,7 +122,7 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     const auto &op = get_operations()[desired];
     const auto &path = get_omap().get_nodes_path(robots[r].node, desired);
 
-    uint32_t target = robots[r].target;
+    const uint32_t target = robots[r].target;
 
     int64_t dist =
 #ifdef ENABLE_DHMR
@@ -165,6 +165,14 @@ int64_t PIBTS::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
                                           get_hm().get(to, target)
 #endif
                                                   ));
+        }
+    }
+
+    // [KEK]: если мы проходим по таргету, то мы должны это делать как можно раньше. 7200 -> 7297
+    for (uint32_t d = 0; d < DEPTH; d++) {
+        if (get_graph().get_pos(path[d]).get_pos() == target) {
+            dist = d;
+            dist = -dist;
         }
     }
 
@@ -703,9 +711,9 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
             } else if (get_test_type() == TestType::RANDOM_5) {
                 power = power * power;
             } else if (get_test_type() == TestType::WAREHOUSE) {
-                power = std::sqrt(power);
+                power = 1;// std::sqrt(power)
             } else if (get_test_type() == TestType::SORTATION) {
-                power = std::sqrt(power);
+                power = 1;// std::sqrt(power)
             }
             robot_power[r] = power;
         }
