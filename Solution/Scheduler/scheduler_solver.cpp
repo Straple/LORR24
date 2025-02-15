@@ -61,7 +61,13 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     if (get_test_type() == TestType::WAREHOUSE || get_test_type() == TestType::SORTATION) {
         dist = dist_to_target * dist_to_target + task_metric[t];
     } else if (get_map_type() == MapType::RANDOM) {
-        dist = dist_to_target * dist_to_target + task_metric[t];
+        // dist = dist_to_target * dist_to_target + task_metric[t]; // 7175
+        // dist = dist_to_target + task_metric[t]; // 7107
+        // dist = dist_to_target * 2 + task_metric[t]; // 7178
+        // dist = dist_to_target * 3 + task_metric[t]; // 7239
+        // dist = dist_to_target * 4 + task_metric[t]; // 7265
+        dist = dist_to_target * 5 + task_metric[t];// 7277
+        // dist = dist_to_target * 6 + task_metric[t]; // 7252
     } else if (get_map_type() == MapType::CITY) {
         dist = dist_to_target * 5 + task_metric[t];
     }
