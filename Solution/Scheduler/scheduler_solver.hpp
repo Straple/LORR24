@@ -5,8 +5,8 @@
 
 #include <SharedEnv.h>
 
-#include <vector>
 #include <cstdint>
+#include <vector>
 
 struct SchedulerSolver {
 
@@ -53,7 +53,7 @@ struct SchedulerSolver {
             rollback();
             ASSERT(std::abs(old_score - cur_score) / std::max(std::abs(old_score), std::abs(cur_score)) < 1e-6,
                    "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
-                   std::to_string(old_score - cur_score));
+                           std::to_string(old_score - cur_score));
             return false;
         }
     }
@@ -71,7 +71,6 @@ struct SchedulerSolver {
     void validate();
 
 public:
-
     SchedulerSolver() = default;
 
     explicit SchedulerSolver(SharedEnvironment *env);
@@ -88,4 +87,3 @@ public:
 
     [[nodiscard]] double get_score() const;
 };
-
