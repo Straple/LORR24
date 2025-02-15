@@ -543,6 +543,7 @@ total: 26062
 // -i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 1000 -p 1000000000
 // 26306: S + scheduler trick
 // 21796: S
+// 38242 -> 38797
 
 // -i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 1000 -p 1000000000
 
