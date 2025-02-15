@@ -396,7 +396,7 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
                 return 2;// not accepted
             }
         } else if (to_r != -2 && visited[to_r] != visited_counter) {
-            if (rnd.get_d() < 0.1) {
+            if (rnd.get_d() < 0.2) {
                 continue;
             }
 
@@ -717,6 +717,10 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
             }
             robot_power[r] = power;
         }
+
+        std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+            return std::tie(robot_power[lhs], lhs) > std::tie(robot_power[rhs], rhs);
+        });
 
         PRINT(Printer() << "init order and power: " << timer << '\n';);
     }

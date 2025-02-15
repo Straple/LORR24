@@ -170,6 +170,10 @@ std::pair<std::vector<Action>, std::vector<uint32_t>> EPlanner::plan(TimePoint e
             PRINT(Printer() << score << ' ';);
         }
         PRINT(Printer() << '\n';);
+
+
+        PRINT(Printer() << "Planner: " << timer << '\n';);
+        return {plan, {}};
     }
 
 #endif
