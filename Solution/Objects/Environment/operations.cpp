@@ -13,12 +13,21 @@ bool verify_lol(const Operation &op) {
         }
     }
     for (int i = 0; i < op.size(); i++) {
-        for (int j = i + 1; j < op.size() && op[j] != Action::W; j++) {
+        for (int j = i + 1; j < op.size() && op[j] != Action::FW; j++) {
             if (op[i] == Action::CR && op[j] == Action::CCR) {
                 return false;
             }
             if (op[i] == Action::CCR && op[j] == Action::CR) {
                 return false;
+            }
+        }
+    }
+    for (int i = 0; i < op.size(); i++) {
+        for (int j = i + 1; j < op.size() && op[j] != Action::FW; j++) {
+            for(int k = j + 1; k < op.size() && op[k] != Action::FW; k++){
+                if((op[i] == Action::CR || op[i] == Action::CCR) && op[i] == op[j] && op[j] == op[k]){
+                    return false;
+                }
             }
         }
     }
@@ -57,6 +66,9 @@ std::vector<Operation> OperationsGenerator::get() {
                 // random 700: 5798
                 // random 800: 3871
                 "45 WWWW WWWF RRWF RRFW CWWF RWWF RWFW RRFF CWFW RFWW CFWW RWFF CWFF RFRF CFCF RFWF CFWF WFWW WWFW WWFF WFRF WFCF CFFW RFFW FRWF FCWF FWWW WFWF RFFF CFFF FRFW FCFW WFFW FWWF FCFF FRFF WFFF FWFW FWFF FFWW FFCF FFRF FFWF FFFW FFFF"
+
+                // good
+                //"129 WWWWW RRWWF RRWFW RWWWF CWWWF RRFWW RRWFF RRFRF RRFCF RWWFW CWWFW RRFWF WWWWF RWFWW RWWFF CWFWW CWWFF RWFRF RWFCF CWFRF CWFCF RRFFW WWWFW RFRWF RFCWF RFWWW RWFWF CFRWF CFCWF CFWWW CWFWF RRFFF WWFWW WWWFF RFRFW RFCFW RFWWF RWFFW CFRFW CFCFW CFWWF CWFFW WWFRF WWFCF WFRWF WFCWF WFWWW WWFWF RFRFF RFCFF RFWFW RWFFF CFRFF CFCFF CFWFW CWFFF FRWWF FCWWF FWWWW WFRFW WFCFW WFWWF WWFFW RFFWW RFWFF CFFWW CFWFF FRWFW FCWFW RFFRF RFFCF CFFRF CFFCF FWWWF WFRFF WFCFF WFWFW WWFFF RFFWF CFFWF FRFWW FRWFF FCFWW FCWFF FRFRF FRFCF FCFRF FCFCF FWWFW WFFWW WFWFF RFFFW CFFFW WFFRF WFFCF FRFWF FCFWF FWFWW FWWFF WFFWF FWFRF FWFCF RFFFF CFFFF FRFFW FCFFW FFRWF FFCWF FFWWW FWFWF WFFFW FRFFF FCFFF FFRFW FFCFW FFWWF FWFFW WFFFF FFRFF FFCFF FFWFW FWFFF FFFWW FFWFF FFFRF FFFCF FFFWF FFFFW FFFFF"
         );
         uint32_t num;
         input >> num;
@@ -80,12 +92,12 @@ std::vector<Operation> OperationsGenerator::get() {
         }
         return s;
     };
-    std::sort(pool.begin(), pool.end(), [&](auto lhs, auto rhs) {
+    std::stable_sort(pool.begin(), pool.end(), [&](auto lhs, auto rhs) {
         return kek(lhs) < kek(rhs);
-    });*/
+    });
 
     // add WWW
-    /*{
+    {
         Operation op;
         for (uint32_t i = 0; i < op.size(); i++) {
             op[i] = Action::W;
@@ -129,7 +141,7 @@ std::vector<Operation> OperationsGenerator::get() {
                 Printer() << operation << ' ';
             } Printer()
             << '\n';);
-    //std::exit(100);
+    //_exit(100);
     return result;
 }
 
