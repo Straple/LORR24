@@ -64,7 +64,7 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = 0;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 400;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
