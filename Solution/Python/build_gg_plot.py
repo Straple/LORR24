@@ -73,6 +73,16 @@ def paint():
     # plt.tight_layout()
     plt.show()
 
+def paint_one(dir, act):
+    fig, axes = plt.subplots(1, 1, figsize=(10, 10))
+    images = []
+    map = data[dir][act]
+    ax = axes
+    print("processing:", dir, act)
+    images.append(ax.imshow(map, cmap='viridis', vmin=mn, vmax=mx))
+    ax.set_title(dirs[dir] + " & " + acts[act])
+    ax.axis('off')
+    plt.show()
 
 dirs = ["E", "S", "W", "N"]
 acts = ["FW", "R", "CR", "W"]
@@ -80,5 +90,6 @@ acts = ["FW", "R", "CR", "W"]
 if __name__ == '__main__':
     data, mn, mx = read('../../graph_guidance')
 
-    paint()
-    build_svgs()
+    #paint()
+    paint_one(0, 0)
+    #build_svgs()

@@ -249,13 +249,17 @@ void update_environment(SharedEnvironment &env) {
         }
     }
 
-    if (get_robots_handler().size() == 0) {
+    static int prev_timestep_updated = -1;
+    if (prev_timestep_updated == -1) {
         get_robots_handler() = RobotsHandler(env.num_of_agents);
         init_d2path();
+        if (get_map_type() == MapType::RANDOM && (get_test_type() == TestType::RANDOM_1 || get_test_type() == TestType::RANDOM_2)) {
+            get_gg() = GraphGuidance(env);
+            get_graph() = Graph(get_map(), get_gg());
+            get_hm() = HeuristicMatrix(get_graph());
+        }
     }
     get_robots_handler().update(env);
-
-    static int prev_timestep_updated = -1;
     if (prev_timestep_updated == env.curr_timestep) {
         // for planner
         //get_dhmr().update(env.curr_timestep, get_now() + Milliseconds(DHM_REBUILD_TIMELIMIT));

@@ -83,6 +83,7 @@ void GraphGuidance::set_warehouse() {
     }
 
     // [KEK]: повышает вес верхней и нижней плашки, что уменьшает загруженность агентов там
+    // реально улучшает
     // 36754 -> 37548
     {
         add(3, 0, 7, cols - 1, 0, 0, 1);
@@ -129,6 +130,7 @@ void GraphGuidance::set_sortation() {
     }
 
     // [KEK]: повышает вес верхней и нижней плашки, что уменьшает загруженность агентов там
+    // реально улучшает
     // 35816 -> 38860
     {
         add(0, 0, 5, cols - 1, 0, 0, 1);
@@ -145,6 +147,17 @@ void GraphGuidance::set_sortation() {
 
 void GraphGuidance::set_game() {
     set_grid();
+
+    // [KEK]
+    // увеличивает вес в узких проходах
+    for (uint32_t dir = 0; dir < 4; dir++) {
+        add(80, 395, 100, 455, dir, 0, PENALTY_WEIGHT);
+        add(250, 450, 265, 500, dir, 0, PENALTY_WEIGHT);
+        add(226, 385, 240, 427, dir, 0, PENALTY_WEIGHT);
+        add(226, 300, 240, 330, dir, 0, PENALTY_WEIGHT);
+        add(80, 290, 100, 327, dir, 0, PENALTY_WEIGHT);
+        add(130, 195, 150, 243, dir, 0, PENALTY_WEIGHT);
+    }
 }
 
 void GraphGuidance::set_city() {
@@ -230,7 +243,7 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
     } else if (get_map_type() == MapType::CITY) {
         set_city();
     } else if (get_map_type() == MapType::RANDOM) {
-        set_grid();
+        // set_grid();
     } else {
         FAILED_ASSERT("undefined map");
     }
@@ -351,8 +364,8 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
     /*{
         std::ofstream output("graph_guidance");
         output << *this;
-    }*/
-    //_exit(0);
+    }
+    _exit(0);*/
 }
 
 uint32_t GraphGuidance::get(uint32_t pos, uint32_t dir, uint32_t action) const {
