@@ -23,7 +23,11 @@ public:
 
 std::vector<Operation> &get_operations();
 
-std::vector<int> &get_operations_weights();
+uint32_t get_operation_depth(uint32_t index);
+
+std::vector<uint32_t> &get_operations_ids(uint32_t d);
+
+void init_operations();
 
 std::ostream &operator<<(std::ostream &output, const Operation &op);
 

@@ -137,7 +137,7 @@ void init_environment(SharedEnvironment &env) {
         input >> get_gg();
     }
     // read operations weights
-    {
+    /*{
         std::ifstream input("Tmp/opw" + std::to_string(get_unique_id()));
         uint32_t k = 0;
         input >> k;
@@ -145,7 +145,7 @@ void init_environment(SharedEnvironment &env) {
         for (int &x: get_operations_weights()) {
             input >> x;
         }
-    }
+    }*/
 #else
     Printer().get() = std::ofstream("printer.txt");
     get_guidance_map() = GuidanceMap(get_map_type(), get_map());
@@ -179,8 +179,8 @@ void init_environment(SharedEnvironment &env) {
     get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
     get_dhmr() = DHMR(get_graph());
     //get_wmap() = WorkloadMap(get_map(), get_graph());
-    get_jg() = JG::JourneyGraph(&env);
-    get_operations() = OperationsGenerator().get();
+    //get_jg() = JG::JourneyGraph(&env);
+    init_operations();
     get_omap() = OperationsMap(get_graph(), get_operations());
 
     //ASSERT(get_operations_weights().size() == get_operations().size(), "unmatch sizes: " + std::to_string(get_operations_weights().size()) + "!=" + std::to_string(get_operations().size()));

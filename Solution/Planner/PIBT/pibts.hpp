@@ -29,8 +29,8 @@ class PIBTS {
     // smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired)
     std::vector<std::vector<int64_t>> smart_dist_dp;
 
-    // robot_desires[r] = { desired }
-    std::vector<std::vector<uint32_t>> robot_desires;
+    // robot_desires[r][depth] = { desired }
+    std::vector<std::vector<std::vector<uint32_t>>> robot_desires;
 
     std::vector<uint32_t> order;
 
@@ -48,6 +48,8 @@ class PIBTS {
     std::vector<uint32_t> best_desires;
 
     double best_score = -1;
+
+    uint32_t current_depth = 3;
 
     bool consider();
 

@@ -263,7 +263,8 @@ uint32_t PIBTS::try_echo_slam(std::vector<uint32_t> &rids, uint32_t &counter, ui
     visited[r] = visited_counter;
     uint32_t old_desired = desires[r];
 
-    for (uint32_t desired: robot_desires[r]) {
+    FAILED_ASSERT("robot_desires[r][0]");
+    for (uint32_t desired: robot_desires[r][0]) {
         desires[r] = desired;
         std::vector<uint32_t> to_rids = get_multi_used(r);
         if (to_rids.empty()) {
@@ -369,7 +370,8 @@ uint32_t PIBTS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
     visited[r] = visited_counter;
     uint32_t old_desired = desires[r];
 
-    for (uint32_t desired: robot_desires[r]) {
+    for (uint32_t desired: robot_desires[r][current_depth]) {
+        ASSERT(get_operation_depth(desired) <= current_depth, "invalid robot_desires");
         desires[r] = desired;
         uint32_t to_r = get_used(r);
         if (to_r == -1) {
@@ -541,7 +543,8 @@ uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     visited[r] = visited_counter;
     uint32_t old_desired = desires[r];
 
-    for (uint32_t desired: robot_desires[r]) {
+    for (uint32_t desired: robot_desires[r][current_depth]) {
+        ASSERT(get_operation_depth(desired) <= current_depth, "invalid robot_desires");
         desires[r] = desired;
         uint32_t to_r = get_used(r);
         if (to_r == -1) {
@@ -807,7 +810,7 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
         }
         std::cout << "build poses: " << timer << '\n';
 
-        //warehouse_large_10000
+    //warehouse_large_10000
     //build used: 15.2807ms
     //build edges: 3.43853ms
     //build poses: 5.34468ms
@@ -876,8 +879,11 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
                     steps.emplace_back(priority, desired);
                 }
                 std::sort(steps.begin(), steps.end());
+                robot_desires[r].resize(DEPTH + 1);
                 for (auto [priority, desired]: steps) {
-                    robot_desires[r].push_back(desired);
+                    for (uint32_t d = std::max(static_cast<uint32_t>(3), get_operation_depth(desired)); d <= DEPTH; d++) {
+                        robot_desires[r][d].push_back(desired);
+                    }
                 }
             }
         };
@@ -914,6 +920,12 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
 void PIBTS::solve(uint64_t seed) {
     rnd = Randomizer(seed);
 
+    /*if (get_map_type() == MapType::RANDOM && desires.size() >= 700) {
+        current_depth = 3;
+    } else {
+        current_depth = 4;
+    }*/
+    current_depth = rnd.get(3, 5);
     temp = 0;
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
@@ -932,6 +944,9 @@ void PIBTS::solve(uint64_t seed) {
 
     if constexpr (true) {
         for (step = 0; get_now() < end_time && step < PIBTS_STEPS; step++) {
+            if (step && step % 128 == 0) {
+                current_depth = rnd.get(3, 5);
+            }
             uint32_t r = rnd.get(0, robots.size() - 1);
             try_build(r);
             temp *= 0.999;

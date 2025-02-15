@@ -68,7 +68,9 @@ std::vector<Operation> OperationsGenerator::get() {
                 //"45 WWWW WWWF RRWF RRFW CWWF RWWF RWFW RRFF CWFW RFWW CFWW RWFF CWFF RFRF CFCF RFWF CFWF WFWW WWFW WWFF WFRF WFCF CFFW RFFW FRWF FCWF FWWW WFWF RFFF CFFF FRFW FCFW WFFW FWWF FCFF FRFF WFFF FWFW FWFF FFWW FFCF FFRF FFWF FFFW FFFF"
 
                 // good
-                "129 WWWWW RRWWF RRWFW RWWWF CWWWF RRFWW RRWFF RRFRF RRFCF RWWFW CWWFW RRFWF WWWWF RWFWW RWWFF CWFWW CWWFF RWFRF RWFCF CWFRF CWFCF RRFFW WWWFW RFRWF RFCWF RFWWW RWFWF CFRWF CFCWF CFWWW CWFWF RRFFF WWFWW WWWFF RFRFW RFCFW RFWWF RWFFW CFRFW CFCFW CFWWF CWFFW WWFRF WWFCF WFRWF WFCWF WFWWW WWFWF RFRFF RFCFF RFWFW RWFFF CFRFF CFCFF CFWFW CWFFF FRWWF FCWWF FWWWW WFRFW WFCFW WFWWF WWFFW RFFWW RFWFF CFFWW CFWFF FRWFW FCWFW RFFRF RFFCF CFFRF CFFCF FWWWF WFRFF WFCFF WFWFW WWFFF RFFWF CFFWF FRFWW FRWFF FCFWW FCWFF FRFRF FRFCF FCFRF FCFCF FWWFW WFFWW WFWFF RFFFW CFFFW WFFRF WFFCF FRFWF FCFWF FWFWW FWWFF WFFWF FWFRF FWFCF RFFFF CFFFF FRFFW FCFFW FFRWF FFCWF FFWWW FWFWF WFFFW FRFFF FCFFF FFRFW FFCFW FFWWF FWFFW WFFFF FFRFF FFCFF FFWFW FWFFF FFFWW FFWFF FFFRF FFFCF FFFWF FFFFW FFFFF");
+                "129 WWWWW RRWWF RRWFW RWWWF CWWWF RRFWW RRWFF RRFRF RRFCF RWWFW CWWFW RRFWF WWWWF RWFWW RWWFF CWFWW CWWFF RWFRF RWFCF CWFRF CWFCF RRFFW WWWFW RFRWF RFCWF RFWWW RWFWF CFRWF CFCWF CFWWW CWFWF RRFFF WWFWW WWWFF RFRFW RFCFW RFWWF RWFFW CFRFW CFCFW CFWWF CWFFW WWFRF WWFCF WFRWF WFCWF WFWWW WWFWF RFRFF RFCFF RFWFW RWFFF CFRFF CFCFF CFWFW CWFFF FRWWF FCWWF FWWWW WFRFW WFCFW WFWWF WWFFW RFFWW RFWFF CFFWW CFWFF FRWFW FCWFW RFFRF RFFCF CFFRF CFFCF FWWWF WFRFF WFCFF WFWFW WWFFF RFFWF CFFWF FRFWW FRWFF FCFWW FCWFF FRFRF FRFCF FCFRF FCFCF FWWFW WFFWW WFWFF RFFFW CFFFW WFFRF WFFCF FRFWF FCFWF FWFWW FWWFF WFFWF FWFRF FWFCF RFFFF CFFFF FRFFW FCFFW FFRWF FFCWF FFWWW FWFWF WFFFW FRFFF FCFFF FFRFW FFCFW FFWWF FWFFW WFFFF FFRFF FFCFF FFWFW FWFFF FFFWW FFWFF FFFRF FFFCF FFFWF FFFFW FFFFF"
+
+        );
         uint32_t num;
         input >> num;
         for (uint32_t i = 0; i < num; i++) {
@@ -138,8 +140,8 @@ std::vector<Operation> OperationsGenerator::get() {
             for (auto operation
                  : result) {
                 Printer() << operation << ' ';
-            } Printer()
-            << '\n';);
+            };
+            Printer() << '\n';);
     //_exit(100);
     return result;
 }
@@ -149,9 +151,46 @@ std::vector<Operation> &get_operations() {
     return operations;
 }
 
-std::vector<int> &get_operations_weights() {
-    static std::vector<int> weights;
-    return weights;
+static inline std::vector<uint32_t> operation_depth;
+
+uint32_t get_operation_depth(uint32_t index) {
+    ASSERT(0 <= index && index < operation_depth.size(), "invalid index");
+    ASSERT(operation_depth.size() == get_operations().size(), "unmatch sizes");
+    return operation_depth[index];
+}
+
+std::vector<uint32_t> &get_operations_ids(uint32_t d) {
+    static std::array<std::vector<uint32_t>, DEPTH + 1> data;
+    ASSERT(3 <= d && d <= 5, "invalid d");
+    return data[d];
+}
+
+void init_operations() {
+    get_operations() = OperationsGenerator().get();
+
+    auto get_operation_depth = [&](const Operation &op) {
+        uint32_t d = op.size();
+        for (; d > 0 && op[d - 1] == Action::W; d--) {
+        }
+        return d;
+    };
+
+    operation_depth.resize(get_operations().size());
+    for (uint32_t i = 0; i < get_operations().size(); i++) {
+        uint32_t d = get_operation_depth(get_operations()[i]);
+        if (d <= 3) {
+            operation_depth[i] = 3;
+            get_operations_ids(3).push_back(i);
+        } else if (d == 4) {
+            operation_depth[i] = 4;
+            get_operations_ids(4).push_back(i);
+        } else if (d == 5) {
+            operation_depth[i] = 5;
+            get_operations_ids(5).push_back(i);
+        } else {
+            FAILED_ASSERT("unexpected depth");
+        }
+    }
 }
 
 std::ostream &operator<<(std::ostream &output, const Operation &op) {
