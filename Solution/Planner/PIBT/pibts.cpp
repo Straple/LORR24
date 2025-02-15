@@ -920,12 +920,11 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
 void PIBTS::solve(uint64_t seed) {
     rnd = Randomizer(seed);
 
-    /*if (get_map_type() == MapType::RANDOM && desires.size() >= 700) {
+    if (get_test_type() == TestType::RANDOM_5) {
         current_depth = 3;
     } else {
-        current_depth = 4;
-    }*/
-    current_depth = rnd.get(3, 5);
+        current_depth = rnd.get(3, 5);
+    }
     temp = 0;
     for (uint32_t r: order) {
         if (get_now() >= end_time) {
@@ -944,7 +943,7 @@ void PIBTS::solve(uint64_t seed) {
 
     if constexpr (true) {
         for (step = 0; get_now() < end_time && step < PIBTS_STEPS; step++) {
-            if (step && step % 128 == 0) {
+            if (step && step % 128 == 0 && get_test_type() != TestType::RANDOM_5) {
                 current_depth = rnd.get(3, 5);
             }
             uint32_t r = rnd.get(0, robots.size() - 1);

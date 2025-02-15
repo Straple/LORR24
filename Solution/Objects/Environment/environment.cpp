@@ -125,9 +125,9 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
-    if(get_map_type() != MapType::RANDOM){
-        return;
-    }
+    //if(get_map_type() != MapType::RANDOM){
+    //    return;
+    //}
 
     get_map() = Map(env);
 #ifdef ENABLE_GG_SOLVER
