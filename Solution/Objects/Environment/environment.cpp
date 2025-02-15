@@ -125,9 +125,9 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
-    //if(get_map_type() != MapType::RANDOM && get_map_type() != MapType::GAME){
-    //    return;
-    //}
+    if(get_map_type() != MapType::RANDOM){
+        return;
+    }
 
     get_map() = Map(env);
 #ifdef ENABLE_GG_SOLVER
@@ -253,11 +253,6 @@ void update_environment(SharedEnvironment &env) {
     if (prev_timestep_updated == -1) {
         get_robots_handler() = RobotsHandler(env.num_of_agents);
         init_d2path();
-        if (get_map_type() == MapType::RANDOM && (get_test_type() == TestType::RANDOM_1 || get_test_type() == TestType::RANDOM_2)) {
-            get_gg() = GraphGuidance(env);
-            get_graph() = Graph(get_map(), get_gg());
-            get_hm() = HeuristicMatrix(get_graph());
-        }
     }
     get_robots_handler().update(env);
     if (prev_timestep_updated == env.curr_timestep) {

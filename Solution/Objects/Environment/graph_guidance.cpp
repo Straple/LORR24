@@ -150,14 +150,15 @@ void GraphGuidance::set_game() {
 
     // [KEK]
     // увеличивает вес в узких проходах
-    for (uint32_t dir = 0; dir < 4; dir++) {
+    // только чуток ухудшил
+    /*for (uint32_t dir = 0; dir < 4; dir++) {
         add(80, 395, 100, 455, dir, 0, PENALTY_WEIGHT);
         add(250, 450, 265, 500, dir, 0, PENALTY_WEIGHT);
         add(226, 385, 240, 427, dir, 0, PENALTY_WEIGHT);
         add(226, 300, 240, 330, dir, 0, PENALTY_WEIGHT);
         add(80, 290, 100, 327, dir, 0, PENALTY_WEIGHT);
         add(130, 195, 150, 243, dir, 0, PENALTY_WEIGHT);
-    }
+    }*/
 }
 
 void GraphGuidance::set_city() {
