@@ -470,12 +470,12 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
             uint32_t to = poses.back();
 
             // вот так лучше: 31315 -> 32055
-            for (uint32_t i = 0; i < poses.size(); i++) {
+            /*for (uint32_t i = 0; i < poses.size(); i++) {
                 if (op[i] == Action::FW) {
                     to = poses[i];
                     break;
                 }
-            }
+            }*/
 
             to = get_graph().get_pos_from_zip(to);
             ASSERT(get_map().is_free(to), "is not free");
