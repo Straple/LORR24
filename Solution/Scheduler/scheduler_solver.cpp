@@ -74,7 +74,7 @@ uint64_t SchedulerSolver::get_dist(uint32_t r, uint32_t t) const {
     } else if (get_map_type() == MapType::CITY) {
         dist = dist_to_target * 5 + task_metric[t];
     } else if (get_map_type() == MapType::GAME) {
-        dist = dist_to_target * 5 + task_metric[t]; // 8647
+        dist = dist_to_target * 5 + task_metric[t];// 8647
         // dist = dist_to_target + task_metric[t];// 8617
         // dist = dist_to_target * dist_to_target + task_metric[t]; // 8460
     }
@@ -453,9 +453,10 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
         }
     }
 #if defined(ENABLE_SCHEDULER_TRICK) && defined(ENABLE_DEFAULT_PLANNER)
-    if (get_test_type() == TestType::SORTATION ||
-        get_test_type() == TestType::WAREHOUSE ||
-        get_test_type() == TestType::GAME) {
+    if (get_map_type() == MapType::SORTATION ||
+        get_map_type() == MapType::WAREHOUSE ||
+        get_map_type() == MapType::GAME ||
+        get_map_type() == MapType::CITY) {
         env->curr_task_schedule = result;
         update_environment(*env);
         EPlanner eplanner(env);

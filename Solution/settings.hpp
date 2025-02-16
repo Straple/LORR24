@@ -7,7 +7,7 @@
 
 // поиск по [KEK], чтобы найти всякие моменты
 
-//#define ENABLE_DEFAULT_PLANNER
+#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
@@ -38,11 +38,12 @@
 
 //#define ENABLE_PHANTOM_SCHEDULE
 
-//#define ENABLE_SCHEDULER_TRICK
+#define ENABLE_SCHEDULER_TRICK
 
 #define ENABLE_SCHEDULER_CHANGE_TASK
 
-//#define ENABLE_DEFAULT_SCHEDULER_TRICK
+// шедулеру подсовываются свободные агенты и задачи
+// #define ENABLE_DEFAULT_SCHEDULER_TRICK
 
 //#define ENABLE_GG_SOLVER
 
@@ -64,11 +65,11 @@ static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
 
 static constexpr uint32_t DHM_REBUILD_COUNT = 0;
 
-static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 350;
+static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
 
 static constexpr uint32_t SCHEDULER_TRIV_SOLVE_TIME = 150;
 
-static constexpr uint32_t SCHEDULER_TRICK_TIME = 350;
+static constexpr uint32_t SCHEDULER_TRICK_TIME = 300;
 
 static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 
