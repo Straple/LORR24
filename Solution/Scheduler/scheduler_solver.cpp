@@ -455,8 +455,7 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
 #if defined(ENABLE_SCHEDULER_TRICK) && defined(ENABLE_DEFAULT_PLANNER)
     if (get_map_type() == MapType::SORTATION ||
         get_map_type() == MapType::WAREHOUSE ||
-        get_map_type() == MapType::GAME ||
-        get_map_type() == MapType::CITY) {
+        get_map_type() == MapType::GAME) {
         env->curr_task_schedule = result;
         update_environment(*env);
         EPlanner eplanner(env);
