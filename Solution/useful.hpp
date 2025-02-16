@@ -502,7 +502,7 @@ total: 37614
 // revealed tasks: 16362 -> 17191 (max assigned 5000) -> 17762 (4500) -> 19036 (3000) -> 19451(3500)
 
 // -i example_problems/warehouse.domain/warehouse_large_10000.json -o test.json -s 1000 -t 1000 -p 1000000000
-// 26306: S + scheduler trick
+// 26306 -> 32055: S + scheduler trick
 // 21796: S
 // 38242 -> 38797
 // 30176: P + ENABLE_DEFAULT_SCHEDULER_TRICK
