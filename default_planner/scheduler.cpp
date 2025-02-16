@@ -35,8 +35,7 @@ namespace DefaultPlanner {
         int min_task_i, min_task_makespan, dist, c_loc, count;
         clock_t start = clock();
 
-        // iterate over all the unassigned tasks to find the one with the minimum makespan for agent i
-        for (int t_id: free_tasks) {
+        /*for (int t_id: free_tasks) {
             ASSERT(t_id != -1 && env->task_pool.count(t_id), "invalid task_id");
             auto &task = env->task_pool.at(t_id);
 
@@ -44,7 +43,7 @@ namespace DefaultPlanner {
 
             ASSERT(env->task_pool.count(t_id), "task is no contains");
             ASSERT(env->task_pool.at(t_id).idx_next_loc == 0, "task is close: " + std::to_string(t_id) + " " + std::to_string(env->task_pool.at(t_id).idx_next_loc));
-        }
+        }*/
 
         // iterate over the free agents to decide which task to assign to each of them
         std::unordered_set<int>::iterator it = free_agents.begin();
@@ -65,10 +64,10 @@ namespace DefaultPlanner {
 
             // iterate over all the unassigned tasks to find the one with the minimum makespan for agent i
             for (int t_id: free_tasks) {
-                ASSERT(t_id != -1 && env->task_pool.count(t_id), "invalid task_id");
+                //ASSERT(t_id != -1 && env->task_pool.count(t_id), "invalid task_id");
 
-                ASSERT(env->task_pool.count(t_id), "task is no contains");
-                ASSERT(env->task_pool.at(t_id).idx_next_loc == 0, "task is close: " + std::to_string(t_id) + " " + std::to_string(env->task_pool.at(t_id).idx_next_loc));
+                //ASSERT(env->task_pool.count(t_id), "task is no contains");
+                //ASSERT(env->task_pool.at(t_id).idx_next_loc == 0, "task is close: " + std::to_string(t_id) + " " + std::to_string(env->task_pool.at(t_id).idx_next_loc));
 
                 //check for timeout every 10 task evaluations
                 if (count % 10 == 0 && std::chrono::steady_clock::now() > endtime) {

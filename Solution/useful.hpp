@@ -454,27 +454,16 @@ call(7): 690, 174.581s
 total: 19699
 
 =======================
-P old
-call(0): 2020, 81.0257s
-call(1): 3551, 81.1804s
-call(2): 4526, 81.3897s
-call(3): 4859, 81.5661s
-call(4): 4082, 81.7625s
-call(5): 3077, 81.9594s
-call(6): 2573, 82.187s
-call(7): 1692, 82.4826s
-total: 26380
-
 P
-call(0): 2016, 81.7311s
-call(1): 3602, 81.9547s
-call(2): 4607, 82.194s
-call(3): 4817, 82.4195s
-call(4): 4370, 82.6833s
-call(5): 3498, 82.7736s
-call(6): 2806, 82.9989s
-call(7): 1776, 83.0816s
-total: 27492
+call(0): 1994, 81.3657s
+call(1): 3537, 81.5991s
+call(2): 4474, 81.8529s
+call(3): 4683, 82.0032s
+call(4): 3972, 82.2895s
+call(5): 3072, 82.432s
+call(6): 2657, 82.6024s
+call(7): 1673, 82.6616s
+total: 26062
 
 P + ENABLE_DEFAULT_SCHEDULER_TRICK
 call(0): 1944, 82.1871s
@@ -487,16 +476,26 @@ call(6): 3897, 83.7504s
 call(7): 2355, 83.844s
 total: 32973
 
-P
-call(0): 1994, 81.3657s
-call(1): 3537, 81.5991s
-call(2): 4474, 81.8529s
-call(3): 4683, 82.0032s
-call(4): 3972, 82.2895s
-call(5): 3072, 82.432s
-call(6): 2657, 82.6024s
-call(7): 1673, 82.6616s
-total: 26062
+call(0): 2096, 82.2015s
+call(1): 4169, 82.6106s
+call(2): 5775, 82.8935s
+call(3): 6538, 83.139s
+call(4): 6031, 83.541s
+call(5): 5049, 83.7967s
+call(6): 4461, 84.1263s
+call(7): 2627, 84.2868s
+total: 36746
+
+P + ENABLE_DEFAULT_SCHEDULER_TRICK + ENABLE_HM_SCHEDULER_TRICK
+call(0): 2319, 82.1153s
+call(1): 4422, 82.4591s
+call(2): 5986, 82.7365s
+call(3): 6688, 82.965s
+call(4): 6022, 83.2838s
+call(5): 5129, 83.4666s
+call(6): 4412, 83.7326s
+call(7): 2636, 83.8477s
+total: 37614
 */
 
 //-i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 500 -p 1000000000
@@ -506,6 +505,8 @@ total: 26062
 // 26306: S + scheduler trick
 // 21796: S
 // 38242 -> 38797
+// 30176: P + ENABLE_DEFAULT_SCHEDULER_TRICK
+// 30459: P + ENABLE_DEFAULT_SCHEDULER_TRICK + ENABLE_HM_SCHEDULER_TRICK
 
 // -i example_problems/game.domain/brc202d_6500.json -o test.json -s 1000 -t 1000 -p 1000000000
 

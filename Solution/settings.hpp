@@ -7,9 +7,9 @@
 
 // поиск по [KEK], чтобы найти всякие моменты
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
-//#define ENABLE_DEFAULT_SCHEDULER
+#define ENABLE_DEFAULT_SCHEDULER
 
 //#define ENABLE_TRIVIAL_SCHEDULER
 
@@ -38,12 +38,14 @@
 
 //#define ENABLE_PHANTOM_SCHEDULE
 
-#define ENABLE_SCHEDULER_TRICK
+//#define ENABLE_SCHEDULER_TRICK
 
 #define ENABLE_SCHEDULER_CHANGE_TASK
 
 // шедулеру подсовываются свободные агенты и задачи
-// #define ENABLE_DEFAULT_SCHEDULER_TRICK
+#define ENABLE_DEFAULT_SCHEDULER_TRICK
+
+#define ENABLE_HM_SCHEDULER_TRICK
 
 //#define ENABLE_GG_SOLVER
 

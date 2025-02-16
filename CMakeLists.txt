@@ -89,7 +89,7 @@ include_directories("Solution2")
 include_directories("Solution2/inc")
 include_directories("Solution2/src")
 
-#ADD_DEFINITIONS(-DNDEBUG)
+ADD_DEFINITIONS(-DNDEBUG)
 
 # Find Boost
 #ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
