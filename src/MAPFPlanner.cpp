@@ -56,36 +56,37 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
 #ifdef ENABLE_GUIDANCE_PATH_PLANNER
     get_gpp().update(env->curr_timestep, end_time);
 #endif
+    auto [plan, desired_plan] = eplanner.plan(end_time);
+    actions = std::move(plan);
 
 #ifdef ENABLE_DEFAULT_SCHEDULER_TRICK
     {
-        for (uint32_t r = 0; r < get_robots_handler().size(); r++) {
+        for (uint32_t r = 0; r < env->num_of_agents && DefaultPlanner::free_agents.size() < 600; r++) {
             uint32_t t = env->curr_task_schedule[r];
-            if (t != -1) {
-                env->task_pool.at(t).agent_assigned = r;
+            if (t == -1) {
+                continue;
             }
-        }
+            ASSERT(env->task_pool.count(t), "no contains");
+            const auto &task = env->task_pool.at(t);
+            // есть задача и она в процессе выполнения
+            // не можем ее убрать
+            if (task.idx_next_loc != 0) {
+                continue;
+            }
+            uint32_t node = get_robots_handler().get_robot(r).node;
+            uint32_t pos = get_graph().get_pos(node).get_pos();
+            uint32_t to_node = get_graph().get_to_node(node, actions[r]);
+            uint32_t to_pos = get_graph().get_pos(to_node).get_pos();
+            uint32_t target = task.locations[0] + 1;
 
-        update_environment(*env);
-        static MyScheduler my_scheduler(env);
-        std::vector<int> plan;
-        my_scheduler.plan(end_time, plan);
-
-        DefaultPlanner::free_agents.clear();
-        DefaultPlanner::free_tasks.clear();
-
-        DefaultPlanner::free_agents.insert(my_scheduler.solver.free_robots.begin(), my_scheduler.solver.free_robots.end());
-        for (uint32_t t: my_scheduler.solver.free_tasks) {
-            ASSERT(env->task_pool.count(t), "task no contains");
-            ASSERT(env->task_pool.at(t).task_id == t, "invalid t");
-            ASSERT(env->task_pool.at(t).agent_assigned == -1, "already assigned");
-            ASSERT(env->task_pool.at(t).idx_next_loc == 0, "idx_next_loc != 0");
+            if (pos == target || to_pos == target) {
+                continue;
+            }
+            DefaultPlanner::free_agents.insert(r);
             DefaultPlanner::free_tasks.insert(t);
         }
-        //free_tasks.insert(my_scheduler.solver.free_tasks.begin(), my_scheduler.solver.free_tasks.end());
     }
 #endif
-    auto [plan, desired_plan] = eplanner.plan(end_time);
-    actions = std::move(plan);
+
 #endif
 }

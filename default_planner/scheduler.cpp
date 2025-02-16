@@ -1,5 +1,8 @@
 #include "scheduler.h"
 
+#include <Objects/Basic/assert.hpp>
+#include <settings.hpp>
+
 namespace DefaultPlanner {
 
     std::mt19937 mt;
@@ -21,8 +24,27 @@ namespace DefaultPlanner {
         free_agents.insert(env->new_freeagents.begin(), env->new_freeagents.end());
         free_tasks.insert(env->new_tasks.begin(), env->new_tasks.end());
 
+        for (uint32_t r: free_agents) {
+            //[timestep=50] Scheduler Error: schedule agent 79 to task 496 wrong because the task is already assigned to agent 9
+            //proposed_schedule[r] = -1; // fix problems
+        }
+
+        PRINT(Printer() << "free_agents: " << free_agents.size() << '\n';);
+        PRINT(Printer() << "free_tasks: " << free_tasks.size() << '\n';);
+
         int min_task_i, min_task_makespan, dist, c_loc, count;
         clock_t start = clock();
+
+        // iterate over all the unassigned tasks to find the one with the minimum makespan for agent i
+        for (int t_id: free_tasks) {
+            ASSERT(t_id != -1 && env->task_pool.count(t_id), "invalid task_id");
+            auto &task = env->task_pool.at(t_id);
+
+            //Printer() << "task: " << t_id << ", idx_next_loc: " << task.idx_next_loc << ", target: " << task.locations[0] + 1 << ", agent_assigned: " << task.agent_assigned << '\n';
+
+            ASSERT(env->task_pool.count(t_id), "task is no contains");
+            ASSERT(env->task_pool.at(t_id).idx_next_loc == 0, "task is close: " + std::to_string(t_id) + " " + std::to_string(env->task_pool.at(t_id).idx_next_loc));
+        }
 
         // iterate over the free agents to decide which task to assign to each of them
         std::unordered_set<int>::iterator it = free_agents.begin();
@@ -33,6 +55,8 @@ namespace DefaultPlanner {
             }
             int i = *it;
 
+            ASSERT(0 <= i && i < env->num_of_agents, "invalid robot");
+
             assert(env->curr_task_schedule[i] == -1);
 
             min_task_i = -1;
@@ -41,6 +65,11 @@ namespace DefaultPlanner {
 
             // iterate over all the unassigned tasks to find the one with the minimum makespan for agent i
             for (int t_id: free_tasks) {
+                ASSERT(t_id != -1 && env->task_pool.count(t_id), "invalid task_id");
+
+                ASSERT(env->task_pool.count(t_id), "task is no contains");
+                ASSERT(env->task_pool.at(t_id).idx_next_loc == 0, "task is close: " + std::to_string(t_id) + " " + std::to_string(env->task_pool.at(t_id).idx_next_loc));
+
                 //check for timeout every 10 task evaluations
                 if (count % 10 == 0 && std::chrono::steady_clock::now() > endtime) {
                     break;
