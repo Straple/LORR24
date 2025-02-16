@@ -1,6 +1,6 @@
 #include "randomizer.hpp"
 
-Randomizer::Randomizer() : generator(13) {
+Randomizer::Randomizer() : generator(202) {
 }
 
 Randomizer::Randomizer(uint64_t seed) : generator(seed) {

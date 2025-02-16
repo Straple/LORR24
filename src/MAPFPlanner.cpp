@@ -50,7 +50,7 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     actions.clear();
     smart_planner.plan(time_limit, actions);
 #else
-    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 30);
+    TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
 
     update_environment(*env);
 #ifdef ENABLE_GUIDANCE_PATH_PLANNER
