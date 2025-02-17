@@ -16,8 +16,10 @@ namespace DefaultPlanner {
 
 using namespace DefaultPlanner;
 
+#ifdef ENABLE_DEFAULT_SCHEDULER
 extern std::vector<HeuristicTable> empty_heuristic_table;
 extern std::vector<HeuristicTable> save_heuristic_table;
+#endif
 
 void init_default_heuristic(SharedEnvironment &env) {
 #if defined(ENABLE_DEFAULT_PLANNER) || defined(ENABLE_DEFAULT_SCHEDULER)
@@ -81,10 +83,12 @@ void init_default_heuristic(SharedEnvironment &env) {
     PRINT(Printer() << "init_default_heuristic: " << timer << '\n';);
     timer.reset();
 
+#ifdef ENABLE_DEFAULT_SCHEDULER
     if (get_map_type() == MapType::RANDOM) {
         empty_heuristic_table = global_heuristictable;
         save_heuristic_table = global_heuristictable;
     }
+#endif
 
     PRINT(Printer() << "init_some_kek: " << timer << '\n';);
 #endif
