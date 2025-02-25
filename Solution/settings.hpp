@@ -7,7 +7,7 @@
 
 // поиск по [KEK], чтобы найти всякие моменты
 
-#define ENABLE_DEFAULT_PLANNER
+//#define ENABLE_DEFAULT_PLANNER
 
 //#define ENABLE_DEFAULT_SCHEDULER
 
@@ -15,7 +15,7 @@
 
 //#define ENABLE_SMART_PLANNER
 
-//#define ENABLE_ASSERT
+#define ENABLE_ASSERT
 
 #define ENABLE_PIBTS
 
@@ -30,7 +30,7 @@
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
 //#define BUILD_META_INFO
 
-#define PRINT(args...) // do { args } while(0)
+#define PRINT(args...) do { args } while(0)
 
 #define ENABLE_PIBTS_ANNEALING
 
@@ -38,7 +38,7 @@
 
 //#define ENABLE_PHANTOM_SCHEDULE
 
-#define ENABLE_SCHEDULER_TRICK
+//#define ENABLE_SCHEDULER_TRICK
 
 #define ENABLE_SCHEDULER_CHANGE_TASK
 
@@ -57,7 +57,7 @@
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 
-static constexpr uint32_t THREADS = 32;
+static constexpr uint32_t THREADS = 6;
 
 // if -1, then use timer
 // else use steps, without timer
