@@ -27,11 +27,7 @@ int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
     uint32_t source = get_graph().get_node(Position(env->curr_states[r].location + 1, env->curr_states[r].orientation));
     for (int i = 0; i < env->task_pool[t].locations.size(); i++) {
         int loc = env->task_pool[t].locations[i];
-        if (i == 0) {
-            dist += get_dhm().get(source, loc + 1);
-        } else {
-            dist += get_hm().get(source, loc + 1);
-        }
+        dist += get_hm().get(source, loc + 1);
         source = get_graph().get_node(Position(loc + 1, env->curr_states[r].orientation));
     }
     return dist;

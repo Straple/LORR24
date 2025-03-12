@@ -2,11 +2,9 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
-
-#include <Planner/Default/default_planner_solver.hpp>
 #include <Planner/eplanner.hpp>
-#include <planner.h>
 
+#include <unordered_set>
 #include <atomic>
 #include <thread>
 

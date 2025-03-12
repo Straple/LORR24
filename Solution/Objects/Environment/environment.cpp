@@ -44,7 +44,6 @@ void init_environment(SharedEnvironment &env) {
 
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
-    get_dhm() = DynamicHeuristicMatrix(get_map(), get_graph());
     init_operations();
     get_omap() = OperationsMap(get_graph(), get_operations());
 

@@ -5,7 +5,6 @@
 #include <Planner/PIBT/pibt.hpp>
 #include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibts.hpp>
-#include <Planner/PIBT/pmps.hpp>
 #include <settings.hpp>
 
 #include <algorithm>

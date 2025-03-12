@@ -27,9 +27,6 @@ using json = nlohmann::json;
 po::variables_map vm;
 std::unique_ptr<BaseSystem> system_ptr;
 
-#include <Objects/GraphGuidanceBuilder/graph_guidance_solver.hpp>
-
-
 void sigint_handler(int a) {
     fprintf(stdout, "stop the simulation...\n");
     system_ptr->saveResults(vm["output"].as<std::string>(), vm["outputScreen"].as<int>());

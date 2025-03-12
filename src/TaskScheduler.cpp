@@ -6,6 +6,8 @@
 #include <settings.hpp>
 #include <Objects/Environment/environment.hpp>
 
+#include <Objects/Basic/time.hpp>
+
 /**
  * Initializes the task scheduler with a given time limit for preprocessing.
  * 

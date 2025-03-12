@@ -3,7 +3,6 @@
 #include <Objects/Basic/position.hpp>
 
 // Priority Inheritance with BackTracking
-// Each robot is assigned a direction where the robot would like to go
 class PIBT {
     struct Robot {
         uint32_t node = 0;

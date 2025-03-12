@@ -4,7 +4,6 @@
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/info.hpp>
-#include <Objects/Environment/raw_heuristic_matrix.hpp>
 
 bool Robot::is_disable() const {
     ASSERT((priority == -1) == !target, "invalid disable");

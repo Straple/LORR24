@@ -125,34 +125,17 @@ IF (PYTHON)
 ELSE ()
     message(STATUS "Python support is disabled")
 
-    add_executable(pibt_main Solution/Planner/PIBT/main/pibt_main.cpp ${SOURCES})
-
     add_executable(tester Solution/tester.cpp ${SOURCES})
-
     add_executable(lifelong src/driver.cpp ${SOURCES})
-
-    add_executable(GGbuilder
-            Solution/Objects/GraphGuidanceBuilder/gg_builder.cpp
-            Solution/Objects/GraphGuidanceBuilder/graph_guidance_solver.cpp
-            ${SOURCES})
 
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
     target_link_libraries(lifelong OpenMP::OpenMP_CXX)
     target_link_libraries(lifelong spdlog::spdlog)
 
-    target_link_libraries(pibt_main ${Boost_LIBRARIES})
     target_link_libraries(tester ${Boost_LIBRARIES})
-    target_link_libraries(GGbuilder ${Boost_LIBRARIES})
-
-    target_link_libraries(pibt_main OpenMP::OpenMP_CXX)
-    target_link_libraries(pibt_main spdlog::spdlog)
-
     target_link_libraries(tester OpenMP::OpenMP_CXX)
     target_link_libraries(tester spdlog::spdlog)
-
-    target_link_libraries(GGbuilder OpenMP::OpenMP_CXX)
-    target_link_libraries(GGbuilder spdlog::spdlog)
 
 ENDIF ()
 
