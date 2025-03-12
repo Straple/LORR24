@@ -23,6 +23,7 @@ void RobotsHandler::update(const SharedEnvironment &env) {
         uint32_t node = get_graph().get_node(pos);
 
         robots[r].node = node;
+        robots[r].pos = pos.get_pos();
         robots[r].target = 0;
         robots[r].priority = -1;
 

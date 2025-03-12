@@ -980,18 +980,6 @@ std::vector<Action> PIBTS::get_actions() const {
     return answer;
 }
 
-std::vector<uint32_t> PIBTS::get_desires() const {
-    return best_desires;
-}
-
-std::vector<int64_t> PIBTS::get_changes() const {
-    std::vector<int64_t> answer(robots.size());
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        answer[r] = get_smart_dist(r, 0) - get_smart_dist(r, best_desires[r]);
-    }
-    return answer;
-}
-
 double PIBTS::get_score() const {
     return best_score;
 }

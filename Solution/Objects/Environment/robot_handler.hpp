@@ -5,9 +5,10 @@
 #include <vector>
 
 struct Robot {
-    uint32_t node = 0;    // start node from graph
-    uint32_t target = 0;  // target pos from map
-    uint32_t priority = -1; // -1 if disabled agent
+    uint32_t node = 0;     // start node from graph
+    uint32_t pos = 0;      // start pos from map
+    uint32_t target = 0;   // target pos from map
+    uint32_t priority = -1;// -1 if disabled agent
 
     [[nodiscard]] bool is_disable() const;
 };

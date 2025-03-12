@@ -8,11 +8,11 @@
 // Solver mode
 class PIBTS {
 
+    TimePoint end_time;
+
     double cur_score = 0;
 
     const std::vector<Robot> &robots;
-
-    TimePoint end_time;
 
     // used_edge[edge][depth] = robot id
     std::vector<std::array<uint32_t, DEPTH>> used_edge;
@@ -109,15 +109,11 @@ class PIBTS {
     void reset(uint32_t r, std::vector<uint32_t> &destroyed);
 
 public:
-    explicit PIBTS(const std::vector<Robot> &robots, TimePoint end_time);
+    PIBTS(const std::vector<Robot> &robots, TimePoint end_time);
 
     void solve(uint64_t seed);
 
     [[nodiscard]] std::vector<Action> get_actions() const;
-
-    [[nodiscard]] std::vector<uint32_t> get_desires() const;
-
-    [[nodiscard]] std::vector<int64_t> get_changes() const;
 
     [[nodiscard]] double get_score() const;
 
