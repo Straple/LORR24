@@ -13,10 +13,10 @@ bool EPIBT_LNS::consider() {
             ;
 }
 
-uint32_t EPIBT_LNS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
+EPIBT_LNS::RetType EPIBT_LNS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
     if (counter > 1000 || (counter % 16 == 0 && get_now() >= end_time)) {
         counter = -1;
-        return 2;
+        return RetType::FAILED;
     }
 
     visited[r] = visited_counter;
@@ -28,11 +28,11 @@ uint32_t EPIBT_LNS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
         if (to_r == -1) {
             add_path(r);
             if (consider()) {
-                return 1;// accepted
+                return RetType::ACCEPTED;
             } else {
                 remove_path(r);
                 desires[r] = old_desired;
-                return 2;// not accepted
+                return RetType::REJECTED;
             }
         } else if (to_r != -2 && visited[to_r] != visited_counter) {
             if (rnd.get_d() < 0.2) {
@@ -45,10 +45,10 @@ uint32_t EPIBT_LNS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
             remove_path(to_r);
             add_path(r);
 
-            uint32_t res = try_build(to_r, ++counter, depth + 1);
-            if (res == 1) {
+            RetType res = try_build(to_r, ++counter, depth + 1);
+            if (res == RetType::ACCEPTED) {
                 return res;
-            } else if (res == 2) {
+            } else if (res == RetType::REJECTED) {
                 remove_path(r);
                 add_path(to_r);
                 desires[r] = old_desired;
@@ -62,7 +62,7 @@ uint32_t EPIBT_LNS::try_build(uint32_t r, uint32_t &counter, uint32_t depth) {
 
     desires[r] = old_desired;
     visited[r] = 0;
-    return 0;
+    return RetType::FAILED;
 }
 
 bool EPIBT_LNS::try_build(uint32_t r) {
@@ -70,18 +70,18 @@ bool EPIBT_LNS::try_build(uint32_t r) {
     old_score = cur_score;
     remove_path(r);
     uint32_t counter = 0;
-    uint32_t res = try_build(r, counter, 0);
-    if (res == 0 || res == 2) {
+    RetType res = try_build(r, counter, 0);
+    if (res != RetType::ACCEPTED) {
         add_path(r);
         return false;
     }
     return true;
 }
 
-uint32_t EPIBT_LNS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
+EPIBT_LNS::RetType EPIBT_LNS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 || (counter % 16 == 0 && get_now() >= end_time)) {
         counter = -1;
-        return 2;
+        return RetType::FAILED;
     }
 
     visited[r] = visited_counter;
@@ -93,11 +93,11 @@ uint32_t EPIBT_LNS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
         if (to_r == -1) {
             add_path(r);
             if (consider()) {
-                return 1;// accepted
+                return RetType::ACCEPTED;
             } else {
                 remove_path(r);
                 desires[r] = old_desired;
-                return 2;// not accepted
+                return RetType::REJECTED;
             }
         } else if (to_r != -2) {
             if (counter > 3000 && depth >= 6) {
@@ -117,10 +117,10 @@ uint32_t EPIBT_LNS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             remove_path(to_r);
             add_path(r);
 
-            uint32_t res = build(to_r, depth + 1, ++counter);
-            if (res == 1) {
+            RetType res = build(to_r, depth + 1, ++counter);
+            if (res == RetType::ACCEPTED) {
                 return res;
-            } else if (res == 2) {
+            } else if (res == RetType::REJECTED) {
                 remove_path(r);
                 add_path(to_r);
                 desires[r] = old_desired;
@@ -134,7 +134,7 @@ uint32_t EPIBT_LNS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
     visited[r] = 0;
     desires[r] = old_desired;
-    return 0;
+    return RetType::FAILED;
 }
 
 bool EPIBT_LNS::build(uint32_t r) {
@@ -142,8 +142,8 @@ bool EPIBT_LNS::build(uint32_t r) {
     old_score = cur_score;
     remove_path(r);
     uint32_t counter = 0;
-    uint32_t res = build(r, 0, counter);
-    if (res == 0 || res == 2) {
+    RetType res = build(r, 0, counter);
+    if (res != RetType::ACCEPTED) {
         add_path(r);
         return false;
     }

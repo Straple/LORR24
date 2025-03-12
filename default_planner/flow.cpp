@@ -87,7 +87,6 @@ namespace DefaultPlanner {
             assert(dists.first >= 0);
             lns.fw_metrics[i].deviation = dists.first;
         }
-        PRINT(Printer() << "[DP] update_fw_metrics: " << timer << '\n';);
         return;
     }
 
@@ -124,7 +123,6 @@ namespace DefaultPlanner {
             remove_traj(lns, a);
             update_traj(lns, a);
         }
-        PRINT(Printer() << "[DP] frank_wolfe count: " << count << '\n';);
         return;
     }
 
