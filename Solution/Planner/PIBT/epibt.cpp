@@ -237,6 +237,49 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
     : robots(robots), end_time(end_time), desires(robots.size()) {
 
     {
+        ETimer timer;
+        order.resize(robots.size());
+        iota(order.begin(), order.end(), 0);
+        std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+            return robots[lhs].priority < robots[rhs].priority;
+        });
+
+        std::vector<int32_t> weight(robots.size());
+
+        for (uint32_t i = 0; i < robots.size(); i++) {
+            weight[order[i]] = i;
+        }
+        int32_t max_weight = robots.size() + 1;
+
+        std::vector<double> robot_power(robots.size());
+        const double workload = robots.size() * 1.0 / get_map().get_count_free();
+        for (uint32_t r = 0; r < robots.size(); r++) {
+            double power = (max_weight - weight[r]) * 1.0 / max_weight;
+            if (robots[r].is_disable()) {
+                power = 0;
+            }
+            if (get_test_type() == TestType::GAME) {
+                power = power * power;
+            } else if (get_test_type() == TestType::RANDOM_4) {
+                power = power * power;
+            } else if (get_test_type() == TestType::RANDOM_5) {
+                power = power * power;
+            } else if (get_test_type() == TestType::WAREHOUSE) {
+                power = 1;// std::sqrt(power)
+            } else if (get_test_type() == TestType::SORTATION) {
+                power = 1;// std::sqrt(power)
+            }
+            robot_power[r] = power;
+        }
+
+        std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+            return std::tie(robot_power[lhs], lhs) > std::tie(robot_power[rhs], rhs);
+        });
+
+        PRINT(Printer() << "init order and power: " << timer << '\n';);
+    }
+
+    {
         std::array<uint32_t, DEPTH> value{};
         for (uint32_t depth = 0; depth < DEPTH; depth++) {
             value[depth] = -1;
@@ -251,8 +294,8 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
 }
 
 void EPIBT::solve() {
-    std::vector<uint32_t> order(robots.size());
-    std::iota(order.begin(), order.end(), 0);
+    //std::vector<uint32_t> order(robots.size());
+    //std::iota(order.begin(), order.end(), 0);
     // TODO: sort order
     for (uint32_t r: order) {
         if (get_now() > end_time) {

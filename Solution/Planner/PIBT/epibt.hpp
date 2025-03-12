@@ -13,6 +13,8 @@ class EPIBT {
 
     std::vector<uint32_t> desires;
 
+    std::vector<uint32_t> order;
+
     // used_edge[edge][depth] = robot id
     std::vector<std::array<uint32_t, DEPTH>> used_edge;
 
