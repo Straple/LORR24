@@ -7,6 +7,9 @@
 #include <Planner/PIBT/pibt.hpp>
 #include <settings.hpp>
 
+#include <const.h>
+#include <planner.h>
+
 /**
  * Initialises the MAPF planner with a given time limit for preprocessing.
  *
@@ -15,15 +18,10 @@
  * @param preprocess_time_limit The total time limit allocated for preprocessing (in milliseconds).
  */
 void MAPFPlanner::initialize(int preprocess_time_limit) {
-#ifdef ENABLE_DEFAULT_PLANNER
-    // use the remaining entry time limit (after task scheduling) for path planning, -PLANNER_TIMELIMIT_TOLERANCE for timing error tolerance;
     int limit = preprocess_time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::initialize(limit, env);
-#elif defined(ENABLE_SMART_PLANNER)
-    smart_planner.initialize(preprocess_time_limit);
-#else
+
     init_environment(*env);
-#endif
 }
 
 /**
@@ -36,23 +34,16 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
  * @param actions A reference to a vector that will be populated with the planned actions (next action for each agent).
  */
 void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
-#ifdef ENABLE_DEFAULT_PLANNER
-    // use the remaining time after task schedule for path planning, -PLANNER_TIMELIMIT_TOLERANCE for timing error tolerance;
-    int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
-    DefaultPlanner::plan(limit, actions, env);
-#elif defined(ENABLE_SMART_PLANNER)
-    actions.clear();
-    smart_planner.plan(time_limit, actions);
-#else
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
     update_environment(*env);
-
-    //actions = eplanner.plan(end_time);
 
     if (get_planner_type() == PlannerType::PIBT) {
         PIBT pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve();
         actions = pibt.get_actions();
+    } else if (get_planner_type() == PlannerType::PIBT_TF) {
+        int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
+        DefaultPlanner::plan(limit, actions, env);
     } else if (get_planner_type() == PlannerType::EPIBT) {
         EPIBT pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve();
@@ -62,6 +53,4 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
         pibt.solve(42);
         actions = pibt.get_actions();
     }
-
-#endif
 }
