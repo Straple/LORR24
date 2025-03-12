@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Objects/Basic/position.hpp>
 #include <Objects/Basic/time.hpp>
 #include <Objects/Environment/operations.hpp>
 #include <Objects/Environment/robot_handler.hpp>
