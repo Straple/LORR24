@@ -20,16 +20,14 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
         Position to = get_graph().get_pos(robots[r].node);
         to = Position(to.get_x(), to.get_y(), dir);
         to = to.move_forward();
-        if (to.is_valid()) {
-            // если там никого нет или он еще не посчитан
-            if (!pos_to_robot.count(to.get_pos()) || robots[pos_to_robot[to.get_pos()]].desired == -1) {
+        if (!to.is_valid()) {
+            continue;
+        }
+        // если там никого нет или он еще не посчитан
+        if (!pos_to_robot.count(to.get_pos()) || desires[pos_to_robot[to.get_pos()]] == -1) {
 
-                ASSERT(false, "outdated");
-                //uint32_t dist = get_hm().get(robots[r].node, get_graph().get_node(to)) +
-                //                get_hm().get_to_pos(get_graph().get_node(to), get_robots_handler().get_robot(r).target);
-
-                //actions.emplace_back(dist, dir);
-            }
+            uint32_t dist = get_hm().get(get_graph().get_node(to), robots[r].target);
+            actions.emplace_back(dist, dir);
         }
     }
 
@@ -43,18 +41,14 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
         if (!pos_to_robot.count(to.get_pos())) {
             // отлично! там никого нет
             pos_to_robot[to.get_pos()] = r;
-            robots[r].desired = dir;
+            desires[r] = dir;
             return true;
         } else {
             // о нет! там кто-то есть
 
-            if(depth > 5){
-                continue;
-            }
-
             uint32_t to_r = pos_to_robot[to.get_pos()];
             pos_to_robot[to.get_pos()] = r;// теперь мы будем тут стоять
-            robots[r].desired = dir;       // определим это направление
+            desires[r] = dir;              // определим это направление
 
             // попробуем построить для to_r
             // и запретим ему ходить в нас (коллизия по ребру)
@@ -63,7 +57,7 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
                 return true;
             }
 
-            robots[r].desired = -1;
+            desires[r] = -1;
         }
     }
 
@@ -71,36 +65,37 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
     return false;
 }
 
-PIBT::PIBT() {
-    robots.resize(get_robots_handler().size());
+PIBT::PIBT(const std::vector<Robot> &robots, TimePoint end_time) : robots(robots), end_time(end_time), desires(robots.size(), -1) {
     for (uint32_t r = 0; r < robots.size(); r++) {
-        robots[r].node = get_robots_handler().get_robot(r).node;
-        robots[r].pos = get_graph().get_pos(get_robots_handler().get_robot(r).node).get_pos();
         pos_to_robot[robots[r].pos] = r;
     }
 }
 
-std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time) {
-    ETimer timer;
-    // PIBT
+void PIBT::solve() {
+    std::vector<uint32_t> order(robots.size());
+    std::iota(order.begin(), order.end(), 0);
+    // TODO: sort order
     for (uint32_t r: order) {
         if (std::chrono::steady_clock::now() > end_time) {
             break;
         }
-        if (robots[r].desired == -1) {
+        if (desires[r] == -1) {
             build(r, -1, 0);
         }
     }
+}
 
+[[nodiscard]] std::vector<Action> PIBT::get_actions() const {
     std::vector<Action> actions(robots.size(), Action::NA);
+
     std::unordered_set<uint32_t> used;
     // сначала разберемся с теми, кто поворачивается
     for (uint32_t r = 0; r < robots.size(); r++) {
-        if (robots[r].desired == -1 || robots[r].desired == 4) {
+        if (desires[r] == -1 || desires[r] == 4) {
             ASSERT(!used.count(get_graph().get_pos(robots[r].node).get_pos()), "already used");
             used.insert(get_graph().get_pos(robots[r].node).get_pos());
             actions[r] = Action::W;
-        } else if (static_cast<uint32_t>(robots[r].desired) != get_graph().get_pos(robots[r].node).get_dir()) {
+        } else if (desires[r] != get_graph().get_pos(robots[r].node).get_dir()) {
             // нужно повернуться
 
             ASSERT(!used.count(get_graph().get_pos(robots[r].node).get_pos()), "already used");
@@ -109,7 +104,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
             auto calc = [&](Action rotate_type) {
                 Position p = get_graph().get_pos(robots[r].node);
                 int cnt = 0;
-                while (p.get_dir() != static_cast<uint32_t>(robots[r].desired)) {
+                while (p.get_dir() != desires[r]) {
                     cnt++;
                     p = p.simulate_action(rotate_type);
                 }
@@ -125,7 +120,7 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
 
     std::unordered_map<uint32_t, std::vector<uint32_t>> forwards;
     for (uint32_t r = 0; r < robots.size(); r++) {
-        if (static_cast<uint32_t>(robots[r].desired) == get_graph().get_pos(robots[r].node).get_dir()) {
+        if (desires[r] == get_graph().get_pos(robots[r].node).get_dir()) {
             ASSERT(!used.count(get_graph().get_pos(robots[r].node).get_pos()), "already used");
             //used.insert(get_graph().get_pos(robots[r].node).get_pos());
 
@@ -147,7 +142,6 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
                     int lhs_a = (get_graph().get_pos(robots[lhs].node).get_pos() == pos);
                     int rhs_a = (get_graph().get_pos(robots[rhs].node).get_pos() == pos);
                     if (lhs_a == rhs_a) {
-                        //return robots[lhs].priority < robots[rhs].priority;
                         return lhs < rhs;
                     } else {
                         return lhs_a > rhs_a;
@@ -181,6 +175,5 @@ std::vector<Action> PIBT::solve(const std::vector<uint32_t> &order, const std::c
         ASSERT(actions[r] != Action::NA, "NA action");
     }
 
-    Printer() << "PIBT: " << timer << '\n';
     return actions;
 }

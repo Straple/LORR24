@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 enum class MapType {
     RANDOM,
@@ -38,3 +38,14 @@ struct TestInfo {
 };
 
 TestInfo get_test_info();
+
+enum class PlannerType {
+    PIBT,      // pibt
+    PIBT_LNS,  // pibt + lns
+    P_PIBT_LNS,// parallel pibt + lns
+    EPIBT,     // epibt
+    EPIBT_LNS, // epibt + lns
+    PEPIBT_LNS,// parallel epibt + lns
+};
+
+PlannerType &get_planner_type();

@@ -30,3 +30,8 @@ static std::array<TestInfo, static_cast<uint32_t>(TestType::NONE) + 1> test_info
 TestInfo get_test_info() {
     return test_info[static_cast<uint32_t>(get_test_type())];
 }
+
+PlannerType &get_planner_type() {
+    static PlannerType type = PlannerType::PIBT;
+    return type;
+}

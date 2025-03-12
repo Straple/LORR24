@@ -1,28 +1,25 @@
 #pragma once
 
 #include <Objects/Basic/position.hpp>
+#include <Objects/Basic/time.hpp>
+#include <Objects/Environment/robot_handler.hpp>
 
 // Priority Inheritance with BackTracking
 class PIBT {
-    struct Robot {
-        uint32_t node = 0;
+    TimePoint end_time;
 
-        uint32_t pos = 0;
+    const std::vector<Robot> &robots;
 
-        // куда мы хотим
-        // -1 -- не определено
-        // иначе это направление для forward
-        int desired = -1;
-    };
-
-    std::vector<Robot> robots;
+    std::vector<uint32_t> desires;
 
     std::unordered_map<uint32_t, uint32_t> pos_to_robot;
 
     bool build(uint32_t r, int banned_desired, uint32_t depth);
 
 public:
-    PIBT();
+    PIBT(const std::vector<Robot> &robots, TimePoint end_time);
 
-    std::vector<Action> solve(const std::vector<uint32_t> &order, const std::chrono::steady_clock::time_point end_time);
+    void solve();
+
+    [[nodiscard]] std::vector<Action> get_actions() const;
 };

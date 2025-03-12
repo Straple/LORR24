@@ -1,6 +1,10 @@
 #include <Entry.h>
 
+#include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <Planner/PIBT/pibt.hpp>
+#include <Planner/PIBT/pibt2.hpp>
+#include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 
 /**
@@ -42,7 +46,18 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
 #else
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
     update_environment(*env);
-    actions = eplanner.plan(end_time);
+
+    //actions = eplanner.plan(end_time);
+
+    if (get_planner_type() == PlannerType::PIBT) {
+        PIBT pibt(get_robots_handler().get_robots(), end_time);
+        pibt.solve();
+        actions = pibt.get_actions();
+    } else if (get_planner_type() == PlannerType::EPIBT) {
+        PIBT pibt(get_robots_handler().get_robots(), end_time);
+        pibt.solve();
+        actions = pibt.get_actions();
+    }
 
 #endif
 }
