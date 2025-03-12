@@ -1,6 +1,6 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/randomizer.hpp>
-#include <Planner/PIBT/pibt2.hpp>
+#include <Planner/PIBT/epibt.hpp>
 
 using json = nlohmann::json;
 

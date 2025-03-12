@@ -457,81 +457,6 @@ bool PIBTS::try_build(uint32_t r) {
     return true;
 }
 
-/*uint32_t
-PIBTS::try_rebuild_neighbors(uint32_t id, const std::vector<uint32_t> &rids, uint32_t &counter, uint32_t depth) {
-    if (id == rids.size()) {
-        // все поставили
-        if (consider()) {
-            return 1;// accepted
-        } else {
-            return 2;// not accepted
-        }
-    }
-
-    if (counter == -1 ||//
-        (counter % 16 == 0 && get_now() >= end_time)) {
-        counter = -1;
-        return 2;
-    }
-
-    uint32_t r = rids[id];
-    // хотим поставить путь для r
-    uint32_t old_desired = desires[r];
-
-    for (uint32_t desired: robot_desires[r]) {
-        desires[r] = desired;
-        uint32_t to_r = get_used(r);
-        if (to_r == -1) {
-            add_path(r);
-
-            uint32_t res = try_rebuild_neighbors(id + 1, rids, ++counter, depth + 1);
-            if (res == 1) {
-                return res;
-            } else if (res == 2) {
-                remove_path(r);
-                desires[r] = old_desired;
-                return res;
-            } else {
-                remove_path(r);
-            }
-        }
-    }
-    desires[r] = old_desired;
-    return 0;
-}
-
-bool PIBTS::try_rebuild_neighbors(uint32_t r) {
-    ++visited_counter;
-    old_score = cur_score;
-
-    auto rids = neighbors[r];
-    rids.push_back(r);
-
-    std::shuffle(rids.begin(), rids.end(), rnd.generator);
-    uint32_t size = rnd.get(1, 4);
-    if (rids.size() > size) {
-        rids.resize(size);
-    }
-
-    // удалим им все пути
-    for (uint32_t r: rids) {
-        remove_path(r);
-    }
-
-    uint32_t counter = 0;
-    uint32_t res = try_rebuild_neighbors(0, rids, counter, 0);
-    if (res == 1) {
-        return true;
-    }
-    for (uint32_t r: rids) {
-        add_path(r);
-    }
-    //ASSERT(std::abs(old_score - cur_score) < 1e-6,
-    //       "invalid rollback: " + std::to_string(old_score) + " != " + std::to_string(cur_score) + ", diff: " +
-    //       std::to_string(std::abs(old_score - cur_score)));
-    return false;
-}*/
-
 uint32_t PIBTS::build(uint32_t r, uint32_t depth, uint32_t &counter) {
     if (counter == -1 ||//
         //counter > 30'000 ||//
@@ -684,17 +609,6 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
 
         std::vector<int32_t> weight(robots.size());
 
-        /*uint32_t prev = 0;
-        uint32_t w = 0;
-        for (uint32_t r: order) {
-            if (prev != robots[r].priority) {
-                w++;
-            }
-            weight[r] = w;
-            prev = robots[r].priority;
-        }
-        int32_t max_weight = w + 1;*/
-
         for (uint32_t i = 0; i < robots.size(); i++) {
             weight[order[i]] = i;
         }
@@ -727,96 +641,6 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
 
         PRINT(Printer() << "init order and power: " << timer << '\n';);
     }
-
-    // init neighbors
-    /*{
-        ETimer timer;
-        neighbors.resize(robots.size());
-
-        // used_edge[edge][depth] = robot id
-        std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_edge(get_graph().get_edges_size());
-
-        // used_pos[pos][depth] = robot id
-        std::vector<std::array<std::vector<uint32_t>, DEPTH>> used_pos(get_graph().get_zipes_size());
-
-        ETimer timer;
-        for (uint32_t r = 0; r < robots.size(); r++) {
-            for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
-                if (!validate_path(r, desired)) {
-                    continue;
-                }
-                const uint32_t source = robots[r].node;
-
-                auto add = [&](std::vector<uint32_t> &vec) {
-                    uint32_t i = 0;
-                    for (; i < vec.size() && r < vec[i]; i++) {}
-
-                    if (i < vec.size() && vec[i] == r) {
-                        // already contains
-                    } else {
-                        vec.insert(vec.begin() + i, r);
-                    }
-                };
-
-                {
-                    auto &poses_path = get_omap().get_poses_path(source, desired);
-                    for (uint32_t depth = 0; depth < DEPTH; depth++) {
-                        uint32_t to_pos = poses_path[depth];
-                        ASSERT(to_pos < used_pos.size(), "invalid to_pos");
-                        add(used_pos[to_pos][depth]);
-                    }
-                }
-                {
-                    auto &edges_path = get_omap().get_edges_path(source, desired);
-                    for (uint32_t depth = 0; depth < DEPTH; depth++) {
-                        uint32_t to_edge = edges_path[depth];
-                        ASSERT(to_edge < used_edge.size(), "invalid to_edge");
-                        if (to_edge) {
-                            add(used_edge[to_edge][depth]);
-                        }
-                    }
-                }
-            }
-        }
-        Printer() << "build used: " << timer << '\n';
-        timer.reset();
-
-        for (uint32_t edge = 1; edge < used_edge.size(); edge++) {
-            for (uint32_t depth = 0; depth < DEPTH; depth++) {
-                for (uint32_t r: used_edge[edge][depth]) {
-                    for (uint32_t r2: used_edge[edge][depth]) {
-                        if (r != r2 &&
-                            std::find(neighbors[r].begin(), neighbors[r].end(), r2) == neighbors[r].end()) {
-                            neighbors[r].push_back(r2);
-                        }
-                    }
-                }
-            }
-        }
-        std::cout << "build edges: " << timer << '\n';
-        timer.reset();
-
-        for (uint32_t pos = 1; pos < used_pos.size(); pos++) {
-            for (uint32_t depth = 0; depth < DEPTH; depth++) {
-                for (uint32_t r: used_pos[pos][depth]) {
-                    for (uint32_t r2: used_pos[pos][depth]) {
-                        if (r != r2 &&
-                            std::find(neighbors[r].begin(), neighbors[r].end(), r2) == neighbors[r].end()) {
-                            neighbors[r].push_back(r2);
-                        }
-                    }
-                }
-            }
-        }
-        std::cout << "build poses: " << timer << '\n';
-
-    //warehouse_large_10000
-    //build used: 15.2807ms
-    //build edges: 3.43853ms
-    //build poses: 5.34468ms
-    //init neighbors: 30.1128ms
-    Printer() << "init neighbors: " << timer << '\n';
-    }*/
 
     // init smart_dist_dp
     {

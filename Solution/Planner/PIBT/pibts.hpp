@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Objects/Basic/randomizer.hpp>
-#include <Planner/PIBT/pibt2.hpp>
+#include <Planner/PIBT/epibt.hpp>
 
 // Priority Inheritance with BackTracking
 // Each robot is assigned an action vector from the pool. Examples: FW, FW, W

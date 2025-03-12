@@ -2,8 +2,8 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <Planner/PIBT/epibt.hpp>
 #include <Planner/PIBT/pibt.hpp>
-#include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 

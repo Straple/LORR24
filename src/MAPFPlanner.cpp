@@ -2,8 +2,8 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <Planner/PIBT/epibt.hpp>
 #include <Planner/PIBT/pibt.hpp>
-#include <Planner/PIBT/pibt2.hpp>
 #include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 
@@ -54,7 +54,7 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
         pibt.solve();
         actions = pibt.get_actions();
     } else if (get_planner_type() == PlannerType::EPIBT) {
-        PIBT pibt(get_robots_handler().get_robots(), end_time);
+        EPIBT pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve();
         actions = pibt.get_actions();
     }
