@@ -3,8 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 #include <Planner/PIBT/epibt.hpp>
+#include <Planner/PIBT/epibt_lns.hpp>
 #include <Planner/PIBT/pibt.hpp>
-#include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 
 #include <algorithm>
@@ -18,7 +18,7 @@ EPlanner::EPlanner() {
 
 std::vector<Action> EPlanner::plan(TimePoint end_time) {
     ETimer timer;
-
+/*
     std::vector<Action> plan(env->num_of_agents, Action::W);
 
 
@@ -73,5 +73,6 @@ std::vector<Action> EPlanner::plan(TimePoint end_time) {
     PRINT(Printer() << "best: " << best_score << '\n';);
     PRINT(Printer() << "Planner: " << timer << '\n';);
 
-    return plan;
+    return plan;*/
+    return {};
 }

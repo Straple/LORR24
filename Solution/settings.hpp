@@ -32,9 +32,9 @@
 
 #define PRINT(args...) do { args } while(0)
 
-#define ENABLE_PIBTS_ANNEALING
+#define ENABLE_LNS_ANNEALING
 
-#define ENABLE_PIBTS_TRICK
+#define ENABLE_EPIBT_LNS_TRICK
 
 #define ENABLE_SCHEDULER_CHANGE_TASK
 
@@ -50,11 +50,7 @@ static constexpr uint32_t THREADS = 6;
 
 // if -1, then use timer
 // else use steps, without timer
-static constexpr uint32_t PIBTS_STEPS = -1;
-
-static constexpr uint32_t DHM_REBUILD_TIMELIMIT = 0;
-
-static constexpr uint32_t DHM_REBUILD_COUNT = 0;
+//static constexpr uint32_t PIBTS_STEPS = -1;
 
 static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
 

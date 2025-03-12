@@ -3,8 +3,8 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
 #include <Planner/PIBT/epibt.hpp>
+#include <Planner/PIBT/epibt_lns.hpp>
 #include <Planner/PIBT/pibt.hpp>
-#include <Planner/PIBT/pibts.hpp>
 #include <settings.hpp>
 
 /**
@@ -56,6 +56,10 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
     } else if (get_planner_type() == PlannerType::EPIBT) {
         EPIBT pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve();
+        actions = pibt.get_actions();
+    } else if (get_planner_type() == PlannerType::EPIBT_LNS) {
+        EPIBT_LNS pibt(get_robots_handler().get_robots(), end_time);
+        pibt.solve(42);
         actions = pibt.get_actions();
     }
 
