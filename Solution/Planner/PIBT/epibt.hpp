@@ -7,13 +7,21 @@
 
 // Enhanced Priority Inheritance with BackTracking
 class EPIBT {
+protected:
     TimePoint end_time;
+
+    double cur_score = 0;
 
     const std::vector<Robot> &robots;
 
     std::vector<uint32_t> desires;
 
     std::vector<uint32_t> order;
+
+    // smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired)
+    std::vector<std::vector<int64_t>> smart_dist_dp;
+
+    std::vector<double> robot_power;
 
     // robot_desires[r] = { desired }
     std::vector<std::vector<uint32_t>> robot_desires;
@@ -34,6 +42,10 @@ class EPIBT {
 
     [[nodiscard]] int64_t get_smart_dist_IMPL(uint32_t r, uint32_t desired) const;
 
+    [[nodiscard]] int64_t get_smart_dist(uint32_t r, uint32_t desired) const;
+
+    void update_score(uint32_t r, uint32_t desired, int sign);
+
     void add_path(uint32_t r);
 
     void remove_path(uint32_t r);
@@ -47,25 +59,3 @@ public:
 
     [[nodiscard]] std::vector<Action> get_actions() const;
 };
-
-/*
-Actions:
-F: 153
-R: 95
-C: 81
-W: 71
-N: 0
-Total action:
-F: 174269
-R: 94064
-C: 57231
-W: 74436
-N: 0
-Entry time: 7.96152ms
-Total time: 12.9241s
-[2025-03-12 21:51:58.263531] [0x00007f5a787f9740] [info]    [timestep=999] planner returns
-[2025-03-12 21:51:58.263963] [0x00007f5a787f9740] [info]    [timestep=1000] Agent 262 finishes task 3762
-[2025-03-12 21:51:58.263991] [0x00007f5a787f9740] [info]    [timestep=1000] Agent 354 finishes task 3347
-[2025-03-12 21:51:58.263997] [0x00007f5a787f9740] [info]    Task 4121 is revealed
-[2025-03-12 21:51:58.264000] [0x00007f5a787f9740] [info]    Task 4122 is revealed
-*/

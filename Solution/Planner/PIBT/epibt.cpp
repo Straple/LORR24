@@ -116,6 +116,15 @@ int64_t EPIBT::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
     return dist;
 }
 
+int64_t EPIBT::get_smart_dist(uint32_t r, uint32_t desired) const {
+    return smart_dist_dp[r][desired];
+}
+
+void EPIBT::update_score(uint32_t r, uint32_t desired, int sign) {
+    int32_t diff = get_smart_dist(r, 0) - get_smart_dist(r, desired);
+    cur_score += sign * diff * robot_power[r];
+}
+
 void EPIBT::add_path(uint32_t r) {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desires[r] && desires[r] < get_operations().size(), "invalid desired");
@@ -137,6 +146,8 @@ void EPIBT::add_path(uint32_t r) {
             used_edge[to_edge][depth] = r;
         }
     }
+
+    update_score(r, desires[r], +1);
 }
 
 void EPIBT::remove_path(uint32_t r) {
@@ -159,6 +170,7 @@ void EPIBT::remove_path(uint32_t r) {
             used_edge[to_edge][depth] = -1;
         }
     }
+    update_score(r, desires[r], -1);
 }
 
 bool EPIBT::build(uint32_t r, uint32_t depth, uint32_t &counter) {
@@ -217,7 +229,7 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
         }
         int32_t max_weight = robots.size() + 1;
 
-        std::vector<double> robot_power(robots.size());
+        robot_power.resize(robots.size());
         const double workload = robots.size() * 1.0 / get_map().get_count_free();
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
@@ -244,6 +256,32 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
         used_edge.resize(get_graph().get_edges_size(), value);
     }
 
+    // init smart_dist_dp
+    {
+        ETimer timer;
+        smart_dist_dp.resize(robots.size(), std::vector<int64_t>(get_operations().size()));
+
+        auto do_work = [&](uint32_t thr) {
+            for (uint32_t r = thr; r < robots.size(); r += THREADS) {
+                for (uint32_t desired = 0; desired < get_operations().size(); desired++) {
+                    if (!validate_path(r, desired)) {
+                        continue;
+                    }
+                    smart_dist_dp[r][desired] += get_smart_dist_IMPL(r, desired);
+                }
+            }
+        };
+
+        std::vector<std::thread> threads(THREADS);
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr] = std::thread(do_work, thr);
+        }
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr].join();
+        }
+    }
+
+    // init robot_desires
     {
         robot_desires.resize(robots.size());
 
@@ -255,7 +293,7 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
                     if (!validate_path(r, desired)) {
                         continue;
                     }
-                    int64_t priority = get_smart_dist_IMPL(r, desired);
+                    int64_t priority = get_smart_dist(r, desired);
                     steps.emplace_back(priority, desired);
                 }
                 std::sort(steps.begin(), steps.end());
