@@ -12,5 +12,5 @@ public:
 
     EPlanner();
 
-    std::pair<std::vector<Action>, std::vector<uint32_t>> plan(TimePoint end_time);
+    std::vector<Action> plan(TimePoint end_time);
 };

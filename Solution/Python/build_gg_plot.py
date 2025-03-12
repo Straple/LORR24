@@ -24,8 +24,8 @@ def read(filename):
                     data.append([])
                     for y in range(0, cols):
                         pos = x * cols + y
-                        if pos >= len(map):
-                            print(pos, len(map))
+                        if map[pos] == 0:
+                            map[pos] = -100
                         data[-1].append(map[pos])
                         mn = min(mn, map[pos])
                         mx = max(mx, map[pos])
@@ -90,6 +90,6 @@ acts = ["FW", "R", "CR", "W"]
 if __name__ == '__main__':
     data, mn, mx = read('../../graph_guidance')
 
-    #paint()
-    paint_one(0, 0)
+    paint()
+    #paint_one(0, 0)
     #build_svgs()

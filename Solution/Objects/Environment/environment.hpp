@@ -5,7 +5,6 @@
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/graph_guidance.hpp>
 #include <Objects/Environment/guidance_map.hpp>
-#include <Objects/Environment/guidance_path_planner.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/info.hpp>
 #include <Objects/Environment/map.hpp>
@@ -21,5 +20,3 @@
 void init_environment(SharedEnvironment &env);
 
 void update_environment(SharedEnvironment &env);
-
-std::vector<Action> &get_myplan();

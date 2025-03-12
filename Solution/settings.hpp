@@ -28,7 +28,7 @@
 #define ENABLE_GG
 
 // при завершении программы вызывает tools.cpp::build_meta_info в driver.cpp
-//#define BUILD_META_INFO
+#define BUILD_META_INFO
 
 #define PRINT(args...) do { args } while(0)
 
@@ -36,22 +36,11 @@
 
 #define ENABLE_PIBTS_TRICK
 
-//#define ENABLE_PHANTOM_SCHEDULE
-
-//#define ENABLE_SCHEDULER_TRICK
-
 #define ENABLE_SCHEDULER_CHANGE_TASK
-
-// шедулеру подсовываются свободные агенты и задачи
-//#define ENABLE_DEFAULT_SCHEDULER_TRICK
-
-//#define ENABLE_HM_SCHEDULER_TRICK
 
 //#define ENABLE_GG_SOLVER
 
 #define DISABLE_AGENTS
-
-//#define DISABLE_LATE_AGENTS
 
 //#define ENABLE_GUIDANCE_PATH_PLANNER
 
@@ -76,8 +65,6 @@ static constexpr uint32_t SCHEDULER_TRICK_TIME = 300;
 static constexpr uint32_t SCHEDULER_LNS_TIME = 0;
 
 static constexpr uint32_t INVALID_DIST = 0;
-
-static constexpr uint32_t PHANTOM_AGENT_AVAILABLE_DIST = 30;
 
 static constexpr uint32_t MAX_AGENTS_NUM = 10'000;
 

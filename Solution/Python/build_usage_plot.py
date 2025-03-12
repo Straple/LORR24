@@ -130,6 +130,5 @@ if __name__ == '__main__':
 
     # build2("../../")
 
-    #paint_all(data, mn, mx)
-
-    paint_one(data, mn, mx)
+    paint_all(data, mn, mx)
+    # paint_one(data, mn, mx)

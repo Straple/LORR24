@@ -51,6 +51,8 @@ class PIBTS {
 
     uint32_t current_depth = 3;
 
+    uint32_t pibt_step = 0;
+
     bool consider();
 
     [[nodiscard]] bool validate_path(uint32_t r, uint32_t desired) const;
@@ -119,5 +121,5 @@ public:
 
     [[nodiscard]] double get_score() const;
 
-    uint32_t step = 0;
+    [[nodiscard]] uint32_t get_step() const;
 };

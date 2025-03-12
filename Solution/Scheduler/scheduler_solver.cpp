@@ -221,32 +221,6 @@ void SchedulerSolver::update() {
             free_robots.push_back(r);
         }
     }
-#ifdef ENABLE_PHANTOM_SCHEDULE
-    for (uint32_t r = 0; r < env->num_of_agents; r++) {
-        int t = env->curr_task_schedule[r];
-
-        // есть задача и она в процессе выполнения
-        // не можем ее убрать
-        if (env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
-            const auto &task = env->task_pool.at(t);
-
-            uint32_t dist = get_hm().get(get_robots_handler().get_robot(r).node,
-                                         get_robots_handler().get_robot(r).target);
-
-            // если у него последняя точка задачи
-            if (task.idx_next_loc + 1 == task.locations.size() &&
-                // и если он не в таргете стоит
-                env->curr_states[r].location != task.locations.back() &&
-                dist < PHANTOM_AGENT_AVAILABLE_DIST &&
-                free_robots.size() + 1 <= free_tasks.size()) {
-
-                free_robots.push_back(r);
-                phantom_agent_dist[r] = dist;
-                ASSERT(phantom_agent_dist[r] != 0, "invalid phantom agent dist");
-            }
-        }
-    }
-#endif
 
     // build task_metric, task_target
     {
@@ -292,26 +266,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
     for (uint32_t r: free_robots) {
         remove(r);
     }
-#ifdef ENABLE_TRIVIAL_SCHEDULER
-    for (uint32_t r: free_robots) {
-        uint32_t task_id = r;
-        while (!env->task_pool.count(task_id)) {
-            task_id += env->num_of_agents;
-            if (task_id > 1'000'000'000) {
-                Printer() << "pizda: " << r << ' ' << task_id << ' ' << env->task_pool.size() << ' ';
-                //Printer().get().flush();
-                //_exit(0);
-                //throw "kek";
-                break;
-            }
-            //ASSERT(task_id < 1e8, "invalid task_id");
-        }
-        if (env->task_pool.count(task_id)) {
-            set(r, task_id);
-        }
-    }
-    Printer() << '\n';
-#else
     std::unordered_set<uint32_t> used_task;
 
     // (dist, r, index)
@@ -404,8 +358,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
     }*/
 
-#endif
-
     PRINT(Printer() << "SchedulerSolver::triv_solve: " << timer << ", count_skip: " << count_skip << '\n';);
 }
 
@@ -422,26 +374,8 @@ void SchedulerSolver::solve(TimePoint end_time) {
         try_peek_task(rnd);
         temp *= 0.999;
     }
-    PRINT(
-            Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() > 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer
-                      << '\n';);
+    PRINT(Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() > 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer << '\n';);
 }
-
-namespace DefaultPlanner {
-    extern std::vector<int> decision;
-    extern std::vector<int> prev_decision;
-    extern std::vector<double> p;
-    extern std::vector<State> prev_states;
-    extern std::vector<State> next_states;
-    extern std::vector<int> ids;
-    extern std::vector<double> p_copy;
-    extern std::vector<bool> occupied;
-    extern std::vector<DefaultPlanner::DCR> decided;
-    extern std::vector<bool> checked;
-    extern std::vector<bool> require_guide_path;
-    extern std::vector<int> dummy_goals;
-    extern DefaultPlanner::TrajLNS trajLNS;
-}// namespace DefaultPlanner
 
 std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
     std::vector<int> result(desires.size());
@@ -452,44 +386,6 @@ std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
             result[r] = static_cast<int>(desires[r]);
         }
     }
-#if defined(ENABLE_SCHEDULER_TRICK) && defined(ENABLE_DEFAULT_PLANNER)
-    if (get_map_type() == MapType::SORTATION ||
-        get_map_type() == MapType::WAREHOUSE ||
-        get_map_type() == MapType::GAME) {
-        env->curr_task_schedule = result;
-        update_environment(*env);
-        EPlanner eplanner(env);
-        auto [plan, desires_plan] = eplanner.plan(std::min(end_time, get_now() + Milliseconds(SCHEDULER_TRICK_TIME)));
-        get_myplan() = plan;
-
-        for (uint32_t r = 0; r < desires.size(); r++) {
-            uint32_t source = get_robots_handler().get_robot(r).node;
-            const auto &poses = get_omap().get_poses_path(source, desires_plan[r]);
-            const auto &nodes = get_omap().get_nodes_path(source, desires_plan[r]);
-            Operation op = get_operations()[desires_plan[r]];
-            uint32_t to = poses.back();
-
-            // вот так лучше: 31315 -> 32055
-            /*for (uint32_t i = 0; i < poses.size(); i++) {
-                if (op[i] == Action::FW) {
-                    to = poses[i];
-                    break;
-                }
-            }*/
-
-            to = get_graph().get_pos_from_zip(to);
-            ASSERT(get_map().is_free(to), "is not free");
-
-            int t = result[r];
-            if (t == -1) {
-                continue;
-            }
-            auto &task = env->task_pool.at(t);
-
-            task.locations.insert(task.locations.begin() + task.idx_next_loc, to - 1);
-        }
-    }
-#endif
     return result;
 }
 

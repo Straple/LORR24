@@ -69,30 +69,6 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
             Printer() << "W: " << total_counts[3] << '\n';
             Printer() << "N: " << total_counts[4] << '\n';);
 
-#ifdef ENABLE_SCHEDULER_TRICK
-    PRINT(
-            static double sum_plans_equal = 0;
-            uint32_t cnt_ok = 0;
-            static std::array<std::array<uint32_t, 5>, 5> data;
-            get_myplan().resize(plan.size(), Action::W);
-            for (uint32_t r = 0; r < plan.size(); r++) {
-                cnt_ok += plan[r] == get_myplan()[r];
-                ASSERT(static_cast<uint32_t>(plan[r]) < 4, "invalid plan");
-                ASSERT(static_cast<uint32_t>(get_myplan()[r]) < 4, "invalid plan");
-                data[get_myplan()[r]][plan[r]]++;
-            };
-            Printer() << "Plans equal: " << cnt_ok * 100.0 / plan.size() << "%\n";
-            sum_plans_equal += cnt_ok * 100.0 / plan.size();
-            Printer() << "Total plans equal: " << sum_plans_equal / (1 + env->curr_timestep) << "%\n";
-            for (uint32_t a = 0; a < 4; a++) {
-                for (uint32_t b = 0; b < 4; b++) {
-                    char ca = a == 0 ? 'F' : (a == 1 ? 'R' : (a == 2 ? 'C' : 'W'));
-                    char cb = b == 0 ? 'F' : (b == 1 ? 'R' : (b == 2 ? 'C' : 'W'));
-                    Printer() << ca << cb << ": " << data[a][b] << '\n';
-                }
-            });
-#endif
-
     PRINT(
             Printer() << "Entry time: " << timer << '\n';
             Printer() << "Total time: " << total_timer << '\n';);

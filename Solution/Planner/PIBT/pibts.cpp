@@ -946,46 +946,17 @@ void PIBTS::solve(uint64_t seed) {
 
     temp = 0.001;
 
-    if constexpr (true) {
-        for (step = 0; get_now() < end_time && step < PIBTS_STEPS; step++) {
-            if (step && step % 128 == 0) {
-                update_current_depth();
-            }
-            uint32_t r = rnd.get(0, robots.size() - 1);
-            try_build(r);
-            temp *= 0.999;
+    for (pibt_step = 0; get_now() < end_time && pibt_step < PIBTS_STEPS; pibt_step++) {
+        if (pibt_step && pibt_step % 128 == 0) {
+            update_current_depth();
         }
-        if (best_score + 1e-6 < cur_score) {
-            //Printer() << "improve: " << best_score << " -> " << cur_score << '\n';
-            best_desires = desires;
-            best_score = cur_score;
-        }
-    } else {
-        FAILED_ASSERT("deprecated");
-        while (get_now() < end_time) {
-            //Printer() << "earthquake: " << cur_score << " -> ";
-            int N = rnd.get(10, 20);
-            ++visited_counter;
-            std::vector<uint32_t> destroyed;
-            while (N--) {
-                uint32_t r = rnd.get(0, robots.size() - 1);
-                reset(r, destroyed);
-            }
-            std::shuffle(destroyed.begin(), destroyed.end(), rnd.generator);
-            //Printer() << cur_score << " (" << destroyed.size() << ") -> ";
-            for (uint32_t step = 0; step < PIBTS_STEPS && get_now() < end_time; step++) {
-                uint32_t r = rnd.get_d() < 0.5 ? rnd.get(destroyed) : rnd.get(0, robots.size() - 1);
-                try_build(r);
-                temp *= 0.999;
-                this->step++;
-            }
-            //Printer() << cur_score << "\n";
-            if (best_score + 1e-6 < cur_score) {
-                //Printer() << "improve: " << best_score << " -> " << cur_score << '\n';
-                best_desires = desires;
-                best_score = cur_score;
-            }
-        }
+        uint32_t r = rnd.get(0, robots.size() - 1);
+        try_build(r);
+        temp *= 0.999;
+    }
+    if (best_score + 1e-6 < cur_score) {
+        best_desires = desires;
+        best_score = cur_score;
     }
 }
 
@@ -1023,4 +994,8 @@ std::vector<int64_t> PIBTS::get_changes() const {
 
 double PIBTS::get_score() const {
     return best_score;
+}
+
+uint32_t PIBTS::get_step() const {
+    return pibt_step;
 }

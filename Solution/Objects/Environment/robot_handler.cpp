@@ -60,36 +60,6 @@ void RobotsHandler::update(const SharedEnvironment &env) {
     }
 
     // влияет только на PIBTS
-#ifdef DISABLE_LATE_AGENTS
-    {
-        for (uint32_t r = 0; r < robots.size(); r++) {
-            if (!robots[r].target) {
-                continue;
-            }
-            // есть задача
-
-            const auto &task = env.task_pool.at(env.curr_task_schedule[r]);
-            uint32_t task_dist = 0;
-            {
-                uint32_t node = robots[r].node;
-                for (int i = task.idx_next_loc; i < task.locations.size(); i++) {
-                    int to_pos = task.locations[i] + 1;
-                    task_dist += get_rhm().get(node, to_pos);
-                    node = get_graph().get_node(Position(to_pos, 0));
-                }
-            }
-
-            // этот агент не успевает выполнить задачу, ну пусть тогда другим не мешает
-            if (env.curr_timestep + task_dist > get_test_info().steps_num + 5) {
-                // disable
-                robots[r].priority = -1;
-                robots[r].target = 0;
-            }
-        }
-    }
-#endif
-
-    // влияет только на PIBTS
 #ifdef DISABLE_AGENTS
     uint32_t max_task_assigned = get_test_info().max_task_assigned;
     if (max_task_assigned < robots.size()) {
