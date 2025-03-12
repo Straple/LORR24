@@ -720,21 +720,6 @@ PIBTS::PIBTS(const std::vector<Robot> &robots, TimePoint end_time)
             threads[thr].join();
         }
 
-        /*for (uint32_t r = 0; r < robots.size(); r++) {
-            // (priority, desired)
-            std::vector<std::pair<int64_t, uint32_t>> steps;
-            for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
-                if (!validate_path(r, desired)) {
-                    continue;
-                }
-                int64_t priority = get_smart_dist(r, desired);
-                steps.emplace_back(priority, desired);
-            }
-            std::stable_sort(steps.begin(), steps.end());
-            for (auto [priority, desired]: steps) {
-                robot_desires[r].push_back(desired);
-            }
-        }*/
         PRINT(Printer() << "init robot_desires: " << timer << '\n';);
     }
 

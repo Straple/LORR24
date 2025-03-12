@@ -2,8 +2,8 @@
 
 #include <Objects/Basic/position.hpp>
 #include <Objects/Basic/time.hpp>
-#include <Objects/Environment/robot_handler.hpp>
 #include <Objects/Environment/operations.hpp>
+#include <Objects/Environment/robot_handler.hpp>
 
 // Enhanced Priority Inheritance with BackTracking
 class EPIBT {
@@ -14,6 +14,9 @@ class EPIBT {
     std::vector<uint32_t> desires;
 
     std::vector<uint32_t> order;
+
+    // robot_desires[r] = { desired }
+    std::vector<std::vector<uint32_t>> robot_desires;
 
     // used_edge[edge][depth] = robot id
     std::vector<std::array<uint32_t, DEPTH>> used_edge;
@@ -44,3 +47,25 @@ public:
 
     [[nodiscard]] std::vector<Action> get_actions() const;
 };
+
+/*
+Actions:
+F: 153
+R: 95
+C: 81
+W: 71
+N: 0
+Total action:
+F: 174269
+R: 94064
+C: 57231
+W: 74436
+N: 0
+Entry time: 7.96152ms
+Total time: 12.9241s
+[2025-03-12 21:51:58.263531] [0x00007f5a787f9740] [info]    [timestep=999] planner returns
+[2025-03-12 21:51:58.263963] [0x00007f5a787f9740] [info]    [timestep=1000] Agent 262 finishes task 3762
+[2025-03-12 21:51:58.263991] [0x00007f5a787f9740] [info]    [timestep=1000] Agent 354 finishes task 3347
+[2025-03-12 21:51:58.263997] [0x00007f5a787f9740] [info]    Task 4121 is revealed
+[2025-03-12 21:51:58.264000] [0x00007f5a787f9740] [info]    Task 4122 is revealed
+*/

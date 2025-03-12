@@ -4,6 +4,8 @@
 #include <Objects/Environment/heuristic_matrix.hpp>
 #include <Objects/Environment/operations_map.hpp>
 
+#include <thread>
+
 bool EPIBT::validate_path(uint32_t r, uint32_t desired) const {
     ASSERT(0 <= r && r < robots.size(), "invalid r");
     ASSERT(0 <= desired && desired < get_operations().size(), "invalid desired");
@@ -76,47 +78,24 @@ int64_t EPIBT::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
 
     const uint32_t target = robots[r].target;
 
-    int64_t dist =
-#ifdef ENABLE_DHMR
-            get_dhmr().get(r, path.back());
-#else
-            get_hm().get(path.back(), target);
-#endif
+    int64_t dist = get_hm().get(path.back(), target);
 
     if (op.back() == Action::W) {
         uint32_t node = path[path.size() - 2];
         {
             uint32_t to = get_graph().get_to_node(node, 1);
-            dist = std::min(dist, static_cast<int64_t>(
-#ifdef ENABLE_DHMR
-                                          get_dhmr().get(r, to)
-#else
-                                          get_hm().get(to, target)
-#endif
-                                                  ));
+            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, target)));
         }
         {
             uint32_t to = get_graph().get_to_node(node, 2);
-            dist = std::min(dist, static_cast<int64_t>(
-#ifdef ENABLE_DHMR
-                                          get_dhmr().get(r, to)
-#else
-                                          get_hm().get(to, target)
-#endif
-                                                  ));
+            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, target)));
         }
 
         if (op[op.size() - 2] == Action::W) {
             uint32_t to = node;
             to = get_graph().get_to_node(to, 1);
             to = get_graph().get_to_node(to, 1);
-            dist = std::min(dist, static_cast<int64_t>(
-#ifdef ENABLE_DHMR
-                                          get_dhmr().get(r, to)
-#else
-                                          get_hm().get(to, target)
-#endif
-                                                  ));
+            dist = std::min(dist, static_cast<int64_t>(get_hm().get(to, target)));
         }
     }
 
@@ -190,30 +169,17 @@ bool EPIBT::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 
     uint32_t old_desired = desires[r];
 
-    // TODO: prebuild steps pool for each robot
-    // (priority, desired)
-    std::vector<std::pair<int64_t, uint32_t>> steps;
-    for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+    for (uint32_t desired: robot_desires[r]) {
         desires[r] = desired;
-        if (validate_path(r, desired) && get_used(r) != -2) {
-            int64_t priority = get_smart_dist_IMPL(r, desired);
-            steps.emplace_back(priority, desired);
-        }
-    }
-
-    std::stable_sort(steps.begin(), steps.end());
-
-    for (auto [priority, desired]: steps) {
-        desires[r] = desired;
-        if (is_free_path(r)) {
+        uint32_t to_r = get_used(r);
+        if (to_r == -1) {
             // отлично! там никого нет
             add_path(r);
             return true;
-        } else {
+        } else if (to_r != -2) {
             // о нет! там кто-то есть
 
-            uint32_t to_r = get_used(r);
-            ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
+            ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r: " + std::to_string(to_r));
             if (desires[to_r] != 0) {
                 continue;
             }
@@ -258,17 +224,7 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
             if (robots[r].is_disable()) {
                 power = 0;
             }
-            if (get_test_type() == TestType::GAME) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_4) {
-                power = power * power;
-            } else if (get_test_type() == TestType::RANDOM_5) {
-                power = power * power;
-            } else if (get_test_type() == TestType::WAREHOUSE) {
-                power = 1;// std::sqrt(power)
-            } else if (get_test_type() == TestType::SORTATION) {
-                power = 1;// std::sqrt(power)
-            }
+            power = power * power;
             robot_power[r] = power;
         }
 
@@ -288,15 +244,42 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
         used_edge.resize(get_graph().get_edges_size(), value);
     }
 
+    {
+        robot_desires.resize(robots.size());
+
+        auto do_work = [&](uint32_t thr) {
+            for (uint32_t r = thr; r < robots.size(); r += THREADS) {
+                // (priority, desired)
+                std::vector<std::pair<int64_t, uint32_t>> steps;
+                for (uint32_t desired = 1; desired < get_operations().size(); desired++) {
+                    if (!validate_path(r, desired)) {
+                        continue;
+                    }
+                    int64_t priority = get_smart_dist_IMPL(r, desired);
+                    steps.emplace_back(priority, desired);
+                }
+                std::sort(steps.begin(), steps.end());
+                for (auto [priority, desired]: steps) {
+                    robot_desires[r].push_back(desired);
+                }
+            }
+        };
+
+        std::vector<std::thread> threads(THREADS);
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr] = std::thread(do_work, thr);
+        }
+        for (uint32_t thr = 0; thr < THREADS; thr++) {
+            threads[thr].join();
+        }
+    }
+
     for (uint32_t r = 0; r < this->robots.size(); r++) {
         add_path(r);
     }
 }
 
 void EPIBT::solve() {
-    //std::vector<uint32_t> order(robots.size());
-    //std::iota(order.begin(), order.end(), 0);
-    // TODO: sort order
     for (uint32_t r: order) {
         if (get_now() > end_time) {
             break;
