@@ -22,10 +22,10 @@ def read(filename):
                 for x in range(0, rows):
                     data.append([])
                     for y in range(0, cols):
-                        pos = x * cols + y
-                        if map[pos] == 0:
-                            map[pos] = -100
-                        data[-1].append(map[pos])
+                        pos = x * cols + y + 1
+                        # if map[pos] == 0:
+                        #    map[pos] = -100
+                        data[-1].append(int(map[pos]))
                         if dir != 4 and act != 4:
                             mn = min(mn, map[pos])
                             mx = max(mx, map[pos])
@@ -108,25 +108,32 @@ def paint_all(data, mn, mx):
     for i in range(25):
         dir = i // 5
         act = i % 5
-        map = data[dir][act]
+        map = np.array(data[dir][act]) # матрица
         ax = axes[dir][act]
-        # print(dir, act, map)
-        images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
+        mask = map == -1 # маска со специальным значением
+
+        images.append(ax.imshow(map, cmap='summer', vmin=mn, vmax=mx))
+
+        red_mask = np.zeros((*map.shape, 4))  # Создаем массив RGBA
+        red_mask[mask] = [0, 0, 0, 1]  # Устанавливаем красный цвет (R=1, G=0, B=0, A=1)
+        ax.imshow(red_mask)
+
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
+
         fig.colorbar(images[-1], ax=ax)
 
-    # plt.plot(np.where(map == -500, map, None), color="red", label="1")
+        # plt.imshow(np.where(map == -100, map, None), color="red", label="1")
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
+    # plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
     plt.show()
 
 
 if __name__ == '__main__':
     # build("../../r/20/")
 
-    data, mn, mx = read('../../meta')
+    data, mn, mx = read('../../Tmp/usage0.txt')
 
     # build2("../../")
 
