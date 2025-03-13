@@ -1,4 +1,4 @@
-#include <Planner/PIBT/epibt.hpp>
+#include <Planner/epibt.hpp>
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>

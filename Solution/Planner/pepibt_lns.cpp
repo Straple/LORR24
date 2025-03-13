@@ -1,26 +1,14 @@
-#include <Planner/eplanner.hpp>
+#include <Planner/pepibt_lns.hpp>
 
-#include <Objects/Basic/assert.hpp>
-#include <Objects/Environment/environment.hpp>
-#include <Planner/PIBT/epibt.hpp>
-#include <Planner/PIBT/epibt_lns.hpp>
-#include <Planner/PIBT/pibt.hpp>
-#include <settings.hpp>
+#include <Planner/epibt_lns.hpp>
 
-#include <algorithm>
 #include <thread>
 
-EPlanner::EPlanner(SharedEnvironment *env) : env(env) {}
-
-EPlanner::EPlanner() {
-    env = new SharedEnvironment();
+PEPIBT_LNS::PEPIBT_LNS(const std::vector<Robot> &robots, TimePoint end_time) : robots(robots), end_time(end_time), actions(robots.size(), Action::W) {
 }
 
-std::vector<Action> EPlanner::plan(TimePoint end_time) {
-    ETimer timer;
-/*
-    std::vector<Action> plan(env->num_of_agents, Action::W);
-
+void PEPIBT_LNS::solve(uint64_t seed) {
+    EPIBT_LNS main_pibt(get_robots_handler().get_robots(), end_time);
 
     // (score, actions, time, step)
     using ItemType = std::tuple<double, std::vector<Action>, int, int>;
@@ -28,17 +16,15 @@ std::vector<Action> EPlanner::plan(TimePoint end_time) {
     constexpr uint32_t THR = THREADS;
     std::vector<std::vector<ItemType>> results_pack(THR);
 
-    PIBTS main_pibt_solver(get_robots_handler().get_robots(), end_time);
-
     auto do_work = [&](uint32_t thr, uint64_t seed) {
         ETimer timer;
-        PIBTS pibt = main_pibt_solver;
+        EPIBT_LNS pibt = main_pibt;
         pibt.solve(seed);
         auto time = timer.get_ms();
         results_pack[thr].emplace_back(pibt.get_score(), pibt.get_actions(), time, pibt.get_step());
     };
 
-    static Randomizer rnd;
+    Randomizer rnd(seed);
     std::vector<std::thread> threads(THR);
     for (uint32_t thr = 0; thr < THR; thr++) {
         threads[thr] = std::thread(do_work, thr, rnd.get());
@@ -61,18 +47,16 @@ std::vector<Action> EPlanner::plan(TimePoint end_time) {
 
     PRINT(Printer() << "RESULTS(" << results.size() << "): ";);
 
-    for (const auto &[score, actions, time, steps]: results) {
+    for (const auto &[score, plan, time, steps]: results) {
         PRINT(Printer() << "(" << score << ", " << time << ", " << steps << ") ";);
         if (best_score < score) {
             best_score = score;
-            plan = actions;
+            actions = plan;
         }
     }
-
     PRINT(Printer() << '\n';);
-    PRINT(Printer() << "best: " << best_score << '\n';);
-    PRINT(Printer() << "Planner: " << timer << '\n';);
+}
 
-    return plan;*/
-    return {};
+std::vector<Action> PEPIBT_LNS::get_actions() const {
+    return actions;
 }

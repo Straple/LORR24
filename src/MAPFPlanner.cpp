@@ -1,11 +1,11 @@
 #include <Entry.h>
 
+#include "Planner/epibt.hpp"
+#include "Planner/epibt_lns.hpp"
+#include "Planner/pepibt_lns.hpp"
+#include "Planner/pibt.hpp"
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
-#include <Planner/PIBT/epibt.hpp>
-#include <Planner/PIBT/epibt_lns.hpp>
-#include <Planner/PIBT/pepibt_lns.hpp>
-#include <Planner/PIBT/pibt.hpp>
 #include <settings.hpp>
 
 #include <const.h>

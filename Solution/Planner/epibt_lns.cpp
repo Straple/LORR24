@@ -1,4 +1,4 @@
-#include <Planner/PIBT/epibt_lns.hpp>
+#include <Planner/epibt_lns.hpp>
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>

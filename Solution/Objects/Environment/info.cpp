@@ -32,6 +32,6 @@ TestInfo get_test_info() {
 }
 
 PlannerType &get_planner_type() {
-    static PlannerType type = PlannerType::PIBT_TF;
+    static PlannerType type = PlannerType::PEPIBT_LNS;
     return type;
 }

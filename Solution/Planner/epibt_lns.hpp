@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Objects/Basic/randomizer.hpp>
-#include <Planner/PIBT/epibt.hpp>
+#include <Planner/epibt.hpp>
 
 // Enhanced Priority Inheritance with BackTracking + Large Neighborhood Search
 class EPIBT_LNS : protected EPIBT {

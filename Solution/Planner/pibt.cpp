@@ -1,4 +1,4 @@
-#include <Planner/PIBT/pibt.hpp>
+#include <Planner/pibt.hpp>
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/time.hpp>

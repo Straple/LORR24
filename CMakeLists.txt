@@ -60,11 +60,6 @@ file(GLOB SOURCES
         Solution/Tools/tools.cpp
 
         Solution/Planner/*.cpp
-        Solution/Planner/Solver/*.cpp
-        Solution/Planner/Machine/*.cpp
-        Solution/Planner/PIBT/*.cpp
-        Solution/Planner/Default/*.cpp
-        Solution/Planner/LaCAM/*.cpp
 
         Solution/Scheduler/*.cpp
         )

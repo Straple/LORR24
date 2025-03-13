@@ -4,7 +4,11 @@
 #include <Objects/Basic/randomizer.hpp>
 #include <Objects/Basic/time.hpp>
 
+#include <fstream>
+
 using json = nlohmann::json;
+
+std::ofstream table_output("table.csv");
 
 // (throughput, milliseconds per steps)
 std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_t test_id) {
@@ -26,26 +30,34 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_
     double throughput = 0;
     uint32_t avg_step_time = 0;
     uint32_t task_finished = 0;
+    uint32_t agents_num = 0;
     try {
         data = json::parse(input);
 
-        if (data["numEntryTimeouts"] != 0) {
-            std::cout << "\nENTRY TIMEOUT" << std::endl;
-        }
-        if (data["numPlannerErrors"] != 0) {
-            std::cout << "\nPLANNER ERROR" << std::endl;
-        }
-        if (data["numScheduleErrors"] != 0) {
-            std::cout << "\nSCHEDULER ERROR" << std::endl;
-        }
         task_finished = data["numTaskFinished"];
         throughput = static_cast<double>(data["numTaskFinished"]) / steps_num;
         std::vector<double> times = data["plannerTimes"];
         avg_step_time = static_cast<uint32_t>(std::accumulate(times.begin(), times.end(), 0.0) * 1000 / steps_num);
+        agents_num = data["teamSize"];
+
+        std::cout << task_finished << ", " << throughput << ", " << avg_step_time << ", " << timer;
+        table_output << agents_num << "," << steps_num << "," << task_finished << "," << throughput << "," << avg_step_time << "," << timer.get_ms() << std::endl;
+
+        if (data["numEntryTimeouts"] != 0) {
+            std::cout << " ENTRY TIMEOUT";
+        }
+        if (data["numPlannerErrors"] != 0) {
+            std::cout << " PLANNER ERROR";
+        }
+        if (data["numScheduleErrors"] != 0) {
+            std::cout << "SCHEDULER ERROR";
+        }
+
+        std::cout << std::endl;
+
     } catch (const json::parse_error &error) {
         std::cerr << "Message: " << error.what() << std::endl;
     }
-    std::cout << task_finished << ", " << throughput << ", " << avg_step_time << ", " << timer << std::endl;
     return {throughput, avg_step_time};
 }
 
@@ -72,6 +84,7 @@ std::vector<std::tuple<std::string, int>> tests = {
 };
 
 int main() {
+    table_output << "agents num,steps num,num task finished,throughput,avg step time,total time\n";
     for (uint32_t i = 0; i < tests.size(); i++) {
         call(std::get<0>(tests[i]), std::get<1>(tests[i]), i);
     }
