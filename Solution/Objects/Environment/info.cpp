@@ -6,6 +6,6 @@ MapType &get_map_type() {
 }
 
 PlannerType &get_planner_type() {
-    static PlannerType type = PlannerType::PEPIBT_LNS;
+    static PlannerType type = PlannerType::EPIBT;
     return type;
 }

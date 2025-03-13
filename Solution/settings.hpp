@@ -34,15 +34,7 @@
 
 #define ENABLE_LNS_ANNEALING
 
-#define ENABLE_EPIBT_LNS_TRICK
-
 #define ENABLE_SCHEDULER_CHANGE_TASK
-
-//#define ENABLE_GG_SOLVER
-
-#define DISABLE_AGENTS
-
-//#define ENABLE_GUIDANCE_PATH_PLANNER
 
 static constexpr uint32_t MAX_CONST = 10'000'000;
 

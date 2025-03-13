@@ -19,7 +19,7 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_
     //std::system("mkdir Tmp");
     int ret_code = std::system(
             ("./cmake-build-release-wsl/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
-             ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 --unique_id " + std::to_string(test_id) +
+             ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 -u " + std::to_string(test_id) +
              " > Tmp/log" + std::to_string(test_id) + ".txt")
                     .c_str());
 

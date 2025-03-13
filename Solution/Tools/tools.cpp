@@ -59,7 +59,12 @@ void build_meta_info(const std::string &from, const std::string &to) {
                 if (pos != 0) {
                     output << ' ';
                 }
-                output << dp[pos][dir][act];
+                if (get_map().is_free(pos)) {
+                    output << dp[pos][dir][act];
+                } else {
+                    ASSERT(dp[pos][dir][act] == 0, "invalid dp");
+                    output << -1;
+                }
             }
             output << '\n';
         }

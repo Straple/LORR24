@@ -106,11 +106,7 @@ EPIBT_LNS::RetType EPIBT_LNS::build(uint32_t r, uint32_t depth, uint32_t &counte
 
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r");
 
-            if (desires[to_r] != 0
-#ifdef ENABLE_EPIBT_LNS_TRICK
-                && rnd.get_d() < 0.8
-#endif
-            ) {
+            if (desires[to_r] != 0 && rnd.get_d() < 0.8) {
                 continue;
             }
 

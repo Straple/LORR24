@@ -56,11 +56,8 @@ file(GLOB SOURCES
         Solution/Objects/Basic/*.cpp
         Solution/Objects/Containers/*.cpp
         Solution/Objects/Environment/*.cpp
-
         Solution/Tools/tools.cpp
-
         Solution/Planner/*.cpp
-
         Solution/Scheduler/*.cpp
         )
 

@@ -175,68 +175,10 @@ int main(int argc, char **argv) {
     delete logger;
 
 #ifdef BUILD_META_INFO
-#ifdef ENABLE_GG_SOLVER
     build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
-                    "Tmp/meta" + std::to_string(get_unique_id()));
-#else
-    build_meta_info("test.json", "meta");
-    //build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
-    //                "Tmp/meta" + std::to_string(get_unique_id()));
-#endif
+                    "Tmp/usage" + std::to_string(get_unique_id()) + ".txt");
 #endif
     Printer().get().flush();
-
-    _exit(0);
-
-    {
-        uint32_t finished_tasks = 0;
-        {
-            using json = nlohmann::basic_json<nlohmann::ordered_map>;
-            json data;
-            std::ifstream input(vm["output"].as<std::string>());
-            try {
-                data = json::parse(input);
-            } catch (const json::parse_error &error) {
-                FAILED_ASSERT(error.what());
-            }
-            finished_tasks = data["numTaskFinished"];
-        }
-
-        /*std::ifstream input("meta");
-        // [pos][dir][action]
-        Meta meta(get_gg().get_size());
-
-        uint32_t rows, cols;
-        input >> rows >> cols;
-
-        ASSERT(get_gg().get_rows() == rows && get_gg().get_cols() == cols, "invalid rows/cols");
-        for (uint32_t dir = 0; dir < 5; dir++) {
-            for (uint32_t act = 0; act < 5; act++) {
-                for (uint32_t pos = 0; pos < get_gg().get_size(); pos++) {
-                    input >> meta[pos][dir][act];
-                }
-            }
-        }
-
-        auto calc = [&](uint32_t dir, uint32_t act) {
-            uint64_t s = 0;
-            for (uint32_t pos = 0; pos < get_gg().get_size(); pos++) {
-                s += static_cast<uint64_t>(meta[pos][dir][act]) * meta[pos][dir][act];
-            }
-            return static_cast<double>(s) / (get_gg().get_size() - 1);
-        };
-
-        double score = 0;
-        for (uint32_t dir = 0; dir < 4; dir++) {
-            score -= calc(dir, 1);
-            score -= calc(dir, 2);
-            score -= calc(dir, 3) * 2;
-        }
-        score += finished_tasks * 5;*/
-
-        Printer() << "tasks: " << finished_tasks << '\n';
-        //Printer() << "score: " << score << '\n';
-    }
 
     _exit(0);
 }
