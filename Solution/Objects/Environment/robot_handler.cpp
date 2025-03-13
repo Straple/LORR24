@@ -52,40 +52,9 @@ void RobotsHandler::update(const SharedEnvironment &env) {
                 node = get_graph().get_node(Position(to_pos, 0));
             }
         }
-        // TODO:
-        // if task_dist + env.curr_timestep > get_test_info().steps_num
-        // then this robot is free
         robots[r].target = target;
         robots[r].priority = task_dist;
     }
-
-    // влияет только на PIBTS
-#ifdef DISABLE_AGENTS
-    uint32_t max_task_assigned = get_test_info().max_task_assigned;
-    if (max_task_assigned < robots.size()) {
-        std::vector<std::pair<double, uint32_t>> ids;
-        for (uint32_t r = 0; r < robots.size(); r++) {
-            ids.emplace_back(robots[r].priority, r);
-        }
-        std::sort(ids.begin(), ids.end());
-
-        for (auto [metric, r]: ids) {
-            // не инициализирован
-            if (!robots[r].target) {
-                continue;
-            }
-            // есть задача
-            if (max_task_assigned > 0) {
-                // enable
-                max_task_assigned--;
-            } else {
-                // disable
-                robots[r].priority = -1;
-                robots[r].target = 0;
-            }
-        }
-    }
-#endif
 }
 
 const Robot &RobotsHandler::get_robot(uint32_t r) const {

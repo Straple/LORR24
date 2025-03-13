@@ -1,8 +1,6 @@
 #include <Objects/Environment/environment.hpp>
 
-#include <Scheduler/journey_graph.hpp>
 #include <Scheduler/scheduler.hpp>
-#include <Tools/tools.hpp>
 #include <settings.hpp>
 
 #include <thread>
@@ -70,45 +68,6 @@ void init_environment(SharedEnvironment &env) {
 }
 
 void update_environment(SharedEnvironment &env) {
-    double task_reveal = env.task_pool.size() * 1.0 / env.num_of_agents;
-    // true everywhere
-    //ASSERT(std::abs(task_reveal - 1.5) < 1e-3, "invalid task reveal");
-
-    // update test type
-    {
-        if (get_map_type() == MapType::RANDOM) {
-            if (env.num_of_agents == 100) {
-                get_test_type() = TestType::RANDOM_1;
-            } else if (env.num_of_agents == 200) {
-                get_test_type() = TestType::RANDOM_2;
-            } else if (env.num_of_agents == 400) {
-                get_test_type() = TestType::RANDOM_3;
-            } else if (env.num_of_agents == 700) {
-                get_test_type() = TestType::RANDOM_4;
-            } else if (env.num_of_agents == 800) {
-                get_test_type() = TestType::RANDOM_5;
-            }
-        } else if (get_map_type() == MapType::CITY) {
-            // FAILED_ASSERT("TODO");
-            // CITY-02:
-            // 3000 failed
-            // 3500 ok
-            // ASSERT(env.num_of_agents < 3500, "invalid num of agents");
-        } else if (get_map_type() == MapType::GAME) {
-            get_test_type() = TestType::GAME;
-        } else if (get_map_type() == MapType::WAREHOUSE) {
-            if (env.num_of_agents == 10'000) {
-                get_test_type() = TestType::WAREHOUSE;
-            }
-        } else if (get_map_type() == MapType::SORTATION) {
-            if (env.num_of_agents == 10'000) {
-                get_test_type() = TestType::SORTATION;
-            }
-        } else {
-            FAILED_ASSERT("invalid map");
-        }
-    }
-
     static int prev_timestep_updated = -1;
     if (prev_timestep_updated == -1) {
         get_robots_handler() = RobotsHandler(env.num_of_agents);
