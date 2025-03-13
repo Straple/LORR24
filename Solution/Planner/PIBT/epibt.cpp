@@ -174,7 +174,7 @@ void EPIBT::remove_path(uint32_t r) {
 }
 
 bool EPIBT::build(uint32_t r, uint32_t depth, uint32_t &counter) {
-    if (counter == -1 || (counter % 256 == 0 && get_now() > end_time)) {
+    if (counter == -1 || (counter % 32 == 0 && get_now() > end_time)) {
         counter = -1;
         return false;
     }
@@ -190,6 +190,10 @@ bool EPIBT::build(uint32_t r, uint32_t depth, uint32_t &counter) {
             return true;
         } else if (to_r != -2) {
             // о нет! там кто-то есть
+
+            if (counter > 10'000) {
+                continue;
+            }
 
             ASSERT(0 <= to_r && to_r < robots.size(), "invalid to_r: " + std::to_string(to_r));
             if (desires[to_r] != 0) {

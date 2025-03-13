@@ -14,7 +14,9 @@ class PIBT {
 
     std::unordered_map<uint32_t, uint32_t> pos_to_robot;
 
-    bool build(uint32_t r, int banned_desired, uint32_t depth);
+    std::vector<uint32_t> order;
+
+    bool build(uint32_t r, int banned_desired, uint32_t depth, uint32_t &counter);
 
 public:
     PIBT(const std::vector<Robot> &robots, TimePoint end_time);

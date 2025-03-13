@@ -6,7 +6,12 @@
 
 #include <unordered_set>
 
-bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
+bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth, uint32_t &counter) {
+    if (counter == -1 || (counter % 32 == 0 && get_now() > end_time)) {
+        counter = -1;
+        return false;
+    }
+
     if (pos_to_robot[robots[r].pos] == r) {
         pos_to_robot.erase(robots[r].pos);
     }
@@ -24,7 +29,7 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
             continue;
         }
         // если там никого нет или он еще не посчитан
-        if (!pos_to_robot.count(to.get_pos()) || desires[pos_to_robot[to.get_pos()]] == -1) {
+        if (!pos_to_robot.count(to.get_pos()) || desires[pos_to_robot.at(to.get_pos())] == -1) {
 
             uint32_t dist = get_hm().get(get_graph().get_node(to), robots[r].target);
             actions.emplace_back(dist, dir);
@@ -46,13 +51,17 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
         } else {
             // о нет! там кто-то есть
 
+            if (counter > 10'000) {
+                continue;
+            }
+
             uint32_t to_r = pos_to_robot[to.get_pos()];
             pos_to_robot[to.get_pos()] = r;// теперь мы будем тут стоять
             desires[r] = dir;              // определим это направление
 
             // попробуем построить для to_r
             // и запретим ему ходить в нас (коллизия по ребру)
-            if (build(to_r, (dir + 2) % 4, depth + 1)) {
+            if (build(to_r, (dir + 2) % 4, depth + 1, ++counter)) {
                 // найс, получилось
                 return true;
             }
@@ -65,22 +74,25 @@ bool PIBT::build(uint32_t r, int banned_desired, uint32_t depth) {
     return false;
 }
 
-PIBT::PIBT(const std::vector<Robot> &robots, TimePoint end_time) : robots(robots), end_time(end_time), desires(robots.size(), -1) {
+PIBT::PIBT(const std::vector<Robot> &robots, TimePoint end_time) : robots(robots), end_time(end_time), desires(robots.size(), -1), order(robots.size()) {
     for (uint32_t r = 0; r < robots.size(); r++) {
         pos_to_robot[robots[r].pos] = r;
     }
+
+    std::iota(order.begin(), order.end(), 0);
+    std::sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
+        return robots[lhs].priority < robots[rhs].priority;
+    });
 }
 
 void PIBT::solve() {
-    std::vector<uint32_t> order(robots.size());
-    std::iota(order.begin(), order.end(), 0);
-    // TODO: sort order
     for (uint32_t r: order) {
         if (std::chrono::steady_clock::now() > end_time) {
             break;
         }
         if (desires[r] == -1) {
-            build(r, -1, 0);
+            uint32_t counter = 0;
+            build(r, -1, 0, counter);
         }
     }
 }
