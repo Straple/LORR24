@@ -56,5 +56,7 @@ public:
 
     void solve();
 
+    [[nodiscard]] double get_score() const;
+
     [[nodiscard]] std::vector<Action> get_actions() const;
 };

@@ -147,7 +147,7 @@ bool EPIBT_LNS::build(uint32_t r) {
 }
 
 EPIBT_LNS::EPIBT_LNS(const std::vector<Robot> &robots, TimePoint end_time)
-    : EPIBT(robots, end_time), visited(robots.size()), best_desires(robots.size()) {
+    : EPIBT(robots, end_time), visited(robots.size()) {
 }
 
 void EPIBT_LNS::solve(uint64_t seed) {
@@ -158,50 +158,20 @@ void EPIBT_LNS::solve(uint64_t seed) {
         if (get_now() >= end_time) {
             break;
         }
+        pibt_step++;
         if (desires[r] != 0) {
             continue;
         }
         build(r);
     }
 
-    best_desires = desires;
-    best_score = cur_score;
-
     temp = 0.001;
 
-    for (pibt_step = 0; get_now() < end_time; pibt_step++) {
+    for (; get_now() < end_time; pibt_step++) {
         uint32_t r = rnd.get(0, robots.size() - 1);
         try_build(r);
         temp *= 0.999;
     }
-    if (best_score + 1e-6 < cur_score) {
-        best_desires = desires;
-        best_score = cur_score;
-    }
-}
-
-std::vector<Action> EPIBT_LNS::get_actions() const {
-    std::vector<Action> answer(robots.size());
-    for (uint32_t r = 0; r < robots.size(); r++) {
-        answer[r] = get_operations()[best_desires[r]][0];
-        if (best_desires[r] == 0) {
-            auto dist = std::min({get_hm().get(get_graph().get_to_node(robots[r].node, 1), robots[r].target),
-                                  get_hm().get(get_graph().get_to_node(robots[r].node, 2), robots[r].target),
-                                  get_hm().get(get_graph().get_to_node(robots[r].node, 3), robots[r].target)});
-            if (dist == get_hm().get(get_graph().get_to_node(robots[r].node, 1), robots[r].target)) {
-                answer[r] = Action::CR;
-            } else if (dist == get_hm().get(get_graph().get_to_node(robots[r].node, 2), robots[r].target)) {
-                answer[r] = Action::CCR;
-            } else {
-                answer[r] = Action::W;
-            }
-        }
-    }
-    return answer;
-}
-
-double EPIBT_LNS::get_score() const {
-    return best_score;
 }
 
 uint32_t EPIBT_LNS::get_step() const {
