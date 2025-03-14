@@ -404,9 +404,6 @@ std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &s
 }
 
 void MyScheduler::plan(TimePoint end_time, std::vector<int> &proposed_schedule) {
-    ETimer timer;
     solver_schedule(end_time, proposed_schedule);
     //artem_schedule(end_time, proposed_schedule);
-
-    PRINT(Printer() << "Scheduler: " << timer << '\n';);
 }

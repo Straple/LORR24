@@ -218,8 +218,9 @@ bool EPIBT::build(uint32_t r, uint32_t depth, uint32_t &counter) {
 EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
     : robots(robots), end_time(end_time), desires(robots.size()) {
 
+    ETimer timer;
+
     {
-        ETimer timer;
         order.resize(robots.size());
         iota(order.begin(), order.end(), 0);
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
@@ -247,8 +248,6 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
         std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
             return std::tie(robot_power[lhs], lhs) > std::tie(robot_power[rhs], rhs);
         });
-
-        PRINT(Printer() << "init order and power: " << timer << '\n';);
     }
 
     {
@@ -262,7 +261,6 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
 
     // init smart_dist_dp
     {
-        ETimer timer;
         smart_dist_dp.resize(robots.size(), std::vector<int64_t>(get_operations().size()));
 
         auto do_work = [&](uint32_t thr) {
@@ -319,13 +317,17 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
     for (uint32_t r = 0; r < this->robots.size(); r++) {
         add_path(r);
     }
+
+    PRINT(Printer() << "[EPIBT] create: " << timer << '\n';);
 }
 
 void EPIBT::solve() {
+    uint32_t cnt_completed = 0;
     for (uint32_t r: order) {
         if (get_now() > end_time) {
             break;
         }
+        cnt_completed++;
         if (desires[r] == 0) {
             remove_path(r);
             uint32_t counter = 0;
@@ -334,6 +336,9 @@ void EPIBT::solve() {
             }
         }
     }
+    PRINT(uint32_t p = cnt_completed * 100 / order.size();
+          ASSERT(0 <= p && p <= 100, "invalid p: " + std::to_string(p));
+          Printer() << "[EPIBT] progress: " << p << "%" << (p != 100 ? " bad\n" : "\n"););
 }
 
 std::vector<Action> EPIBT::get_actions() const {

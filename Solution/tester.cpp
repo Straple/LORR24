@@ -8,22 +8,24 @@
 
 using json = nlohmann::json;
 
-std::ofstream table_output("table.csv");
+std::ofstream table_output("Tmp/table.csv");
 
 // (throughput, milliseconds per steps)
 std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_t test_id) {
     std::cout << "call(" + std::to_string(test_id) + "): " << std::flush;
     ETimer timer;
 
-    // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
-    //std::system("mkdir Tmp");
-    int ret_code = std::system(
-            ("./cmake-build-release-wsl/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
-             ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 -u " + std::to_string(test_id) +
-             " > Tmp/log" + std::to_string(test_id) + ".txt")
-                    .c_str());
+    {
+        // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
+        //std::system("mkdir Tmp");
+        int ret_code = std::system(
+                ("./cmake-build-release-wsl/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
+                 ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 -u " + std::to_string(test_id) +
+                 " > Tmp/output" + std::to_string(test_id) + ".txt")
+                        .c_str());
 
-    ASSERT(ret_code == 0, "invalid ret code");
+        ASSERT(ret_code == 0, "invalid ret code");
+    }
 
     json data;
     std::ifstream input("Tmp/test" + std::to_string(test_id) + ".json");
@@ -58,6 +60,13 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_
     } catch (const json::parse_error &error) {
         std::cerr << "Message: " << error.what() << std::endl;
     }
+
+    // build usage plots
+    {
+        int ret_code = std::system(("python3 Solution/Python/build_usage_plot.py Tmp/usage" + std::to_string(test_id) + ".txt Tmp/usage_plot" + std::to_string(test_id) + "_one.pdf Tmp/usage_plot" + std::to_string(test_id) + "_all.pdf").c_str());
+        ASSERT(ret_code == 0, "invalid ret code");
+    }
+
     return {throughput, avg_step_time};
 }
 

@@ -40,8 +40,9 @@ void SchedulerSolver::rebuild_dp(TimePoint end_time) {
         threads[thr].join();
     }
     PRINT(
-            Printer() << "SchedulerSolver::rebuild_dp: " << counter << "/" << order.size() << " ("
-                      << counter * 100.0 / order.size() << "%), " << timer << '\n';);
+            uint32_t p = counter * 100 / order.size();
+            ASSERT(0 <= p && p <= 100, "invalid p: " + std::to_string(p));
+            Printer() << "[Scheduler] rebuild_dp: " << p << "%" << (p != 100 ? " bad," : ", ") << timer << '\n';);
 }
 
 bool SchedulerSolver::compare(double cur_score, double old_score, Randomizer &rnd) const {
@@ -219,7 +220,6 @@ void SchedulerSolver::update() {
             }
             task_metric[t] = d;
         }
-        PRINT(Printer() << "init task_dist: " << timer << '\n';);
     }
 
     for (uint32_t t: free_tasks) {
@@ -235,8 +235,8 @@ void SchedulerSolver::update() {
     validate();
 
     PRINT(
-            Printer() << "free robots: " << free_robots.size() << '\n';
-            Printer() << "free tasks: " << free_tasks.size() << '\n';);
+            Printer() << "[Scheduler] free robots: " << free_robots.size() << '\n';
+            Printer() << "[Scheduler] free tasks: " << free_tasks.size() << '\n';);
 }
 
 void SchedulerSolver::triv_solve(TimePoint end_time) {
@@ -254,27 +254,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
     }
 
-    int32_t allowed_assigned = 0;
-    {
-        int32_t cnt_assigned = 0;
-        for (uint32_t r = 0; r < desires.size(); r++) {
-            int t = env->curr_task_schedule[r];
-            if (t != -1 && env->task_pool.count(t) && env->task_pool.at(t).idx_next_loc != 0) {
-                // этот робот уже с задачей, которую нельзя менять
-                cnt_assigned++;
-            }
-        }
-
-        int32_t max_assigned = desires.size();
-
-        allowed_assigned = std::max(0, max_assigned - cnt_assigned);
-
-        PRINT(
-                Printer() << "cnt_assigned: " << cnt_assigned << '\n';
-                Printer() << "max_assigned: " << max_assigned << '\n';
-                Printer() << "allowed_assigned: " << allowed_assigned << '\n';);
-    }
-
     auto validate_task = [&](uint32_t task_id) {
         // task is already used
         if (used_task.count(task_id)) {
@@ -290,9 +269,7 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         return true;
     };
 
-    uint32_t count_skip = 0;
-
-    while (!Heap.empty() && get_now() < end_time && allowed_assigned > 0) {
+    while (!Heap.empty() && get_now() < end_time) {
         auto [dist, r, index] = Heap.top();
         Heap.pop();
 
@@ -306,8 +283,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
                 Heap.push({dp[r][index].first + phantom_agent_dist[r], r, index});
             }
 
-            count_skip++;
-
             continue;
         }
 
@@ -317,10 +292,6 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
 
         add(r, task_id);
         used_task.insert(task_id);
-
-        if (phantom_agent_dist[r] == 0) {
-            allowed_assigned--;
-        }
     }
 
     validate();
@@ -336,11 +307,11 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
         }
     }*/
 
-    PRINT(Printer() << "SchedulerSolver::triv_solve: " << timer << ", count_skip: " << count_skip << '\n';);
+    PRINT(Printer() << "[Scheduler] lazy solve: " << timer << '\n';);
 }
 
 void SchedulerSolver::solve(TimePoint end_time) {
-    if (free_robots.empty() || free_tasks.empty()) {
+    /*if (free_robots.empty() || free_tasks.empty()) {
         return;
     }
     static Randomizer rnd;
@@ -352,7 +323,7 @@ void SchedulerSolver::solve(TimePoint end_time) {
         try_peek_task(rnd);
         temp *= 0.999;
     }
-    PRINT(Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() > 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer << '\n';);
+    PRINT(Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() > 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer << '\n';);*/
 }
 
 std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {

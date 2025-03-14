@@ -35,6 +35,7 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
  * @param actions A reference to a vector that will be populated with the planned actions (next action for each agent).
  */
 void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
+    ETimer timer;
     TimePoint end_time = env->plan_start_time + Milliseconds(time_limit - 50);
     update_environment(*env);
 
@@ -42,21 +43,26 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
         PIBT pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve();
         actions = pibt.get_actions();
+        PRINT(Printer() << "[PIBT] time: " << timer << '\n';);
     } else if (get_planner_type() == PlannerType::PIBT_TF) {
         int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
         DefaultPlanner::plan(limit, actions, env);
+        PRINT(Printer() << "[PIBT_TF] time: " << timer << '\n';);
     } else if (get_planner_type() == PlannerType::EPIBT) {
         EPIBT pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve();
         actions = pibt.get_actions();
+        PRINT(Printer() << "[EPIBT] time: " << timer << '\n';);
     } else if (get_planner_type() == PlannerType::EPIBT_LNS) {
         EPIBT_LNS pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve(42);
         actions = pibt.get_actions();
+        PRINT(Printer() << "[EPIBT_LNS] time: " << timer << '\n';);
     } else if (get_planner_type() == PlannerType::PEPIBT_LNS) {
         PEPIBT_LNS pibt(get_robots_handler().get_robots(), end_time);
         pibt.solve(42);
         actions = pibt.get_actions();
+        PRINT(Printer() << "[PEPIBT_LNS] time: " << timer << '\n';);
     } else {
         FAILED_ASSERT("unexpected type");
     }

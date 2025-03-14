@@ -25,22 +25,10 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     ETimer timer;
     PRINT(
             Printer() << "\n";
-            Printer() << "Timestep: " << env->curr_timestep << '\n';);
-
-    //if (get_map_type() != MapType::RANDOM) {
-    //    return;
-    //}
+            Printer() << "[Entry] Timestep: " << env->curr_timestep << '\n';);
 
     //call the task scheduler to assign tasks to agents
     scheduler->plan(time_limit, proposed_schedule);
-
-    PRINT(
-            uint32_t cnt = 0;
-            for (uint32_t r = 0; r < proposed_schedule.size(); r++) {
-                cnt += proposed_schedule[r] != -1;
-            } Printer()
-            << "Scheduler robots init: " << cnt << "/" << proposed_schedule.size() << " ("
-            << cnt * 100.0 / proposed_schedule.size() << "%)\n";);
 
     //then update the first unfinished errand/location of tasks for planner reference
     update_goal_locations(proposed_schedule);
@@ -48,7 +36,7 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
     //call the planner to compute the actions
     planner->plan(time_limit, plan);
 
-    PRINT(
+    /*PRINT(
             static std::array<uint64_t, 5> total_counts{};
             std::array<uint32_t, 5> counts{};
             for (uint32_t r = 0; r < plan.size(); r++) {
@@ -67,11 +55,11 @@ void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> 
             Printer() << "R: " << total_counts[1] << '\n';
             Printer() << "C: " << total_counts[2] << '\n';
             Printer() << "W: " << total_counts[3] << '\n';
-            Printer() << "N: " << total_counts[4] << '\n';);
+            Printer() << "N: " << total_counts[4] << '\n';);*/
 
     PRINT(
-            Printer() << "Entry time: " << timer << '\n';
-            Printer() << "Total time: " << total_timer << '\n';);
+            Printer() << "[Entry] step  time: " << timer << '\n';
+            Printer() << "[Entry] total time: " << total_timer << '\n';);
 }
 
 // Set the next goal locations for each agent based on the proposed schedule
