@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import matplotlib.colors
 
 
 def read(filename):
@@ -82,6 +83,10 @@ def build2(directory):
         plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
 
 
+good_cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [(0, '#008064'), (.1, "#FFFF64"), (0.5, "#FF6464"),
+                                                                     (1, "#960064")])
+
+
 def paint_one(data, mn, mx, to_file):
     fig, axes = plt.subplots(1, 1, figsize=(10, 10))
     images = []
@@ -90,13 +95,13 @@ def paint_one(data, mn, mx, to_file):
     map = np.array(data[dir][act])  # матрица
     ax = axes
 
-    mask = map == -1  # маска со специальным значением
+    images.append(ax.imshow(map, cmap=good_cmap))
 
-    images.append(ax.imshow(map, cmap='summer'))
-
-    red_mask = np.zeros((*map.shape, 4))  # Создаем массив RGBA
-    red_mask[mask] = [0, 0, 0, 1]  # Устанавливаем красный цвет (R=1, G=0, B=0, A=1)
-    ax.imshow(red_mask)
+    if True:
+        mask = map == -1
+        red_mask = np.zeros((*map.shape, 4))
+        red_mask[mask] = [0, 0, 0, 1]
+        ax.imshow(red_mask)
 
     ax.set_title(dirs[dir] + " & " + acts[act])
     ax.axis('off')
@@ -115,18 +120,19 @@ def paint_all(data, mn, mx, to_file):
         act = i % 5
         map = np.array(data[dir][act])  # матрица
         ax = axes[dir][act]
-        mask = map == -1  # маска со специальным значением
 
-        images.append(ax.imshow(map, cmap='summer'))  # , vmin=mn, vmax=mx))
+        images.append(ax.imshow(map, cmap=good_cmap, vmin=mn, vmax=mx))
 
-        red_mask = np.zeros((*map.shape, 4))  # Создаем массив RGBA
-        red_mask[mask] = [0, 0, 0, 1]  # Устанавливаем красный цвет (R=1, G=0, B=0, A=1)
-        ax.imshow(red_mask)
+        if True:
+            mask = map == -1
+            red_mask = np.zeros((*map.shape, 4))
+            red_mask[mask] = [0, 0, 0, 1]
+            ax.imshow(red_mask)
 
         ax.set_title(dirs[dir] + " & " + acts[act])
         ax.axis('off')
 
-        fig.colorbar(images[-1], ax=ax)
+    fig.colorbar(images[-1], ax=axes)
 
     plt.savefig(to_file, format='pdf', dpi=800)
     # plt.show()
@@ -139,9 +145,9 @@ if __name__ == '__main__':
     to_file_one = sys.argv[2]
     to_file_all = sys.argv[3]
 
-    print(from_file)
-    print(to_file_one)
-    print(to_file_all)
+    # print(from_file)
+    # print(to_file_one)
+    # print(to_file_all)
 
     data, mn, mx = read(from_file)
 
