@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
 
 def read(filename):
@@ -26,9 +27,8 @@ def read(filename):
                         # if map[pos] == 0:
                         #    map[pos] = -100
                         data[-1].append(int(map[pos]))
-                        if dir != 4 and act != 4:
-                            mn = min(mn, map[pos])
-                            mx = max(mx, map[pos])
+                        mn = min(mn, map[pos])
+                        mx = max(mx, map[pos])
 
                 result[-1].append(data)
 
@@ -82,37 +82,45 @@ def build2(directory):
         plt.savefig(dirs[dir] + "_" + acts[act] + ".svg", format='svg', dpi=1200)
 
 
-def paint_one(data, mn, mx):
+def paint_one(data, mn, mx, to_file):
     fig, axes = plt.subplots(1, 1, figsize=(10, 10))
     images = []
     dir = 4
     act = 4
-    map = data[dir][act]
+    map = np.array(data[dir][act])  # матрица
     ax = axes
-    # print(dir, act, map)
-    images.append(ax.imshow(map, cmap='viridis'))  # , vmin=mn, vmax=mx))
+
+    mask = map == -1  # маска со специальным значением
+
+    images.append(ax.imshow(map, cmap='summer'))
+
+    red_mask = np.zeros((*map.shape, 4))  # Создаем массив RGBA
+    red_mask[mask] = [0, 0, 0, 1]  # Устанавливаем красный цвет (R=1, G=0, B=0, A=1)
+    ax.imshow(red_mask)
+
     ax.set_title(dirs[dir] + " & " + acts[act])
     ax.axis('off')
+
     fig.colorbar(images[-1], ax=ax)
 
     # plt.plot(np.where(map == -500, map, None), color="red", label="1")
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    # plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
-    plt.show()
+    plt.savefig(to_file, format='svg', dpi=1200)
+    # plt.show()
 
 
-def paint_all(data, mn, mx):
+def paint_all(data, mn, mx, to_file):
     fig, axes = plt.subplots(5, 5, figsize=(10, 10))
     images = []
     for i in range(25):
         dir = i // 5
         act = i % 5
-        map = np.array(data[dir][act]) # матрица
+        map = np.array(data[dir][act])  # матрица
         ax = axes[dir][act]
-        mask = map == -1 # маска со специальным значением
+        mask = map == -1  # маска со специальным значением
 
-        images.append(ax.imshow(map, cmap='summer', vmin=mn, vmax=mx))
+        images.append(ax.imshow(map, cmap='summer'))  # , vmin=mn, vmax=mx))
 
         red_mask = np.zeros((*map.shape, 4))  # Создаем массив RGBA
         red_mask[mask] = [0, 0, 0, 1]  # Устанавливаем красный цвет (R=1, G=0, B=0, A=1)
@@ -126,16 +134,26 @@ def paint_all(data, mn, mx):
         # plt.imshow(np.where(map == -100, map, None), color="red", label="1")
 
     # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    # plt.savefig("../../Tmp/usage.svg", format='svg', dpi=1200)
-    plt.show()
+    plt.savefig(to_file, format='svg', dpi=1200)
+    # plt.show()
 
 
 if __name__ == '__main__':
     # build("../../r/20/")
 
-    data, mn, mx = read('../../Tmp/usage0.txt')
+    assert len(sys.argv) == 4, "invalid arguments"
+
+    from_file = sys.argv[1]
+    to_file_one = sys.argv[2]
+    to_file_all = sys.argv[3]
+
+    print(from_file)
+    print(to_file_one)
+    print(to_file_all)
+
+    data, mn, mx = read(from_file)
 
     # build2("../../")
 
-    paint_all(data, mn, mx)
-    # paint_one(data, mn, mx)
+    paint_all(data, mn, mx, to_file_all)
+    paint_one(data, mn, mx, to_file_one)
