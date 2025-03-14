@@ -103,10 +103,7 @@ def paint_one(data, mn, mx, to_file):
 
     fig.colorbar(images[-1], ax=ax)
 
-    # plt.plot(np.where(map == -500, map, None), color="red", label="1")
-
-    # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    plt.savefig(to_file, format='svg', dpi=1200)
+    plt.savefig(to_file, format='pdf', dpi=800)
     # plt.show()
 
 
@@ -131,16 +128,11 @@ def paint_all(data, mn, mx, to_file):
 
         fig.colorbar(images[-1], ax=ax)
 
-        # plt.imshow(np.where(map == -100, map, None), color="red", label="1")
-
-    # fig.colorbar(images[-1], ax=axes.ravel().tolist())
-    plt.savefig(to_file, format='svg', dpi=1200)
+    plt.savefig(to_file, format='pdf', dpi=800)
     # plt.show()
 
 
 if __name__ == '__main__':
-    # build("../../r/20/")
-
     assert len(sys.argv) == 4, "invalid arguments"
 
     from_file = sys.argv[1]
@@ -152,8 +144,6 @@ if __name__ == '__main__':
     print(to_file_all)
 
     data, mn, mx = read(from_file)
-
-    # build2("../../")
 
     paint_all(data, mn, mx, to_file_all)
     paint_one(data, mn, mx, to_file_one)
