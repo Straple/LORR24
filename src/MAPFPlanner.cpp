@@ -45,7 +45,7 @@ void MAPFPlanner::plan(int time_limit, vector<Action> &actions) {
         actions = pibt.get_actions();
         PRINT(Printer() << "[PIBT] time: " << timer << '\n';);
     } else if (get_planner_type() == PlannerType::PIBT_TF) {
-        int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
+        int limit = time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - 50;
         DefaultPlanner::plan(limit, actions, env);
         PRINT(Printer() << "[PIBT_TF] time: " << timer << '\n';);
     } else if (get_planner_type() == PlannerType::EPIBT) {

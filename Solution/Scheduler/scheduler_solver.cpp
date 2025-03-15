@@ -95,9 +95,6 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
         return false;
     }
 
-    //auto old_desires = desires;
-    //auto old_task_to_robot = task_to_robot;
-
     uint32_t old_t = desires[r];
     uint32_t other_r = task_to_robot[t];
     ASSERT(r != other_r, "invalid other_r");
@@ -131,9 +128,6 @@ bool SchedulerSolver::try_peek_task(Randomizer &rnd) {
             }
         }
         validate();
-
-        //ASSERT(desires == old_desires, "invalid desires");
-        //ASSERT(task_to_robot == old_task_to_robot, "invalid task_to_robot");
     });
 }
 
@@ -150,8 +144,8 @@ void SchedulerSolver::validate() {
 
 SchedulerSolver::SchedulerSolver(SharedEnvironment *env)
     : env(env), desires(env->num_of_agents, -1), task_to_robot(1'000'000, -1), dp(10'000, std::vector<std::pair<uint32_t, uint32_t>>(15'000)) {
-    for (uint32_t r = 0; r < dp.size(); r++) {
-        dp[r].clear();
+    for (auto &vec: dp) {
+        vec.clear();
     }
 }
 
@@ -159,7 +153,6 @@ void SchedulerSolver::update() {
     desires.resize(env->num_of_agents, -1);
     timestep_updated.resize(desires.size());
     dp.resize(desires.size());
-    phantom_agent_dist.assign(desires.size(), 0);
 
     free_robots.clear();
     free_tasks.clear();
@@ -230,7 +223,6 @@ void SchedulerSolver::update() {
     for (uint32_t r: free_robots) {
         desires[r] = -1;
         cur_score += get_dist(r, desires[r]);
-        cur_score += phantom_agent_dist[r];
     }
     validate();
 
@@ -250,7 +242,7 @@ void SchedulerSolver::lazy_solve(TimePoint end_time) {
     std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
     for (uint32_t r: free_robots) {
         if (!dp[r].empty()) {
-            Heap.push({dp[r][0].first + phantom_agent_dist[r], r, 0});
+            Heap.push({dp[r][0].first, r, 0});
         }
     }
 
@@ -275,13 +267,13 @@ void SchedulerSolver::lazy_solve(TimePoint end_time) {
         Heap.pop();
 
         uint32_t task_id = dp[r][index].second;
-        ASSERT(dist == dp[r][index].first + phantom_agent_dist[r], "invalid dist");
+        ASSERT(dist == dp[r][index].first, "invalid dist");
 
         if (!validate_task(task_id)) {
             index++;
 
             if (index < dp[r].size()) {
-                Heap.push({dp[r][index].first + phantom_agent_dist[r], r, index});
+                Heap.push({dp[r][index].first, r, index});
             }
 
             continue;
@@ -330,11 +322,7 @@ void SchedulerSolver::lns_solve(TimePoint end_time) {
 std::vector<int> SchedulerSolver::get_schedule() const {
     std::vector<int> result(desires.size());
     for (uint32_t r = 0; r < desires.size(); r++) {
-        if (phantom_agent_dist[r]) {
-            result[r] = env->curr_task_schedule[r];
-        } else {
-            result[r] = static_cast<int>(desires[r]);
-        }
+        result[r] = static_cast<int>(desires[r]);
     }
     return result;
 }

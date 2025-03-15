@@ -4,7 +4,7 @@
 #include <Objects/Basic/position.hpp>
 #include <Objects/Environment/map.hpp>
 
-#include <../inc/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
