@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
 
 enum class MapType {
     RANDOM,

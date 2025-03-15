@@ -77,17 +77,13 @@ HeuristicMatrix::HeuristicMatrix(const Graph &graph) {
         threads[thr].join();
     }
 
-    PRINT(Printer() << "HM init: " << timer << '\n';);
+    PRINT(Printer() << "[HM] build: " << timer << '\n';);
 }
 
 uint32_t HeuristicMatrix::get(uint32_t source, uint32_t target) const {
-    if (!target) {
-        return INVALID_DIST;
-    }
-    ASSERT(0 < target && target < get_map().get_size(), "invalid dest");
-    ASSERT(target < matrix.size(), "invalid target");
-    ASSERT(source < matrix[target].size(), "invalid source");
-
+    ASSERT(get_map().get_size() == matrix.size(), "unmatch sizes");
+    ASSERT(target && target < matrix.size(), "invalid target");
+    ASSERT(source && source < matrix[target].size(), "invalid source");
     return matrix[target][source];
 }
 

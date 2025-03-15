@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SharedEnv.h>
+
+#include <cstdint>
 #include <vector>
 
 // Contains information about map:
@@ -10,16 +12,14 @@ class Map {
     uint32_t rows = 0;
     uint32_t cols = 0;
 
-    std::vector<bool> map;
-
     uint32_t cnt_free = 0;
+
+    std::vector<bool> map;
 
 public:
     Map() = default;
 
     explicit Map(const SharedEnvironment &env);
-
-    Map(const std::vector<bool> &mp, size_t cols, size_t rows);
 
     [[nodiscard]] uint32_t get_rows() const;
 

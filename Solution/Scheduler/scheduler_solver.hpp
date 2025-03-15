@@ -79,11 +79,11 @@ public:
 
     void rebuild_dp(TimePoint end_time);
 
-    void triv_solve(TimePoint end_time);
+    void lazy_solve(TimePoint end_time);
 
-    void solve(TimePoint end_time);
+    void lns_solve(TimePoint end_time);
 
-    [[nodiscard]] std::vector<int> get_schedule(TimePoint end_time) const;
+    [[nodiscard]] std::vector<int> get_schedule() const;
 
     [[nodiscard]] double get_score() const;
 };

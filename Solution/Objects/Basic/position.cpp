@@ -69,7 +69,7 @@ Position Position::rotate() const {
 
 Position Position::counter_rotate() const {
     Position p = *this;
-    p.dir = (p.dir - 1 + 4) % 4;
+    p.dir = (p.dir + 3) % 4;
     ASSERT(0 <= p.dir && p.dir < 4, "invalid position dir");
     return p;
 }

@@ -33,152 +33,24 @@ int get_dist(uint32_t r, uint32_t t, SharedEnvironment *env) {
     return dist;
 }
 
-const int INF = 1000000;
-
 void MyScheduler::solver_schedule(TimePoint end_time, std::vector<int> &proposed_schedule) {
     solver.update();
-#ifndef ENABLE_TRIVIAL_SCHEDULER
     solver.rebuild_dp(std::min(end_time, get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME)));
-#endif
-    solver.triv_solve(std::min(end_time, get_now() + Milliseconds(SCHEDULER_TRIV_SOLVE_TIME)));
-    solver.solve(std::min(end_time, get_now() + Milliseconds(SCHEDULER_LNS_TIME)));
-    proposed_schedule = solver.get_schedule(end_time);
-}
-
-void MyScheduler::greedy_schedule(int time_limit, std::vector<int> &proposed_schedule) {
-    static uint32_t launch_num = 0;
-    launch_num++;
-
-    ETimer timer;
-
-    TimePoint end_time = get_now() + std::chrono::milliseconds(time_limit);
-
-    std::vector<uint32_t> free_robots, free_tasks;
-    for (uint32_t r = 0; r < env->num_of_agents; r++) {
-        uint32_t t = env->curr_task_schedule[r];
-        if (t == -1) {
-            free_robots.push_back(r);
-        }
-    }
-    for (auto &[t, task]: env->task_pool) {
-        if (task.agent_assigned == -1) {
-            free_tasks.push_back(t);
-        }
-    }
-
-    if (free_robots.empty() || free_tasks.empty()) {
-        return;
-    }
-
-    // dp[r] = отсортированный вектор (dist, task_id)
-    static std::vector<std::vector<std::pair<uint32_t, uint32_t>>> dp(env->num_of_agents);
-
-    // для свободного робота будем поддерживать расстояния от него до всех задач
-    // и будем постепенно обновлять это множество
-
-    static std::vector<int> timestep_updated(free_robots.size(), -1);
-
-    // обновляет множество расстояний
-    auto rebuild = [&](uint32_t r) {
-        dp[r].clear();
-
-        for (uint32_t t: free_tasks) {
-            dp[r].emplace_back(get_dist(r, t, env), t);
-        }
-        std::sort(dp[r].begin(), dp[r].end());
-        timestep_updated[r] = env->curr_timestep;
-    };
-
-    std::vector<uint32_t> order = free_robots;
-    std::stable_sort(order.begin(), order.end(), [&](uint32_t lhs, uint32_t rhs) {
-        return timestep_updated[lhs] < timestep_updated[rhs];
-    });
-
-    {
-        auto do_work = [&](uint32_t thr) {
-            for (uint32_t i = thr; i < order.size(); i += THREADS) {
-                if (get_now() >= end_time) {
-                    break;
-                }
-                rebuild(order[i]);
-            }
-        };
-
-        std::vector<std::thread> threads(THREADS);
-        for (uint32_t thr = 0; thr < THREADS; thr++) {
-            threads[thr] = std::thread(do_work, thr);
-        }
-        for (uint32_t thr = 0; thr < THREADS; thr++) {
-            threads[thr].join();
-        }
-    }
-
-    PRINT(
-            Printer() << "free robots: " << free_robots.size() << '\n';
-            Printer() << "free tasks: " << free_tasks.size() << '\n';);
-
-    double workload = env->num_of_agents * 1.0 / get_map().get_count_free();
-    uint32_t done_weight = 5;
-    if (workload > 0.4) {
-        done_weight = 1;
-    }
-
-    {
-        static std::vector<uint32_t> used_task_t(500'000);// max task available
-
-        // (dist, r, index)
-        std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
-        for (uint32_t r: free_robots) {
-            if (!dp[r].empty()) {
-                Heap.push({dp[r][0].first, r, 0});
-            }
-        }
-
-        while (!Heap.empty()) {
-            auto [dist, r, index] = Heap.top();
-            Heap.pop();
-
-            uint32_t task_id = dp[r][index].second;
-            ASSERT(dist == dp[r][index].first, "invalid dist");
-
-            // not used in this timestep
-            if (used_task_t[task_id] == launch_num
-                // this task is available
-                || !env->task_pool.count(task_id)
-                // robot already used this task
-                || env->task_pool[task_id].agent_assigned != -1) {
-
-                if (index + 1 < dp[r].size()) {
-                    Heap.push({dp[r][index + 1].first, r, index + 1});
-                }
-
-                continue;
-            }
-
-            ASSERT(env->task_pool.count(task_id), "no contains");
-            ASSERT(env->task_pool[task_id].agent_assigned == -1, "already assigned");
-            ASSERT(used_task_t[task_id] < launch_num, "already used");
-
-            proposed_schedule[r] = task_id;
-            used_task_t[task_id] = launch_num;
-        }
-    }
+    solver.lazy_solve(std::min(end_time, get_now() + Milliseconds(SCHEDULER_LAZY_SOLVE_TIME)));
+    solver.lns_solve(std::min(end_time, get_now() + Milliseconds(SCHEDULER_LNS_SOLVE_TIME)));
+    proposed_schedule = solver.get_schedule();
 }
 
 int calc_full_distance(Task &task) {
-    /*if (task.full_distance != -1){
-        return;
-    }*/
     auto &hm = get_hm();
     int dist_sum = 0;
     for (size_t i = 0; i + 1 < task.locations.size(); ++i) {
         uint32_t from = task.locations[i] + 1;
         uint32_t to = task.locations[i + 1] + 1;
-        ASSERT(false, "from must be graph node (INCORRECT), to must be map node (CORRECT)");
+        FAILED_ASSERT("from must be graph node (INCORRECT), to must be map node (CORRECT)");
         dist_sum += hm.get(from, to);
     }
     return dist_sum;
-    //task.full_distance = dist_sum;
 }
 
 std::vector<int> MyScheduler::artem_schedule(int time_limit, std::vector<int> &schedule) {

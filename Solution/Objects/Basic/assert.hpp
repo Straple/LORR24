@@ -1,11 +1,8 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 
 #include <settings.hpp>
-
-#define FILENAME ((__FILE__) + ":" + std::to_string(__LINE__))
 
 bool my_assert_failed(const std::string &message, const std::string &filename, const int line);
 

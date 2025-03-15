@@ -57,7 +57,7 @@ void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
             Printer() << "[Dummy Scheduler] assigned robots: " << p << "%" << (p != 100 ? "bad\n" : "\n");
             Printer() << "[Dummy Scheduler] time: " << timer << '\n';);
 #else
-    TimePoint end_time = std::min(env->plan_start_time + Milliseconds(time_limit - 10), get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_TRIV_SOLVE_TIME + SCHEDULER_LNS_TIME + SCHEDULER_TRICK_TIME));
+    TimePoint end_time = std::min(env->plan_start_time + Milliseconds(time_limit - 10), get_now() + Milliseconds(SCHEDULER_REBUILD_DP_TIME + SCHEDULER_LAZY_SOLVE_TIME + SCHEDULER_LNS_SOLVE_TIME));
     update_environment(*env);
     my_scheduler.plan(end_time, proposed_schedule);
 

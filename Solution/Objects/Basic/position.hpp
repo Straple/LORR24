@@ -1,6 +1,8 @@
 #pragma once
 
-#include "ActionModel.h"
+#include <ActionModel.h>
+
+#include <cstdint>
 
 class Position {
     uint16_t x = 0, y = 0;

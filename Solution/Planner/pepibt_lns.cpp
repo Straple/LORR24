@@ -45,10 +45,9 @@ void PEPIBT_LNS::solve(uint64_t seed) {
         return std::get<0>(lhs) > std::get<0>(rhs);
     });
 
-    PRINT(Printer() << "RESULTS(" << results.size() << "): ";);
-
+    PRINT(Printer() << "[PEPIBT_LNS] results: ";);
     for (const auto &[score, plan, time, steps]: results) {
-        PRINT(Printer() << "(" << score << ", " << time << ", " << steps << ") ";);
+        PRINT(Printer() << "(" << score << ", " << time << ", " << std::min(steps, (int) plan.size()) << "+" << std::max(0, steps - (int) plan.size()) << ") ";);
         if (best_score < score) {
             best_score = score;
             actions = plan;

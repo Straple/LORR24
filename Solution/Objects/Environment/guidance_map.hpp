@@ -1,13 +1,12 @@
 #pragma once
 
-#include <Objects/Environment/map.hpp>
-#include <Objects/Environment/info.hpp>
-
-#include <settings.hpp>
-
+#include <string>
 #include <vector>
 
-#include <SharedEnv.h>
+#include <Objects/Environment/info.hpp>
+#include <Objects/Environment/map.hpp>
+
+#include <settings.hpp>
 
 class GuidanceMap {
     // map[x][y]:

@@ -70,10 +70,12 @@ uint32_t Graph::get_edges_size() const {
 }
 
 uint32_t Graph::get_zip(uint32_t pos) const {
+    ASSERT(0 <= pos && pos < pos_to_zip.size(), "invalid pos");
     return pos_to_zip[pos];
 }
 
 uint32_t Graph::get_pos_from_zip(uint32_t zip) const {
+    ASSERT(0 <= zip && zip < zip_to_pos.size(), "invalid zip");
     return zip_to_pos[zip];
 }
 

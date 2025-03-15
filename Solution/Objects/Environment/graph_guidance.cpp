@@ -2,8 +2,6 @@
 
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Basic/position.hpp>
-//#include <Objects/Environment/graph.hpp>
-//#include <Objects/Environment/heuristic_matrix.hpp>
 
 constexpr uint32_t PENALTY_WEIGHT = 200;
 constexpr uint32_t OK_WEIGHT = 20;
@@ -11,7 +9,7 @@ constexpr uint32_t OK_WEIGHT = 20;
 void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
     for (int32_t x = x0; x <= x1; x++) {
         for (int32_t y = y0; y <= y1; y++) {
-            int32_t pos = x * cols + y + 1;
+            int32_t pos = x * static_cast<int32_t>(cols) + y + 1;
             ASSERT(0 < pos && pos < graph.size(), "invalid pos");
             ASSERT(dir < 4, "invalid dir");
             ASSERT(action < 4, "invalid action");
@@ -23,7 +21,7 @@ void GraphGuidance::set(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t
 void GraphGuidance::add(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t dir, uint32_t action, uint32_t value) {
     for (int32_t x = x0; x <= x1; x++) {
         for (int32_t y = y0; y <= y1; y++) {
-            int32_t pos = x * cols + y + 1;
+            int32_t pos = x * static_cast<int32_t>(cols) + y + 1;
             ASSERT(0 < pos && pos < graph.size(), "invalid pos");
             ASSERT(dir < 4, "invalid dir");
             ASSERT(action < 4, "invalid action");
@@ -147,18 +145,6 @@ void GraphGuidance::set_sortation() {
 
 void GraphGuidance::set_game() {
     set_grid();
-
-    // [KEK]
-    // увеличивает вес в узких проходах
-    // только чуток ухудшил
-    /*for (uint32_t dir = 0; dir < 4; dir++) {
-        add(80, 395, 100, 455, dir, 0, PENALTY_WEIGHT);
-        add(250, 450, 265, 500, dir, 0, PENALTY_WEIGHT);
-        add(226, 385, 240, 427, dir, 0, PENALTY_WEIGHT);
-        add(226, 300, 240, 330, dir, 0, PENALTY_WEIGHT);
-        add(80, 290, 100, 327, dir, 0, PENALTY_WEIGHT);
-        add(130, 195, 150, 243, dir, 0, PENALTY_WEIGHT);
-    }*/
 }
 
 void GraphGuidance::set_city() {
@@ -180,51 +166,6 @@ void GraphGuidance::set_walls() {
     }
 }
 
-void GraphGuidance::read(const std::string &filename) {
-    PRINT(Printer() << "GraphGuidance::read(\"" << filename << "\")\n";);
-    /*// the problem is we need to decide which direction?
-      if (ped-pst==1) {
-        // east
-        return (*map_weights)[pst*5+0];
-      } else if (ped-pst==ins->G.width) {
-        // south
-        return (*map_weights)[pst*5+1];
-      } else if (ped-pst==-1) {
-        // west
-        return (*map_weights)[pst*5+2];
-      } else if (ped-pst==-ins->G.width) {
-        // north
-        return (*map_weights)[pst*5+3];
-      } else if (ped-pst==0) {
-        // stay
-        return (*map_weights)[pst*5+4]; // means no move is needed.
-      }
-      else {
-        std::cout<<"invalid move: "<<pst<<" "<<ped<<endl;
-        exit(-1);
-      }*/
-
-    constexpr double MULT = 50;
-    nlohmann::json data = nlohmann::json::parse(std::ifstream(filename));
-    for (uint32_t x = 0; x < get_map().get_rows(); x++) {
-        for (uint32_t y = 0; y < get_map().get_cols(); y++) {
-            uint32_t pos = x * get_map().get_cols() + y;
-
-            double mn = 1000;
-            graph[pos + 1][0][0] = std::min(mn, static_cast<double>(data[pos * 5 + 0]) * MULT);
-            graph[pos + 1][1][0] = std::min(mn, static_cast<double>(data[pos * 5 + 1]) * MULT);
-            graph[pos + 1][2][0] = std::min(mn, static_cast<double>(data[pos * 5 + 2]) * MULT);
-            graph[pos + 1][3][0] = std::min(mn, static_cast<double>(data[pos * 5 + 3]) * MULT);
-
-            for (uint32_t dir = 0; dir < 4; dir++) {
-                graph[pos + 1][dir][1] = std::min(mn, static_cast<double>(data[pos * 5 + 4]) * MULT);
-                graph[pos + 1][dir][2] = std::min(mn, static_cast<double>(data[pos * 5 + 4]) * MULT);
-                graph[pos + 1][dir][3] = std::min(mn, static_cast<double>(data[pos * 5 + 4]) * MULT);
-            }
-        }
-    }
-}
-
 GraphGuidance::GraphGuidance(uint32_t rows, uint32_t cols) : rows(rows), cols(cols), graph(rows * cols + 1) {
 }
 
@@ -233,18 +174,15 @@ GraphGuidance::GraphGuidance(SharedEnvironment &env) : rows(env.rows), cols(env.
 
 #ifdef ENABLE_GG
     if (get_map_type() == MapType::WAREHOUSE) {
-        //read("scripts/warehouse_large_weight_008.w");
         set_warehouse();
     } else if (get_map_type() == MapType::SORTATION) {
-        //read("scripts/sortation_large_weight_008.w");
         set_sortation();
     } else if (get_map_type() == MapType::GAME) {
-        //read("scripts/brc202d_weight_002.w");
         set_game();
     } else if (get_map_type() == MapType::CITY) {
         set_city();
     } else if (get_map_type() == MapType::RANDOM) {
-        // set_grid();
+        FAILED_ASSERT("use guidance map");
     } else {
         FAILED_ASSERT("undefined map");
     }
@@ -286,7 +224,6 @@ GraphGuidance::GraphGuidance(const GuidanceMap &gmap)
             } else if (gmap.get(x, y) == '^') {
                 dir = 3;
             } else {
-                //FAILED_ASSERT("undefined desired");
 
                 graph[pos][dir][0] = w1;
                 graph[pos][dir][1] = w1;

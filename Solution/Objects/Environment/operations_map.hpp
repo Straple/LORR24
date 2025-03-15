@@ -16,8 +16,6 @@ class OperationsMap {
     // map_poses[node][operation] = poses path
     std::vector<std::vector<EPath>> map_poses;
 
-    static std::tuple<EPath, EPath, EPath> get_paths(uint32_t node, const Operation &operation);
-
     void build(uint32_t source, const std::vector<Operation> &operations);
 
 public:

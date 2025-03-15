@@ -239,7 +239,7 @@ void SchedulerSolver::update() {
             Printer() << "[Scheduler] free tasks: " << free_tasks.size() << '\n';);
 }
 
-void SchedulerSolver::triv_solve(TimePoint end_time) {
+void SchedulerSolver::lazy_solve(TimePoint end_time) {
     ETimer timer;
     for (uint32_t r: free_robots) {
         remove(r);
@@ -260,7 +260,8 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
             return false;
         }
         auto it = env->task_pool.find(task_id);
-        if (// this task is not available
+        if (
+                // this task is not available
                 it == env->task_pool.end() ||
                 // robot already used this task
                 it->second.agent_assigned != -1) {
@@ -310,8 +311,8 @@ void SchedulerSolver::triv_solve(TimePoint end_time) {
     PRINT(Printer() << "[Scheduler] lazy solve: " << timer << '\n';);
 }
 
-void SchedulerSolver::solve(TimePoint end_time) {
-    /*if (free_robots.empty() || free_tasks.empty()) {
+void SchedulerSolver::lns_solve(TimePoint end_time) {
+    if (free_robots.empty() || free_tasks.empty() || SCHEDULER_LNS_SOLVE_TIME == 0) {
         return;
     }
     static Randomizer rnd;
@@ -323,10 +324,10 @@ void SchedulerSolver::solve(TimePoint end_time) {
         try_peek_task(rnd);
         temp *= 0.999;
     }
-    PRINT(Printer() << "SchedulerSolver::solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() > 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer << '\n';);*/
+    PRINT(Printer() << "[Scheduler] lns solve: " << old_score << "->" << get_score() << " (" << (old_score - get_score() >= 0 ? "+" : "-") << (old_score - get_score()) / old_score * 100 << "%), " << step << ", " << timer << '\n';);
 }
 
-std::vector<int> SchedulerSolver::get_schedule(TimePoint end_time) const {
+std::vector<int> SchedulerSolver::get_schedule() const {
     std::vector<int> result(desires.size());
     for (uint32_t r = 0; r < desires.size(); r++) {
         if (phantom_agent_dist[r]) {

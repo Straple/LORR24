@@ -1,9 +1,6 @@
 #include <Objects/Environment/environment.hpp>
 
-#include <Scheduler/scheduler.hpp>
-#include <settings.hpp>
-
-#include <thread>
+#include <Objects/Basic/assert.hpp>
 
 void init_environment(SharedEnvironment &env) {
     static bool already_init = false;
@@ -30,16 +27,11 @@ void init_environment(SharedEnvironment &env) {
         }
     }
 
-    get_map() = Map(env);
     Printer().get() = std::ofstream("printer.txt");
+
+    get_map() = Map(env);
     get_guidance_map() = GuidanceMap(get_map_type(), get_map());
-
-    if (get_map_type() == MapType::RANDOM) {
-        get_gg() = GraphGuidance(get_guidance_map());
-    } else {
-        get_gg() = GraphGuidance(env);
-    }
-
+    get_gg() = (get_map_type() == MapType::RANDOM ? GraphGuidance(get_guidance_map()) : GraphGuidance(env));
     get_graph() = Graph(get_map(), get_gg());
     get_hm() = HeuristicMatrix(get_graph());
     init_operations();
@@ -72,9 +64,6 @@ void update_environment(SharedEnvironment &env) {
     if (prev_timestep_updated == -1) {
         get_robots_handler() = RobotsHandler(env.num_of_agents);
     }
-    get_robots_handler().update(env);
-    if (prev_timestep_updated == env.curr_timestep) {
-        return;
-    }
     prev_timestep_updated = env.curr_timestep;
+    get_robots_handler().update(env);
 }

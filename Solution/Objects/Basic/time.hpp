@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Objects/Basic/assert.hpp>
-
 #include <chrono>
 #include <iostream>
 

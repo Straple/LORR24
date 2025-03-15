@@ -1,13 +1,13 @@
 #pragma once
 
+#include <Objects/Environment/guidance_map.hpp>
+
+#include <SharedEnv.h>
+
 #include <array>
 #include <cstdint>
 #include <iostream>
 #include <vector>
-
-#include <SharedEnv.h>
-
-#include <Objects/Environment/guidance_map.hpp>
 
 class GraphGuidance {
     // weight[pos][dir][action]
@@ -33,8 +33,6 @@ class GraphGuidance {
     void set_city();
 
     void set_walls();
-
-    void read(const std::string& filename);
 
 public:
 

@@ -2,7 +2,7 @@
 
 #include <Objects/Basic/assert.hpp>
 
-std::tuple<EPath, EPath, EPath> OperationsMap::get_paths(uint32_t node, const Operation &operation) {
+std::tuple<EPath, EPath, EPath> get_paths(uint32_t node, const Operation &operation) {
     if (!node) {
         return {EPath{}, EPath{}, EPath{}};
     }

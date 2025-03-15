@@ -1,7 +1,6 @@
-#include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/map.hpp>
-#include <cstddef>
-#include <vector>
+
+#include <Objects/Basic/assert.hpp>
 
 Map::Map(const SharedEnvironment &env) : rows(env.rows), cols(env.cols) {
     ASSERT(get_size() == env.map.size() + 1, "size mismatch");
@@ -14,12 +13,6 @@ Map::Map(const SharedEnvironment &env) : rows(env.rows), cols(env.cols) {
         }
     }
 }
-
-Map::Map(const std::vector<bool> &mp, size_t cols, size_t rows) : rows(rows), cols(cols), map(mp) {
-    map.resize(rows * cols);
-    ASSERT(false, "incorrect logic");
-}
-
 
 uint32_t Map::get_rows() const {
     return rows;

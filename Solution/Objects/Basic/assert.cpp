@@ -1,6 +1,6 @@
 #include "assert.hpp"
 
-#include <cstdlib>
+#include <iostream>
 
 bool my_assert_failed(const std::string &message, const std::string &filename, const int line) {
     std::cerr.flush();

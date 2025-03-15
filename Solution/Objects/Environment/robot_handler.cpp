@@ -3,7 +3,6 @@
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/graph.hpp>
 #include <Objects/Environment/heuristic_matrix.hpp>
-#include <Objects/Environment/info.hpp>
 
 bool Robot::is_disable() const {
     ASSERT((priority == -1) == !target, "invalid disable");
@@ -37,11 +36,8 @@ void RobotsHandler::update(const SharedEnvironment &env) {
         auto &task = env.task_pool.at(task_id);
         uint32_t target = task.locations[task.idx_next_loc] + 1;
 
-        ASSERT(0 <= target && target < get_map().get_size(), "invalid target");
+        ASSERT(target && target < get_map().get_size(), "invalid target");
         ASSERT(Position(target, 0).is_valid(), "invalid");
-        ASSERT(Position(target, 1).is_valid(), "invalid");
-        ASSERT(Position(target, 2).is_valid(), "invalid");
-        ASSERT(Position(target, 3).is_valid(), "invalid");
 
         uint32_t task_dist = 0;
         {
