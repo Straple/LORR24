@@ -11,7 +11,7 @@ using json = nlohmann::json;
 std::ofstream table_output("Tmp/table.csv");
 
 // (throughput, milliseconds per steps)
-std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_t test_id) {
+std::pair<double, uint32_t> call(const std::string &test, int steps_num, const std::string &plan_algo, uint32_t test_id) {
     std::cout << "call(" + std::to_string(test_id) + "): " << std::flush;
     ETimer timer;
 
@@ -19,9 +19,17 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_
         // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
         //std::system("mkdir Tmp");
         int ret_code = std::system(
-                ("./cmake-build-release-wsl/lifelong -i " + test + " -o Tmp/test" + std::to_string(test_id) +
-                 ".json -s " + std::to_string(steps_num) + " -t 130 -p 1000000000 -u " + std::to_string(test_id) +
-                 " > Tmp/output" + std::to_string(test_id) + ".txt")
+                ("./cmake-build-release-wsl/lifelong"//
+                 " -i " +
+                 test +                                              //
+                 " -o Tmp/test" + std::to_string(test_id) + ".json" +//
+                 " -s " + std::to_string(steps_num) +                //
+                 " -t 130 " +                                        //
+                 " -p 1000000000" +                                  //
+                 " -u " + std::to_string(test_id) +                  //
+                 " --planner_algo " + plan_algo +                    //
+                 " > Tmp/output" + std::to_string(test_id) + ".txt"  //
+                 )
                         .c_str());
 
         ASSERT(ret_code == 0, "invalid ret code");
@@ -42,8 +50,20 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, uint32_
         avg_step_time = static_cast<uint32_t>(std::accumulate(times.begin(), times.end(), 0.0) * 1000 / steps_num);
         agents_num = data["teamSize"];
 
-        std::cout << task_finished << ", " << throughput << ", " << avg_step_time << ", " << timer;
-        table_output << agents_num << "," << steps_num << "," << task_finished << "," << throughput << "," << avg_step_time << "," << timer.get_ms() << std::endl;
+        auto kek = [&](double x) {
+            std::stringstream ss;
+            ss << x;
+            std::string str = ss.str();
+            for (char &c: str) {
+                if (c == '.') {
+                    c = ',';
+                }
+            }
+            return str;
+        };
+
+        std::cout << task_finished << ", " << timer;
+        table_output << test_id << ";" << plan_algo << ";" << agents_num << ";" << steps_num << ";" << task_finished << ";" << kek(throughput) << ";" << avg_step_time << ";" << timer.get_ms() << std::endl;
 
         if (data["numEntryTimeouts"] != 0) {
             std::cout << " ENTRY TIMEOUT";
@@ -93,8 +113,19 @@ std::vector<std::tuple<std::string, int>> tests = {
 };
 
 int main() {
-    table_output << "agents num,steps num,num task finished,throughput,avg step time,total time\n";
-    for (uint32_t i = 0; i < tests.size(); i++) {
-        call(std::get<0>(tests[i]), std::get<1>(tests[i]), i);
+    table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;total time\n";
+    uint32_t counter = 0;
+    std::vector<std::string> plan_algos = {
+            "pibt",
+            "pibt_tf",
+            "epibt",
+            "epibt_lns",
+            "pepibt_lns",
+    };
+    for (auto [test, steps_num]: tests) {
+        for (const auto &plan_algo: plan_algos) {
+            call(test, steps_num, plan_algo, counter);
+            counter++;
+        }
     }
 }

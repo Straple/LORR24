@@ -8,6 +8,7 @@
 #include <memory>
 #include <signal.h>
 
+#include <Objects/Environment/info.hpp>
 #include <Tools/tools.hpp>
 #include <settings.hpp>
 
@@ -42,35 +43,43 @@ int main(int argc, char **argv) {
 #endif
     // Declare the supported options.
     po::options_description desc("Allowed options");
-    desc.add_options()("help",
-                       "produce help message")                                                                                                                                                                                        //
-            ("unique_id,u", po::value<uint32_t>()->default_value(0),
-             "my unique id for unique launch")                                                                                                                                        //
-            ("inputFile,i", po::value<std::string>()->required(),
-             "input file name")                                                                                                                                                          //
-            ("output,o", po::value<std::string>()->default_value("./output.json"),
-             "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")                                   //
-            ("outputScreen,c", po::value<int>()->default_value(1),
-             "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")//
-            ("evaluationMode,m", po::value<bool>()->default_value(false),
-             "evaluate an existing output file")                                                                                                                                 //
-            ("simulationTime,s", po::value<int>()->default_value(5000),
-             "run simulation")                                                                                                                                                     //
-            ("fileStoragePath,f", po::value<std::string>()->default_value(""),
-             "the large file storage path")                                                                                                                                 //
-            ("planTimeLimit,t", po::value<int>()->default_value(1000),
-             "the time limit for planner in milliseconds")                                                                                                                          //
-            ("preprocessTimeLimit,p", po::value<int>()->default_value(30000),
-             "the time limit for preprocessing in milliseconds")                                                                                                             //
-            ("logFile,l", po::value<std::string>()->default_value(""),
-             "redirect stdout messages into the specified log file")                                                                                                                //
-            ("logDetailLevel,d", po::value<int>()->default_value(1),
-             "the minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only");
+    desc.add_options()("help", "produce help message")                                                                                                                                                                                        //
+            ("unique_id,u", po::value<uint32_t>()->default_value(0), "my unique id for unique launch")                                                                                                                                        //
+            ("planner_algo", po::value<string>()->required(), "planner algo")                                                                                                                                                              //
+            ("inputFile,i", po::value<std::string>()->required(), "input file name")                                                                                                                                                          //
+            ("output,o", po::value<std::string>()->default_value("./output.json"), "output results from the evaluation into a JSON formated file. If no file specified, the default name is 'output.json'")                                   //
+            ("outputScreen,c", po::value<int>()->default_value(1), "the level of details in the output file, 1--showing all the output, 2--ignore the events and tasks, 3--ignore the events, tasks, errors, planner times, starts and paths")//
+            ("evaluationMode,m", po::value<bool>()->default_value(false), "evaluate an existing output file")                                                                                                                                 //
+            ("simulationTime,s", po::value<int>()->default_value(5000), "run simulation")                                                                                                                                                     //
+            ("fileStoragePath,f", po::value<std::string>()->default_value(""), "the large file storage path")                                                                                                                                 //
+            ("planTimeLimit,t", po::value<int>()->default_value(1000), "the time limit for planner in milliseconds")                                                                                                                          //
+            ("preprocessTimeLimit,p", po::value<int>()->default_value(30000), "the time limit for preprocessing in milliseconds")                                                                                                             //
+            ("logFile,l", po::value<std::string>()->default_value(""), "redirect stdout messages into the specified log file")                                                                                                                //
+            ("logDetailLevel,d", po::value<int>()->default_value(1), "the minimum severity level of log messages to display, 1--showing all the messages, 2--showing warnings and fatal errors, 3--showing fatal errors only");
+
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
-    get_unique_id() = vm["unique_id"].as<uint32_t>();
-    PRINT(Printer() << "unique_id: " << get_unique_id() << '\n';);
+    {
+        get_unique_id() = vm["unique_id"].as<uint32_t>();
+        PRINT(Printer() << "unique_id: " << get_unique_id() << '\n';);
+
+        std::string plan_algo = vm["planner_algo"].as<std::string>();
+
+        if (plan_algo == "pibt") {
+            get_planner_type() = PlannerType::PIBT;
+        } else if (plan_algo == "pibt_tf") {
+            get_planner_type() = PlannerType::PIBT_TF;
+        } else if (plan_algo == "epibt") {
+            get_planner_type() = PlannerType::EPIBT;
+        } else if (plan_algo == "epibt_lns") {
+            get_planner_type() = PlannerType::EPIBT_LNS;
+        } else if (plan_algo == "pepibt_lns") {
+            get_planner_type() = PlannerType::PEPIBT_LNS;
+        } else {
+            FAILED_ASSERT("undefined planner type");
+        }
+    }
 
     if (vm.count("help")) {
         std::cout << desc << std::endl;
@@ -167,7 +176,6 @@ int main(int argc, char **argv) {
     signal(SIGINT, sigint_handler);
 
     system_ptr->simulate(vm["simulationTime"].as<int>());
-
 
     system_ptr->saveResults(vm["output"].as<std::string>(), vm["outputScreen"].as<int>());
 
