@@ -59,6 +59,15 @@ file(GLOB SOURCES
         Solution/Tools/tools.cpp
         Solution/Planner/*.cpp
         Solution/Scheduler/*.cpp
+
+        Solution2/src/*.cpp
+        Solution2/src/LaCAM2/*.cpp
+        Solution2/src/LaCAM2/SUO2/*.cpp
+        Solution2/src/LNS/*.cpp
+        Solution2/src/LNS/Parallel/*.cpp
+        Solution2/src/RHCR/interface/*.cpp
+        Solution2/src/RHCR/main/*.cpp
+        Solution2/src/util/*.cpp
         )
 
 include_directories("inc")
@@ -75,10 +84,10 @@ include_directories("Solution2/src")
 ADD_DEFINITIONS(-DNDEBUG)
 
 # Find Boost
-#ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
-SET(Boost_USE_STATIC_LIBS ON)
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
+#SET(Boost_USE_STATIC_LIBS ON)
 # iostreams
-find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup)
+find_package(Boost 1.49.0 REQUIRED COMPONENTS program_options system filesystem log log_setup iostreams)
 
 include_directories(${Boost_INCLUDE_DIRS})
 

@@ -20,6 +20,7 @@ enum class PlannerType {
     EPIBT,     // epibt
     EPIBT_LNS, // epibt + lns
     PEPIBT_LNS,// parallel epibt + lns
+    WPPL,      // windowed parallel pibt + lns
 
     //PIBT_LNS,  // pibt + lns
     //P_PIBT_LNS,// parallel pibt + lns

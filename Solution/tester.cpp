@@ -8,7 +8,7 @@
 
 using json = nlohmann::json;
 
-std::ofstream table_output("Tmp/table.csv");
+std::ofstream table_output;
 
 // (throughput, milliseconds per steps)
 std::pair<double, uint32_t> call(const std::string &test, int steps_num, const std::string &plan_algo, uint32_t test_id) {
@@ -113,14 +113,21 @@ std::vector<std::tuple<std::string, int>> tests = {
 };
 
 int main() {
+
+    if (!std::filesystem::exists("Tmp")) {
+        std::filesystem::create_directories("Tmp");
+    }
+
+    table_output = std::ofstream("Tmp/table.csv");
     table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;total time\n";
     uint32_t counter = 0;
     std::vector<std::string> plan_algos = {
-            "pibt",
+            /*"pibt",
             "pibt_tf",
             "epibt",
             "epibt_lns",
-            "pepibt_lns",
+            "pepibt_lns",*/
+            "wppl",
     };
     for (auto [test, steps_num]: tests) {
         for (const auto &plan_algo: plan_algos) {
