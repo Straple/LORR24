@@ -48,12 +48,6 @@ echo "Build image and run the container... ..."
 
 docker build --no-cache -t mapf_image ./
 
-# check if gpu is available
-if nvidia-smi &> /dev/null; then
-    echo "GPU is available."
-    docker container run -it --gpus all  --name mapf_test mapf_image
-else
-    echo "GPU is not available."
-    docker container run -it --name mapf_test mapf_image
-fi
+docker container run -v /home/eyukhnevich/LORR24: -it --name mapf_test mapf_image
+
 

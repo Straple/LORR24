@@ -19,7 +19,7 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, const s
         // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
         //std::system("mkdir Tmp");
         int ret_code = std::system(
-                ("./cmake-build-release-wsl/lifelong"//
+                ("./bin/lifelong"//
                  " -i " +
                  test +                                              //
                  " -o Tmp/test" + std::to_string(test_id) + ".json" +//
