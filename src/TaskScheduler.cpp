@@ -68,7 +68,7 @@ void TaskScheduler::plan(int time_limit, std::vector<int> &proposed_schedule) {
             };
             uint32_t p = cnt * 100.0 / proposed_schedule.size();
             ASSERT(0 <= p && p <= 100, "invalid p: " + std::to_string(p));
-            Printer() << "[Scheduler] assigned robots: " << p << "%" << (p != 100 ? "bad\n" : "\n");
+            Printer() << "[Scheduler] assigned robots: " << p << "%" << (p != 100 ? " bad\n" : "\n");
             Printer() << "[Scheduler] time: " << timer << '\n';);
 #endif
 }

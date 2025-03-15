@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" showNewOnTargetInSync="false">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false" confirmBeforeDeletion="false" showNewOnTargetInSync="false">
+    <option name="confirmBeforeDeletion" value="false" />
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="Remote Host (14b3d7fa-cd81-4b1d-bdf7-7edf46a748da)">
@@ -23,6 +24,7 @@
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-remote-host" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-remote-host" />
             <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-remote-host" />
+            <excludedPath local="true" path="$PROJECT_DIR$/Tmp" />
           </excludedPaths>
         </serverdata>
       </paths>

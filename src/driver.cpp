@@ -60,12 +60,12 @@ int main(int argc, char **argv) {
     clock_t start_time = clock();
     po::store(po::parse_command_line(argc, argv, desc), vm);
 
+
+    get_unique_id() = vm["unique_id"].as<uint32_t>();
+    PRINT(Printer() << "unique_id: " << get_unique_id() << '\n';);
+
+    const std::string plan_algo = vm["planner_algo"].as<std::string>();
     {
-        get_unique_id() = vm["unique_id"].as<uint32_t>();
-        PRINT(Printer() << "unique_id: " << get_unique_id() << '\n';);
-
-        std::string plan_algo = vm["planner_algo"].as<std::string>();
-
         if (plan_algo == "pibt") {
             get_planner_type() = PlannerType::PIBT;
         } else if (plan_algo == "pibt_tf") {
@@ -185,8 +185,8 @@ int main(int argc, char **argv) {
     delete logger;
 
 #ifdef BUILD_META_INFO
-    build_meta_info("Tmp/test" + std::to_string(get_unique_id()) + ".json",
-                    "Tmp/usage" + std::to_string(get_unique_id()) + ".txt");
+    build_meta_info("Tmp/" + plan_algo + "/test" + std::to_string(get_unique_id()) + ".json",
+                    "Tmp/" + plan_algo + "/usage" + std::to_string(get_unique_id()) + ".txt");
 #endif
     Printer().get().flush();
 

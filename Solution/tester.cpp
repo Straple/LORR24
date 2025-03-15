@@ -16,19 +16,17 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, const s
     ETimer timer;
 
     {
-        // -i ./example_problems/random.domain/random_32_32_20_100.json -o test.json -s 10000 -t 200000 -p 100000000
-        //std::system("mkdir Tmp");
         int ret_code = std::system(
                 ("./bin/lifelong"//
                  " -i " +
-                 test +                                              //
-                 " -o Tmp/test" + std::to_string(test_id) + ".json" +//
-                 " -s " + std::to_string(steps_num) +                //
-                 " -t 130 " +                                        //
-                 " -p 1000000000" +                                  //
-                 " -u " + std::to_string(test_id) +                  //
-                 " --planner_algo " + plan_algo +                    //
-                 " > Tmp/output" + std::to_string(test_id) + ".txt"  //
+                 test +                                                                //
+                 " -o Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json" +//
+                 " -s " + std::to_string(steps_num) +                                  //
+                 " -t 1000 " +                                                         //
+                 " -p 1000000000" +                                                    //
+                 " -u " + std::to_string(test_id) +                                    //
+                 " --planner_algo " + plan_algo +                                      //
+                 " > Tmp/" + plan_algo + "/output" + std::to_string(test_id) + ".txt"  //
                  )
                         .c_str());
 
@@ -36,7 +34,7 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, const s
     }
 
     json data;
-    std::ifstream input("Tmp/test" + std::to_string(test_id) + ".json");
+    std::ifstream input("Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json");
     double throughput = 0;
     uint32_t avg_step_time = 0;
     uint32_t task_finished = 0;
@@ -83,7 +81,7 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, const s
 
     // build usage plots
     {
-        int ret_code = std::system(("python3 Solution/Python/build_usage_plot.py Tmp/usage" + std::to_string(test_id) + ".txt Tmp/usage_plot" + std::to_string(test_id) + "_one.pdf Tmp/usage_plot" + std::to_string(test_id) + "_all.pdf").c_str());
+        int ret_code = std::system(("python3 Solution/Python/build_usage_plot.py Tmp/" + plan_algo + "/usage" + std::to_string(test_id) + ".txt Tmp/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_one.pdf Tmp/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_all.pdf").c_str());
         ASSERT(ret_code == 0, "invalid ret code");
     }
 
@@ -114,23 +112,30 @@ std::vector<std::tuple<std::string, int>> tests = {
 
 int main() {
 
+    std::vector<std::string> plan_algos = {
+            "pibt",
+            "pibt_tf",
+            "epibt",
+            "epibt_lns",
+            "pepibt_lns",
+            "wppl",
+    };
+
     if (!std::filesystem::exists("Tmp")) {
         std::filesystem::create_directories("Tmp");
     }
 
-    table_output = std::ofstream("Tmp/table.csv");
-    table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;total time\n";
-    uint32_t counter = 0;
-    std::vector<std::string> plan_algos = {
-            /*"pibt",
-            "pibt_tf",
-            "epibt",
-            "epibt_lns",
-            "pepibt_lns",*/
-            "wppl",
-    };
-    for (auto [test, steps_num]: tests) {
-        for (const auto &plan_algo: plan_algos) {
+    for (const auto &plan_algo: plan_algos) {
+        if (!std::filesystem::exists("Tmp/" + plan_algo)) {
+            std::filesystem::create_directories("Tmp/" + plan_algo);
+        }
+    }
+
+    for (const auto &plan_algo: plan_algos) {
+        table_output = std::ofstream("Tmp/" + plan_algo + "/metrics.csv");
+        table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;total time\n";
+        uint32_t counter = 0;
+        for (auto [test, steps_num]: tests) {
             call(test, steps_num, plan_algo, counter);
             counter++;
         }

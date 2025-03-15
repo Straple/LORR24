@@ -15,13 +15,14 @@
 
 #define BUILD_META_INFO
 
-#define PRINT(args...) do { args } while(0)
+#define PRINT(args...) \
+    do { args } while (0)
 
 #define ENABLE_LNS_ANNEALING
 
 #define ENABLE_SCHEDULER_CHANGE_TASK
 
-static constexpr uint32_t THREADS = 6;
+static constexpr uint32_t THREADS = 32;
 
 static constexpr uint32_t SCHEDULER_REBUILD_DP_TIME = 300;
 

@@ -238,11 +238,14 @@ void SchedulerSolver::lazy_solve(TimePoint end_time) {
     }
     std::unordered_set<uint32_t> used_task;
 
+    uint32_t cnt_empty_dp = 0;
     // (dist, r, index)
     std::priority_queue<std::tuple<uint32_t, uint32_t, uint32_t>, std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>, std::greater<>> Heap;
     for (uint32_t r: free_robots) {
         if (!dp[r].empty()) {
             Heap.push({dp[r][0].first, r, 0});
+        } else {
+            cnt_empty_dp++;
         }
     }
 
@@ -289,16 +292,23 @@ void SchedulerSolver::lazy_solve(TimePoint end_time) {
 
     validate();
 
-    /*auto it = free_tasks.begin();
+    {
+        uint32_t p = (free_robots.size() - Heap.size() - cnt_empty_dp) * 100.0 / free_robots.size();
+        ASSERT(0 <= p && p <= 100, "invalid p: " + std::to_string(p));
+        Printer() << "[Scheduler] real assigned robots: " << p << "%" << (p != 100 ? " bad\n" : "\n");
+    }
+
+    // если робот без задачи, то мы ее дадим. это нужно для WPPL, который не может без цели, он не самурай
+    auto it = free_tasks.begin();
     for (uint32_t r = 0; r < desires.size(); r++) {
         if (desires[r] == -1) {
             while (it != free_tasks.end() && task_to_robot[*it] != -1) {
                 it++;
             }
             ASSERT(it != free_tasks.end(), "unable to set task");
-            set(r, *it);
+            add(r, *it);
         }
-    }*/
+    }
 
     PRINT(Printer() << "[Scheduler] lazy solve: " << timer << '\n';);
 }
