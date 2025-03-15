@@ -8,7 +8,7 @@
     "map_weights_path": [
         {
             "n_agents": 100000,
-            "value": "scripts/paris_weight_014.w"
+            "value": "scripts/paris_weight_014.weights"
         }
     ],
     "max_agents_in_use": [

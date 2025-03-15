@@ -12,31 +12,31 @@
         },
         {
             "n_agents": 200,
-            "value": "scripts/random_weight_101.w"
+            "value": "scripts/random_weight_101.weights"
         },
         {
           "n_agents": 400,
-          "value": "scripts/random_weight_040.w"
+          "value": "scripts/random_weight_040.weights"
         },
         {
             "n_agents": 500,
-            "value": "scripts/random_weight_040.w"
+            "value": "scripts/random_weight_040.weights"
         },
         {
             "n_agents": 600,
-            "value": "scripts/random_weight_050.w"
+            "value": "scripts/random_weight_050.weights"
         },
         {
             "n_agents": 700,
-            "value": "scripts/random_weight_050.w"
+            "value": "scripts/random_weight_050.weights"
         },
         {
             "n_agents": 800,
-            "value": "scripts/random_weight_050.w"
+            "value": "scripts/random_weight_050.weights"
         },
         {
             "n_agents": 1000000,
-            "value": "scripts/random_800_uncompressed_weights_with_wait_5000_steps.w"
+            "value": "scripts/random_800_uncompressed_weights_with_wait_5000_steps.weights"
         }
     ],
     "max_execution_steps": [

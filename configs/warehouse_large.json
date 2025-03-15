@@ -8,7 +8,7 @@
     "map_weights_path": [
         {
             "n_agents": 1000000,
-            "value": "scripts/warehouse_large_weight_008.w"
+            "value": "scripts/warehouse_large_weight_008.weights"
         }
     ],
     "max_agents_in_use": [
