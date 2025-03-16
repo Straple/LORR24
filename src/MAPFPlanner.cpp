@@ -1,11 +1,11 @@
 #include <Entry.h>
 
-#include "Planner/epibt.hpp"
-#include "Planner/epibt_lns.hpp"
-#include "Planner/pepibt_lns.hpp"
-#include "Planner/pibt.hpp"
 #include <Objects/Basic/assert.hpp>
 #include <Objects/Environment/environment.hpp>
+#include <Planner/epibt.hpp>
+#include <Planner/epibt_lns.hpp>
+#include <Planner/pepibt_lns.hpp>
+#include <Planner/pibt.hpp>
 #include <settings.hpp>
 
 #include <const.h>
@@ -22,8 +22,9 @@ void MAPFPlanner::initialize(int preprocess_time_limit) {
     int limit = preprocess_time_limit - std::chrono::duration_cast<milliseconds>(std::chrono::steady_clock::now() - env->plan_start_time).count() - DefaultPlanner::PLANNER_TIMELIMIT_TOLERANCE;
     DefaultPlanner::initialize(limit, env);
 
-    //smart_planner = SmartMAPFPlanner(env);
-    smart_planner.initialize(preprocess_time_limit);
+    if (get_planner_type() == PlannerType::WPPL) {
+        smart_planner.initialize(preprocess_time_limit);
+    }
 
     init_environment(*env);
 }

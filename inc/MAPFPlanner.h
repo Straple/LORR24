@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Objects/Environment/info.hpp>
+
 #include <ActionModel.h>
 #include <SharedEnv.h>
 
@@ -11,7 +13,11 @@ public:
 
     SmartMAPFPlanner smart_planner;
 
-    explicit MAPFPlanner(SharedEnvironment *env) : env(env), smart_planner(env) {}
+    explicit MAPFPlanner(SharedEnvironment *env) : env(env) {
+        if (get_planner_type() == PlannerType::WPPL) {
+            smart_planner = SmartMAPFPlanner(env);
+        }
+    }
 
     MAPFPlanner() {
         env = new SharedEnvironment();
