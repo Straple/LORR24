@@ -14,7 +14,7 @@
     "max_agents_in_use": [
         {
             "n_agents": 1000000,
-            "value": 2500
+            "value": -1
         }
     ],
     "max_execution_steps": [
@@ -27,12 +27,6 @@
         {
             "n_agents": 1000000,
             "value": false
-        }
-    ],
-    "max_task_completed": [
-        {
-            "n_agents": 1000000,
-            "value": 175000
         }
     ],
     "LNS": {

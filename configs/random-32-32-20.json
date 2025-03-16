@@ -60,7 +60,7 @@
     "disable_corner_target_agents": [
         {
             "n_agents": 1000000,
-            "value": true
+            "value": false
         }
     ],
     "LNS": {
