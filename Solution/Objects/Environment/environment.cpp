@@ -1,6 +1,7 @@
 #include <Objects/Environment/environment.hpp>
 
 #include <Objects/Basic/assert.hpp>
+#include <Objects/Basic/randomizer.hpp>
 
 void init_environment(SharedEnvironment &env) {
     static bool already_init = false;
@@ -38,10 +39,10 @@ void init_environment(SharedEnvironment &env) {
     get_omap() = OperationsMap(get_graph(), get_operations());
 
     // generate random agents
-    /*Randomizer rnd(74124);
+    /*Randomizer rnd(2243552234);
     std::ofstream output("agents.txt");
     std::set<uint32_t> S;
-    for(int i = 0; i < 6500; i++){
+    for(int i = 0; i < 9000; i++){
         uint32_t pos = 0;
         while(true){
             pos = rnd.get(1, get_map().get_size() - 1);
@@ -56,7 +57,7 @@ void init_environment(SharedEnvironment &env) {
         output << pos << '\n';
     }
     output.flush();
-    std::exit(0);*/
+    _exit(0);*/
 }
 
 void update_environment(SharedEnvironment &env) {
