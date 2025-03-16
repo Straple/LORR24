@@ -12,14 +12,13 @@ std::ofstream table_output;
 
 // (throughput, milliseconds per steps)
 std::pair<double, uint32_t> call(const std::string &test, int steps_num, const std::string &plan_algo, uint32_t test_id) {
-    std::cout << "call(" + std::to_string(test_id) + "): " << std::flush;
+    std::cout << "call(" + std::to_string(test_id) + ", " << plan_algo << "): " << std::flush;
     ETimer timer;
 
     {
         int ret_code = std::system(
-                ("./bin/lifelong"//
-                 " -i " +
-                 test +                                                                //
+                (std::string("./bin/lifelong") +                                       //
+                 " -i " + test +                                                       //
                  " -o Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json" +//
                  " -s " + std::to_string(steps_num) +                                  //
                  " -t 1000 " +                                                         //
@@ -109,7 +108,7 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"example_problems/random.domain/random_32_32_20_700.json", 1000},
         {"example_problems/random.domain/random_32_32_20_800.json", 1000},*/
 
-        /*{"example_problems/warehouse.domain/warehouse_large_1000.json", 5000},
+        {"example_problems/warehouse.domain/warehouse_large_1000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_2000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_3000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_4000.json", 5000},
@@ -118,9 +117,9 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"example_problems/warehouse.domain/warehouse_large_7000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_8000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_9000.json", 5000},
-        {"example_problems/warehouse.domain/warehouse_large_10000.json", 5000},*/
-        
-        {"example_problems/game.domain/brc202d_1000.json", 5000},
+        {"example_problems/warehouse.domain/warehouse_large_10000.json", 5000},
+
+        /*{"example_problems/game.domain/brc202d_1000.json", 5000},
         {"example_problems/game.domain/brc202d_2000.json", 5000},
         {"example_problems/game.domain/brc202d_3000.json", 5000},
         {"example_problems/game.domain/brc202d_4000.json", 5000},
@@ -129,14 +128,14 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"example_problems/game.domain/brc202d_7000.json", 5000},
         {"example_problems/game.domain/brc202d_8000.json", 5000},
         {"example_problems/game.domain/brc202d_9000.json", 5000},
-        {"example_problems/game.domain/brc202d_10000.json", 5000},
+        {"example_problems/game.domain/brc202d_10000.json", 5000},*/
 };
 
 int main() {
 
     std::vector<std::string> plan_algos = {
-            "pibt",
-            "pibt_tf",
+            //"pibt",
+            //"pibt_tf",
             "epibt",
             "epibt_lns",
             "pepibt_lns",

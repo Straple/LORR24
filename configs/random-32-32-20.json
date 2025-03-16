@@ -14,6 +14,10 @@
             "n_agents": 200,
             "value": "scripts/random_weight_101.weights"
         },
+		{
+		  "n_agents": 300,
+		  "value": "scripts/random_weight_101.weights"
+		},
         {
           "n_agents": 400,
           "value": "scripts/random_weight_040.weights"

@@ -48,6 +48,6 @@ echo "Build image and run the container... ..."
 
 docker build --no-cache -t mapf_image ./
 
-docker container run -v /home/eyukhnevich/LORR24: -it --name mapf_test mapf_image
+docker container run -it --name mapf_test mapf_image
 
 
