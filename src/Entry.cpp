@@ -21,6 +21,8 @@ void Entry::initialize(int preprocess_time_limit) {
 //  2. a next action that specifies how each agent should move in the next timestep.
 //NB: the parameter time_limit is specified in milliseconds.
 void Entry::compute(int time_limit, std::vector<Action> &plan, std::vector<int> &proposed_schedule) {
+    time_limit = 1000;
+
     static ETimer total_timer;
     ETimer timer;
     PRINT(

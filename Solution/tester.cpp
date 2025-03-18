@@ -21,7 +21,7 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, const s
                  " -i " + test +                                                       //
                  " -o Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json" +//
                  " -s " + std::to_string(steps_num) +                                  //
-                 " -t 1000 " +                                                         //
+                 " -t 2000 " +                                                         //
                  " -p 1000000000" +                                                    //
                  " -u " + std::to_string(test_id) +                                    //
                  " --planner_algo " + plan_algo +                                      //
@@ -87,7 +87,7 @@ std::pair<double, uint32_t> call(const std::string &test, int steps_num, const s
     return {throughput, avg_step_time};
 }
 
-std::vector<std::tuple<std::string, int>> tests = {
+std::vector<std::tuple<std::string, int, bool>> tests = {
         /*{"Data2023/city.domain/MR23-I-01.json", 1500},
         {"Data2023/city.domain/MR23-I-02.json", 3500},
         {"Data2023/random.domain/MR23-I-03.json", 500},
@@ -99,16 +99,16 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"Data2023/game.domain/MR23-I-09.json", 5000},
         {"Data2023/warehouse.domain/MR23-I-10.json", 5000},*/
 
-        /*{"example_problems/random.domain/random_32_32_20_100.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_200.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_300.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_400.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_500.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_600.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_700.json", 1000},
-        {"example_problems/random.domain/random_32_32_20_800.json", 1000},*/
+        /*{"example_problems/random.domain/random_32_32_20_100.json", 1000, false},
+        {"example_problems/random.domain/random_32_32_20_200.json", 1000, false},
+        {"example_problems/random.domain/random_32_32_20_300.json", 1000, false},
+        {"example_problems/random.domain/random_32_32_20_400.json", 1000, true},
+        {"example_problems/random.domain/random_32_32_20_500.json", 1000, true},
+        {"example_problems/random.domain/random_32_32_20_600.json", 1000, false},
+        {"example_problems/random.domain/random_32_32_20_700.json", 1000, false},
+        {"example_problems/random.domain/random_32_32_20_800.json", 1000, false},*/
 
-        {"example_problems/warehouse.domain/warehouse_large_1000.json", 5000},
+        /*{"example_problems/warehouse.domain/warehouse_large_1000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_2000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_3000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_4000.json", 5000},
@@ -117,18 +117,18 @@ std::vector<std::tuple<std::string, int>> tests = {
         {"example_problems/warehouse.domain/warehouse_large_7000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_8000.json", 5000},
         {"example_problems/warehouse.domain/warehouse_large_9000.json", 5000},
-        {"example_problems/warehouse.domain/warehouse_large_10000.json", 5000},
+        {"example_problems/warehouse.domain/warehouse_large_10000.json", 5000},*/
 
-        /*{"example_problems/game.domain/brc202d_1000.json", 5000},
-        {"example_problems/game.domain/brc202d_2000.json", 5000},
-        {"example_problems/game.domain/brc202d_3000.json", 5000},
-        {"example_problems/game.domain/brc202d_4000.json", 5000},
-        {"example_problems/game.domain/brc202d_5000.json", 5000},
-        {"example_problems/game.domain/brc202d_6000.json", 5000},
-        {"example_problems/game.domain/brc202d_7000.json", 5000},
-        {"example_problems/game.domain/brc202d_8000.json", 5000},
-        {"example_problems/game.domain/brc202d_9000.json", 5000},
-        {"example_problems/game.domain/brc202d_10000.json", 5000},*/
+        {"example_problems/game.domain/brc202d_1000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_2000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_3000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_4000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_5000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_6000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_7000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_8000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_9000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_10000.json", 5000, true},
 };
 
 int main() {
@@ -136,8 +136,8 @@ int main() {
     std::vector<std::string> plan_algos = {
             //"pibt",
             //"pibt_tf",
-            "epibt",
-            "epibt_lns",
+            //"epibt",
+            //"epibt_lns",
             "pepibt_lns",
             "wppl",
     };
@@ -156,8 +156,10 @@ int main() {
         table_output = std::ofstream("Tmp/" + plan_algo + "/metrics.csv");
         table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;total time\n";
         uint32_t counter = 0;
-        for (auto [test, steps_num]: tests) {
-            call(test, steps_num, plan_algo, counter);
+        for (auto [test, steps_num, need_to_call]: tests) {
+            if (need_to_call) {
+                call(test, steps_num, plan_algo, counter);
+            }
             counter++;
         }
     }
