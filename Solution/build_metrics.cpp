@@ -14,6 +14,10 @@ std::ofstream total_table_output;
 void call(const std::string &map_name, const std::string &plan_algo, uint32_t test_id) {
     json data;
     std::ifstream input("Data_" + map_name + "/" + plan_algo + "/test" + std::to_string(test_id) + ".json");
+    if (!input) {
+        std::cout << "unable ";
+        return;
+    }
     double throughput = 0;
     uint32_t avg_step_time = 0;
     uint32_t task_finished = 0;
@@ -69,9 +73,9 @@ void call(const std::string &map_name, const std::string &plan_algo, uint32_t te
 int main() {
 
     std::vector<std::string> maps_name = {
-            "random",
+            //"random",
             //"warehouse",
-            //"game",
+            "game",
     };
 
     std::vector<std::string> plan_algos = {
@@ -89,8 +93,11 @@ int main() {
         for (const auto &plan_algo: plan_algos) {
             table_output = std::ofstream("Data_" + map_name + "/" + plan_algo + "/metrics.csv");
             table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time\n";
-            for (uint32_t test_id = 0; test_id < 8; test_id++) {
+            for (uint32_t test_id = 0; test_id < 10; test_id++) {
+                ETimer timer;
+                std::cout << "call(" << map_name << ' ' << plan_algo << ' ' << test_id << "): " << std::flush;
                 call(map_name, plan_algo, test_id);
+                std::cout << timer << std::endl;
             }
         }
     }
