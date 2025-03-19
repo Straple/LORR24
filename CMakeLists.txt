@@ -130,6 +130,7 @@ ELSE ()
 
     add_executable(tester Solution/tester.cpp ${SOURCES})
     add_executable(lifelong src/driver.cpp ${SOURCES})
+    add_executable(build_metrics Solution/build_metrics.cpp Solution/Objects/Basic/time.cpp Solution/Objects/Basic/assert.cpp)
 
     target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})

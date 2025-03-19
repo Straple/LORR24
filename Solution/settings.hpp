@@ -41,8 +41,9 @@ struct Printer {
 template<typename T>
 Printer operator<<(Printer printer, const T &value) {
 #ifdef ENABLE_FILEPRINT
-    printer.get() << value;
-    std::cout << value;
+    //printer.get() << value;
+    //printer.get().flush();
+    std::cout << value;// << std::flush;
 #else
     std::cout << value;
 #endif
