@@ -7,85 +7,28 @@
 
 using json = nlohmann::json;
 
-std::ofstream table_output;
-
 void call(const std::string &test, int steps_num, const std::string &plan_algo, uint32_t test_id) {
     std::cout << "call(" + std::to_string(test_id) + ", " << plan_algo << "): " << std::flush;
     ETimer timer;
 
-    {
-        int ret_code = std::system(
-                (std::string("./bin/lifelong") +                                       //
-                 " -i " + test +                                                       //
-                 " -o Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json" +//
-                 " -s " + std::to_string(steps_num) +                                  //
-                 " -t 2000 " +                                                         //
-                 " -p 1000000000" +                                                    //
-                 " -u " + std::to_string(test_id) +                                    //
-                 " --planner_algo " + plan_algo +                                      //
-                 " > Tmp/" + plan_algo + "/output" + std::to_string(test_id) + ".txt"  //
-                 )
-                        .c_str());
+    int ret_code = std::system(
+            (std::string("./bin/lifelong") +                                       //
+             " -i " + test +                                                       //
+             " -o Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json" +//
+             " -s " + std::to_string(steps_num) +                                  //
+             " -t 2000 " +                                                         //
+             " -p 1000000000" +                                                    //
+             " -u " + std::to_string(test_id) +                                    //
+             " --planner_algo " + plan_algo +                                      //
+             " > Tmp/" + plan_algo + "/output" + std::to_string(test_id) + ".txt"  //
+             )
+                    .c_str());
 
-        //ASSERT(ret_code == 0, "invalid ret code");
+    //ASSERT(ret_code == 0, "invalid ret code");
 
-        std::cout << timer << std::endl;
-        if(ret_code != 0){
-            call(test, steps_num, plan_algo, test_id);
-        }
-        return;
-    }
-
-    json data;
-    std::ifstream input("Tmp/" + plan_algo + "/test" + std::to_string(test_id) + ".json");
-    double throughput = 0;
-    uint32_t avg_step_time = 0;
-    uint32_t task_finished = 0;
-    uint32_t agents_num = 0;
-    try {
-        data = json::parse(input);
-
-        task_finished = data["numTaskFinished"];
-        throughput = static_cast<double>(data["numTaskFinished"]) / steps_num;
-        std::vector<double> times = data["plannerTimes"];
-        avg_step_time = static_cast<uint32_t>(std::accumulate(times.begin(), times.end(), 0.0) * 1000 / steps_num);
-        agents_num = data["teamSize"];
-
-        auto kek = [&](double x) {
-            std::stringstream ss;
-            ss << x;
-            std::string str = ss.str();
-            for (char &c: str) {
-                if (c == '.') {
-                    c = ',';
-                }
-            }
-            return str;
-        };
-
-        std::cout << task_finished << ", " << timer;
-        table_output << test_id << ";" << plan_algo << ";" << agents_num << ";" << steps_num << ";" << task_finished << ";" << kek(throughput) << ";" << avg_step_time << ";" << timer.get_ms() << std::endl;
-
-        if (data["numEntryTimeouts"] != 0) {
-            std::cout << " ENTRY TIMEOUT";
-        }
-        if (data["numPlannerErrors"] != 0) {
-            std::cout << " PLANNER ERROR";
-        }
-        if (data["numScheduleErrors"] != 0) {
-            std::cout << "SCHEDULER ERROR";
-        }
-
-        std::cout << std::endl;
-
-    } catch (const json::parse_error &error) {
-        std::cerr << "Message: " << error.what() << std::endl;
-    }
-
-    // build usage plots
-    {
-        int ret_code = std::system(("python3 Solution/Python/build_usage_plot.py Tmp/" + plan_algo + "/usage" + std::to_string(test_id) + ".txt Tmp/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_one.pdf Tmp/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_all.pdf").c_str());
-        ASSERT(ret_code == 0, "invalid ret code");
+    std::cout << timer << std::endl;
+    if (ret_code != 0) {
+        call(test, steps_num, plan_algo, test_id);
     }
 }
 
@@ -110,11 +53,11 @@ std::vector<std::tuple<std::string, int, bool>> tests = {
         {"example_problems/random.domain/random_32_32_20_700.json", 1000, true},
         {"example_problems/random.domain/random_32_32_20_800.json", 1000, true},*/
 
-        {"example_problems/warehouse.domain/warehouse_large_1000.json", 5000, false},
-        {"example_problems/warehouse.domain/warehouse_large_2000.json", 5000, false},
-        {"example_problems/warehouse.domain/warehouse_large_3000.json", 5000, false},
-        {"example_problems/warehouse.domain/warehouse_large_4000.json", 5000, false},
-        {"example_problems/warehouse.domain/warehouse_large_5000.json", 5000, false},
+        {"example_problems/warehouse.domain/warehouse_large_1000.json", 5000, true},
+        {"example_problems/warehouse.domain/warehouse_large_2000.json", 5000, true},
+        {"example_problems/warehouse.domain/warehouse_large_3000.json", 5000, true},
+        {"example_problems/warehouse.domain/warehouse_large_4000.json", 5000, true},
+        {"example_problems/warehouse.domain/warehouse_large_5000.json", 5000, true},
         {"example_problems/warehouse.domain/warehouse_large_6000.json", 5000, true},
         {"example_problems/warehouse.domain/warehouse_large_7000.json", 5000, true},
         {"example_problems/warehouse.domain/warehouse_large_8000.json", 5000, true},
@@ -137,10 +80,10 @@ int main() {
 
     std::vector<std::string> plan_algos = {
             //"pibt",
-            //"epibt",
+            "epibt",
             //"epibt_lns",
-            //"pepibt_lns",
-            "wppl",
+            "pepibt_lns",
+            //"wppl",
             //"pibt_tf",
     };
 
@@ -155,8 +98,6 @@ int main() {
     }
 
     for (const auto &plan_algo: plan_algos) {
-        table_output = std::ofstream("Tmp/" + plan_algo + "/metrics.csv");
-        table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;total time\n";
         uint32_t counter = 0;
         for (auto [test, steps_num, need_to_call]: tests) {
             if (need_to_call) {

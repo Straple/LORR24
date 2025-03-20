@@ -128,18 +128,14 @@ IF (PYTHON)
 ELSE ()
     message(STATUS "Python support is disabled")
 
-    add_executable(tester Solution/tester.cpp ${SOURCES})
+    add_executable(tester Solution/tester.cpp Solution/Objects/Basic/time.cpp Solution/Objects/Basic/assert.cpp)
     add_executable(lifelong src/driver.cpp ${SOURCES})
     add_executable(build_metrics Solution/build_metrics.cpp Solution/Objects/Basic/time.cpp Solution/Objects/Basic/assert.cpp)
 
-    target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_compile_definitions(lifelong PRIVATE PYTHON=${PYTHON_FLAG})
+    target_link_libraries(lifelong ${Boost_LIBRARIES})
     target_link_libraries(lifelong OpenMP::OpenMP_CXX)
     target_link_libraries(lifelong spdlog::spdlog)
-
-    target_link_libraries(tester ${Boost_LIBRARIES})
-    target_link_libraries(tester OpenMP::OpenMP_CXX)
-    target_link_libraries(tester spdlog::spdlog)
 
 ENDIF ()
 
