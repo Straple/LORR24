@@ -111,6 +111,7 @@ int64_t EPIBT::get_smart_dist_IMPL(uint32_t r, uint32_t desired) const {
 
     // стой и никому не мешай
     if (robots[r].is_disable()) {
+        FAILED_ASSERT("disable is deprecated");
         dist = desired;
     }
     return dist;
@@ -239,6 +240,7 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
         for (uint32_t r = 0; r < robots.size(); r++) {
             double power = (max_weight - weight[r]) * 1.0 / max_weight;
             if (robots[r].is_disable()) {
+                FAILED_ASSERT("robot must be not disable");
                 power = 0;
             }
             power = power * power;
@@ -269,7 +271,7 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
                     if (!validate_path(r, desired)) {
                         continue;
                     }
-                    smart_dist_dp[r][desired] += get_smart_dist_IMPL(r, desired);
+                    smart_dist_dp[r][desired] = get_smart_dist_IMPL(r, desired);
                 }
             }
         };
@@ -298,7 +300,8 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
                     int64_t priority = get_smart_dist(r, desired);
                     steps.emplace_back(priority, desired);
                 }
-                std::sort(steps.begin(), steps.end());
+                std::reverse(steps.begin(), steps.end());
+                std::stable_sort(steps.begin(), steps.end());
                 for (auto [priority, desired]: steps) {
                     robot_desires[r].push_back(desired);
                 }
@@ -314,7 +317,7 @@ EPIBT::EPIBT(const std::vector<Robot> &robots, TimePoint end_time)
         }
     }
 
-    for (uint32_t r = 0; r < this->robots.size(); r++) {
+    for (uint32_t r = 0; r < robots.size(); r++) {
         add_path(r);
     }
 

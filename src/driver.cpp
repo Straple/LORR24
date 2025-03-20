@@ -185,6 +185,7 @@ int main(int argc, char **argv) {
     delete logger;
 
 #ifdef BUILD_META_INFO
+    //build_meta_info("test.json", "usage.txt");
     build_meta_info("Tmp/" + plan_algo + "/test" + std::to_string(get_unique_id()) + ".json",
                     "Tmp/" + plan_algo + "/usage" + std::to_string(get_unique_id()) + ".txt");
 #endif
