@@ -25,14 +25,16 @@ def read(filename):
                     data.append([])
                     for y in range(0, cols):
                         pos = x * cols + y + 1
-                        # if map[pos] == 0:
-                        #    map[pos] = -100
-                        data[-1].append(int(map[pos]))
-                        mn = min(mn, map[pos])
-                        mx = max(mx, map[pos])
+                        if map[pos] != -1:
+                           map[pos] = float(map[pos]) / 5000
+                           mn = min(mn, map[pos])
+                           mx = max(mx, map[pos])
+                        data[-1].append(float(map[pos]))
 
                 result[-1].append(data)
-
+        assert 0 <= mn, "invalid mn: " + str(mn)
+        assert mx <= 1, "invalid mx: " + str(mx)
+        mx = 1.0
         return result, mn, mx
 
 
@@ -95,7 +97,7 @@ def paint_one(data, mn, mx, to_file):
     map = np.array(data[dir][act])  # матрица
     ax = axes
 
-    images.append(ax.imshow(map, cmap=good_cmap))
+    images.append(ax.imshow(map, cmap=good_cmap, vmin=mn, vmax=mx))
 
     if True:
         mask = map == -1

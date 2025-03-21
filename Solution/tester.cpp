@@ -53,7 +53,7 @@ std::vector<std::tuple<std::string, int, bool>> tests = {
         {"example_problems/random.domain/random_32_32_20_700.json", 1000, true},
         {"example_problems/random.domain/random_32_32_20_800.json", 1000, true},*/
 
-        /*{"example_problems/warehouse.domain/warehouse_large_1000.json", 5000, false},
+        {"example_problems/warehouse.domain/warehouse_large_1000.json", 5000, false},
         {"example_problems/warehouse.domain/warehouse_large_2000.json", 5000, false},
         {"example_problems/warehouse.domain/warehouse_large_3000.json", 5000, false},
         {"example_problems/warehouse.domain/warehouse_large_4000.json", 5000, false},
@@ -62,9 +62,9 @@ std::vector<std::tuple<std::string, int, bool>> tests = {
         {"example_problems/warehouse.domain/warehouse_large_7000.json", 5000, true},
         {"example_problems/warehouse.domain/warehouse_large_8000.json", 5000, true},
         {"example_problems/warehouse.domain/warehouse_large_9000.json", 5000, true},
-        {"example_problems/warehouse.domain/warehouse_large_10000.json", 5000, true},*/
+        {"example_problems/warehouse.domain/warehouse_large_10000.json", 5000, true},
 
-        {"example_problems/game.domain/brc202d_1000.json", 5000, false},
+        /*{"example_problems/game.domain/brc202d_1000.json", 5000, false},
         {"example_problems/game.domain/brc202d_2000.json", 5000, false},
         {"example_problems/game.domain/brc202d_3000.json", 5000, false},
         {"example_problems/game.domain/brc202d_4000.json", 5000, false},
@@ -73,15 +73,12 @@ std::vector<std::tuple<std::string, int, bool>> tests = {
         {"example_problems/game.domain/brc202d_7000.json", 5000, true},
         {"example_problems/game.domain/brc202d_8000.json", 5000, true},
         {"example_problems/game.domain/brc202d_9000.json", 5000, true},
-        {"example_problems/game.domain/brc202d_10000.json", 5000, true},
+        {"example_problems/game.domain/brc202d_10000.json", 5000, true},*/
 };
 
-// TODO: GAME, PEPIBT_LNS пересчитать 4-9
-
-// кажется, тот сервер считает GAME, WPPL(не посчитан) + PIBT_TF(timeout)
-// сейчас сервер Артема решает GAME, PEPIBT_LNS 4-9
-
 // GAME, EPIBT_LNS нужно пересчитать: operations bug, но вообще можно его не включать просто
+
+// на том сервере WPPL и pibt_tf до конца посчитаны
 
 int main() {
 
@@ -89,9 +86,9 @@ int main() {
             //"pibt",
             //"epibt",
             //"epibt_lns",
-            "pepibt_lns",
+            //"pepibt_lns",
             //"wppl",
-            //"pibt_tf",
+            "pibt_tf",
     };
 
     if (!std::filesystem::exists("Tmp")) {

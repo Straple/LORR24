@@ -5,9 +5,9 @@ import matplotlib.colors
 import pandas as pd
 from PIL import Image
 
-plan_algos = ['pibt', 'pibt_tf', 'epibt', 'epibt_lns', 'pepibt_lns', 'wppl']
-plan_algos_name = ['PIBT', 'PIBT+traffic flow', 'EPIBT', 'EPIBT+LNS', 'Parallel EPIBT+LNS', 'WPPL']
-markers = ['o', 'v', 's', 'p', '*', 'x']
+plan_algos = ['pibt', 'pibt_tf', 'epibt', 'pepibt_lns', 'wppl']
+plan_algos_name = ['PIBT', 'PIBT+traffic flow', 'EPIBT', 'EPIBT+LNS', 'WPPL']
+markers = ['o', 'v', 's', 'p', '*']
 
 
 def add_map(map_name, map_text, column):
