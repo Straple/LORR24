@@ -1,0 +1,9 @@
+id;planner algo;agents num;steps num;num task finished;throughput;avg step time
+0;pepibt_lns;100;1000;2405;2,405;950
+1;pepibt_lns;200;1000;4540;4,54;950
+2;pepibt_lns;300;1000;6090;6,09;950
+3;pepibt_lns;400;1000;6964;6,964;950
+4;pepibt_lns;500;1000;6582;6,582;950
+5;pepibt_lns;600;1000;5659;5,659;951
+6;pepibt_lns;700;1000;4917;4,917;951
+7;pepibt_lns;800;1000;2321;2,321;951

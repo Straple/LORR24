@@ -1,0 +1,9 @@
+id;planner algo;agents num;steps num;num task finished;throughput;avg step time
+0;pibt;100;1000;2058;2,058;1
+1;pibt;200;1000;2762;2,762;1
+2;pibt;300;1000;2666;2,666;1
+3;pibt;400;1000;2093;2,093;1
+4;pibt;500;1000;1755;1,755;2
+5;pibt;600;1000;1448;1,448;2
+6;pibt;700;1000;1164;1,164;3
+7;pibt;800;1000;794;0,794;7
