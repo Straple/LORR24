@@ -32,6 +32,21 @@ void call(const std::string &map_name, const std::string &plan_algo, uint32_t te
         avg_step_time = static_cast<uint32_t>(std::accumulate(times.begin(), times.end(), 0.0) * 1000 / steps_num);
         agents_num = data["teamSize"];
 
+        double CI_left = 0;
+        double CI_right = 0;
+        {
+            double avgx = avg_step_time;
+            double sigma = std::sqrt(std::accumulate(times.begin(), times.end(), 0, [&](double sum, double x) {
+                                         return sum + (x - avgx) * (x - avgx);
+                                     }) /
+                                     (times.size() - 1));
+
+            double z = 1.96;
+            double sem = sigma / std::sqrt(times.size());
+            CI_left = avgx - z * sem;
+            CI_right = avgx + z * sem;
+        }
+
         auto kek = [&](double x) {
             std::stringstream ss;
             ss << x;
@@ -44,8 +59,8 @@ void call(const std::string &map_name, const std::string &plan_algo, uint32_t te
             return str;
         };
 
-        table_output << test_id << ";" << plan_algo << ";" << agents_num << ";" << steps_num << ";" << task_finished << ";" << kek(throughput) << ";" << avg_step_time << std::endl;
-        total_table_output << test_id << ";" << plan_algo << ";" << agents_num << ";" << steps_num << ";" << task_finished << ";" << kek(throughput) << ";" << avg_step_time << std::endl;
+        table_output << test_id << ";" << plan_algo << ";" << agents_num << ";" << steps_num << ";" << task_finished << ";" << kek(throughput) << ";" << avg_step_time << ";" << CI_left << ";" << CI_right << std::endl;
+        total_table_output << test_id << ";" << plan_algo << ";" << agents_num << ";" << steps_num << ";" << task_finished << ";" << kek(throughput) << ";" << avg_step_time << ";" << CI_left << ";" << CI_right << std::endl;
 
         if (data["numEntryTimeouts"] != 0) {
             std::cerr << "\nENTRY TIMEOUT\n";
@@ -65,17 +80,17 @@ void call(const std::string &map_name, const std::string &plan_algo, uint32_t te
 
     // build usage plots
     {
-        int ret_code = std::system(("python3 Solution/Python/build_usage_plot.py Data_" + map_name + "/" + plan_algo + "/usage" + std::to_string(test_id) + ".txt Data_" + map_name + "/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_one.pdf Data_" + map_name + "/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_all.pdf").c_str());
-        ASSERT(ret_code == 0, "invalid ret code");
+        //int ret_code = std::system(("python3 Solution/Python/build_usage_plot.py Data_" + map_name + "/" + plan_algo + "/usage" + std::to_string(test_id) + ".txt Data_" + map_name + "/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_one.pdf Data_" + map_name + "/" + plan_algo + "/usage_plot" + std::to_string(test_id) + "_all.pdf").c_str());
+        //ASSERT(ret_code == 0, "invalid ret code");
     }
 }
 
 int main() {
 
     std::vector<std::string> maps_name = {
-            //"random",
+            "random",
             "warehouse",
-            //"game",
+            "game",
     };
 
     std::vector<std::string> plan_algos = {
@@ -89,10 +104,10 @@ int main() {
 
     for (const auto &map_name: maps_name) {
         total_table_output = std::ofstream("Data_" + map_name + "/total_metrics.csv");
-        total_table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time\n";
+        total_table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;CI left;CI right\n";
         for (const auto &plan_algo: plan_algos) {
             table_output = std::ofstream("Data_" + map_name + "/" + plan_algo + "/metrics.csv");
-            table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time\n";
+            table_output << "id;planner algo;agents num;steps num;num task finished;throughput;avg step time;CI left;CI right\n";
             for (uint32_t test_id = 0; test_id < 10; test_id++) {
                 ETimer timer;
                 std::cout << "call(" << map_name << ' ' << plan_algo << ' ' << test_id << "): " << std::flush;

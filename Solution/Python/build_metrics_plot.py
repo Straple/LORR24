@@ -29,7 +29,7 @@ def add_map(map_name, map_text, column):
             df = grouped.get_group(plan_algos[i])
             ax.plot(df['agents num'], df['throughput'], label=plan_algos_name[i], marker=markers[i])
             if map_name == "random":
-                ax.set_ylabel('throughput')
+                ax.set_ylabel('Throughput')
             ax.grid(True)
         except:
             print("no group:", plan_algos[i])
@@ -41,8 +41,9 @@ def add_map(map_name, map_text, column):
             ax.plot(df['agents num'], df['avg step time'], label=plan_algos_name[i], marker=markers[i])
             ax.set_yscale('log')
             if map_name == "random":
-                ax.set_ylabel('avg step time')
+                ax.set_ylabel('Decision Time (s)')
             ax.grid(True)
+            ax.set_xlabel('Number of Agents')
         except:
             print("no group:", plan_algos[i])
 
@@ -54,15 +55,13 @@ if __name__ == '__main__':
     add_map('warehouse', 'warehouse\nSize: 140x500\n|V|=38586', 1)
     add_map('game', 'brc202d\nSize: 530x481\n|V|=43151', 2)
 
-    fig.supxlabel('agents num')
-
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
     # remove not unique lines
     while len(lines) > len(plan_algos):
         lines.pop(-1)
         labels.pop(-1)
-    fig.legend(lines, labels, loc='upper center', ncol=6)
+    fig.legend(lines, labels, loc='lower center', ncol=6)
 
     plt.savefig("metrics_plot.pdf", format='pdf', dpi=800)
     plt.show()
