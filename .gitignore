@@ -14,3 +14,6 @@ venv
 Tmp
 CMakePresets.json
 printer
+Data_game
+Data_random
+Data_warehouse

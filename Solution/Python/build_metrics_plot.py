@@ -23,11 +23,10 @@ def add_map(map_name, map_text, column):
     ax.set_yticks([])
 
     ax = axes[1][column]
-
     for i in range(len(plan_algos)):
         try:
             df = grouped.get_group(plan_algos[i])
-            ax.plot(df['agents num'], df['throughput'], label=plan_algos_name[i], marker=markers[i])
+            ax.plot(df['agents num'], df['throughput'], alpha=0.7, label=plan_algos_name[i], marker=markers[i])
             if map_name == "random":
                 ax.set_ylabel('Throughput')
             ax.grid(True)
@@ -38,10 +37,10 @@ def add_map(map_name, map_text, column):
     for i in range(len(plan_algos)):
         try:
             df = grouped.get_group(plan_algos[i])
-            ax.plot(df['agents num'], df['avg step time'], label=plan_algos_name[i], marker=markers[i])
+            ax.plot(df['agents num'], df['avg step time'], alpha=0.7, label=plan_algos_name[i], marker=markers[i])
             ax.set_yscale('log')
             if map_name == "random":
-                ax.set_ylabel('Decision Time (s)')
+                ax.set_ylabel('Decision Time (ms)')
             ax.grid(True)
             ax.set_xlabel('Number of Agents')
         except:
