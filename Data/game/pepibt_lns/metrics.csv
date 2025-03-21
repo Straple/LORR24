@@ -1,0 +1,11 @@
+id;planner algo;agents num;steps num;num task finished;throughput;avg step time
+0;pepibt_lns;1000;5000;10729;2,1458;951
+1;pepibt_lns;2000;5000;21300;4,26;953
+2;pepibt_lns;3000;5000;29795;5,959;953
+3;pepibt_lns;4000;5000;17974;3,5948;954
+4;pepibt_lns;5000;5000;16283;3,2566;955
+5;pepibt_lns;6000;5000;17796;3,5592;956
+6;pepibt_lns;7000;5000;17183;3,4366;956
+7;pepibt_lns;8000;5000;16788;3,3576;956
+8;pepibt_lns;9000;5000;17114;3,4228;966
+9;pepibt_lns;10000;5000;17574;3,5148;968
