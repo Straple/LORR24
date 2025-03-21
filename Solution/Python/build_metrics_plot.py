@@ -28,7 +28,8 @@ def add_map(map_name, map_text, column):
         try:
             df = grouped.get_group(plan_algos[i])
             ax.plot(df['agents num'], df['throughput'], label=plan_algos_name[i], marker=markers[i])
-            ax.set_ylabel('throughput')
+            if map_name == "random":
+                ax.set_ylabel('throughput')
             ax.grid(True)
         except:
             print("no group:", plan_algos[i])
@@ -39,7 +40,8 @@ def add_map(map_name, map_text, column):
             df = grouped.get_group(plan_algos[i])
             ax.plot(df['agents num'], df['avg step time'], label=plan_algos_name[i], marker=markers[i])
             ax.set_yscale('log')
-            ax.set_ylabel('avg step time')
+            if map_name == "random":
+                ax.set_ylabel('avg step time')
             ax.grid(True)
         except:
             print("no group:", plan_algos[i])
@@ -62,4 +64,5 @@ if __name__ == '__main__':
         labels.pop(-1)
     fig.legend(lines, labels, loc='upper center', ncol=6)
 
+    plt.savefig("metrics_plot.pdf", format='pdf', dpi=800)
     plt.show()
